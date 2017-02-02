@@ -1,4 +1,0 @@
-author: Carbonhell
-delete-after: True
-changes: 
-  - bugfix: "Traitor AIs will now get their special_role var set correctly at roundstart."
