@@ -26,7 +26,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	new /obj/effect/immovablerod(startT, endT)
 
 /obj/effect/immovablerod
-	name = "Immovable rod"
+	name = "immovable rod"
 	desc = "What the fuck is that?"
 	icon = 'icons/obj/objects.dmi'
 	icon_state = "immrod"
@@ -37,7 +37,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	var/destination
 
 /obj/effect/immovablerod/butt
-	name = "Enormous ass"
+	name = "enormous ass"
 	desc = "godDAMN that ass is well rounded"
 	icon = 'icons/obj/surgery.dmi'
 	icon_state = "butt"
@@ -91,7 +91,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	else if (istype(clong, /mob))
 		if(istype(clong, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = clong
-			H.visible_message("<span class='danger'>[H.name] is penetrated by an [name]!</span>" , "<span class='userdanger'>An [name] penetrates you!</span>" , "<span class ='danger'>You hear a CLANG!</span>")
+			H.visible_message("<span class='danger'>[H.name] is penetrated by [name]!</span>" , "<span class='userdanger'>You are penetrated by [name]!</span>" , "<span class ='danger'>You hear a CLANG!</span>")
 			H.adjustBruteLoss(160)
 		if(clong.density || prob(10))
 			clong.ex_act(2)
