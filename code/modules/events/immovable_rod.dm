@@ -37,7 +37,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	var/destination
 
 /obj/effect/immovablerod/butt
-	name = "gigantic ass"
+	name = "enormous ass"
 	desc = "godDAMN that ass is well rounded"
 	icon = 'icons/obj/surgery.dmi'
 	icon_state = "butt"
@@ -54,6 +54,8 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	poi_list += src
 	if(end && end.z==z_original)
 		walk_towards(src, destination, 1)
+	if(icon_state == "butt")
+		SpinAnimation(24,200)
 
 /obj/effect/immovablerod/Topic(href, href_list)
 	if(href_list["orbit"])
@@ -89,7 +91,7 @@ In my current plan for it, 'solid' will be defined as anything with density == 1
 	else if (istype(clong, /mob))
 		if(istype(clong, /mob/living/carbon/human))
 			var/mob/living/carbon/human/H = clong
-			H.visible_message("<span class='danger'>[H.name] is penetrated by an immovable rod!</span>" , "<span class='userdanger'>The rod penetrates you!</span>" , "<span class ='danger'>You hear a CLANG!</span>")
+			H.visible_message("<span class='danger'>[H.name] is penetrated by [name]!</span>" , "<span class='userdanger'>[name] penetrates you!</span>" , "<span class ='danger'>You hear a CLANG!</span>")
 			H.adjustBruteLoss(160)
 		if(clong.density || prob(10))
 			clong.ex_act(2)
