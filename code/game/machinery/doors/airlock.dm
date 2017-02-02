@@ -56,7 +56,7 @@ var/list/airlock_overlays = list()
 	var/boltUp = 'sound/machines/BoltsUp.ogg'
 	var/boltDown = 'sound/machines/BoltsDown.ogg'
 	var/noPower = 'sound/machines/DoorClick.ogg'
-
+	var/force_delay = 0
 	var/airlock_material = null //material of inner filling; if its an airlock with glass, this should be set to "glass"
 	var/overlays_file = 'icons/obj/doors/airlocks/station/overlays.dmi'
 
@@ -1185,6 +1185,8 @@ var/list/airlock_overlays = list()
 		return
 	if(!density) //Already open
 		return
+	if(force_delay)
+		return
 	if(locked || welded) //Extremely generic, as aliens only understand the basics of how airlocks work.
 		user << "<span class='warning'>[src] refuses to budge!</span>"
 		return
@@ -1195,8 +1197,9 @@ var/list/airlock_overlays = list()
 	if(hasPower())
 		time_to_open = 50 //Powered airlocks take longer to open, and are loud.
 		playsound(src, 'sound/machines/airlock_alien_prying.ogg', 100, 1)
-
-
+	force_delay = 1
+	spawn(20) //Roughly 2 seconds
+		force_delay = 0
 	if(do_after(user, time_to_open, target = src))
 		if(density && !open(2)) //The airlock is still closed, but something prevented it opening. (Another player noticed and bolted/welded the airlock in time!)
 			user << "<span class='warning'>Despite your efforts, [src] managed to resist your attempts to open it!</span>"
