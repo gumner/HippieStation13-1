@@ -11,15 +11,19 @@
 	var/autoadmin_rank = "Game Admin"
 
 /datum/configuration
+	var/name = "Configuration"			// datum name
+
 	var/server_name = null				// server name (the name of the game window)
 	var/station_name = null				// station name (the name of the station in-game)
 	var/server_suffix = 0				// generate numeric suffix based on server port
 	var/lobby_countdown = 120			// In between round countdown.
+	var/round_end_countdown = 25		// Post round murder death kill countdown
 
 	var/log_ooc = 0						// log OOC channel
 	var/log_access = 0					// log login/logout
 	var/log_say = 0						// log client say
 	var/log_admin = 0					// log admin actions
+	var/log_mentor = 0					// log admin actions
 	var/log_game = 0					// log game events
 	var/log_vote = 0					// log voting
 	var/log_whisper = 0					// log client whisper
@@ -29,7 +33,8 @@
 	var/log_attack = 0					// log attack messages
 	var/log_adminchat = 0				// log admin chat messages
 	var/log_pda = 0						// log pda messages
-	var/log_hrefs = 0					// logs all links clicked in-game. Could be used for debugging and tracking down exploits
+	var/log_hrefs = 0					// log all links clicked in-game. Could be used for debugging and tracking down exploits
+	var/log_world_topic = 0				// log all world.Topic() calls
 	var/sql_enabled = 0					// for sql switching
 	var/allow_admin_ooccolor = 0		// Allows admins with relevant permissions to have their own ooc colour
 	var/allow_vote_restart = 0 			// allow votes to restart
@@ -41,8 +46,7 @@
 	var/del_new_on_log = 1				// del's new players if they log before they spawn in
 	var/allow_Metadata = 0				// Metadata is supported.
 	var/popup_admin_pm = 0				//adminPMs to non-admins show in a pop-up 'reply' window when set to 1.
-	var/fps = 10
-	var/Tickcomp = 0
+	var/fps = 20
 	var/allow_holidays = 0				//toggles whether holiday-specific content should be used
 
 	var/hostedby = null
@@ -63,21 +67,26 @@
 	var/forumurl = "http://tgstation13.org/phpBB/index.php" //default forums
 	var/rulesurl = "http://www.tgstation13.org/wiki/Rules" // default rules
 	var/githuburl = "https://www.github.com/tgstation/-tg-station" //default github
-	var/teamspeakurl = "" //default Teamspeak URL, TG doesnt have teamspeak hence it being empty
 
 	var/forbid_singulo_possession = 0
 	var/useircbot = 0
 
+	var/check_randomizer = 0
+
+	//IP Intel vars
+	var/ipintel_email
+	var/ipintel_rating_bad = 1
+	var/ipintel_save_good = 12
+	var/ipintel_save_bad = 1
+	var/ipintel_domain = "check.getipintel.net"
+
 	var/mentors_mobname_only = 0		// Only display mob name to mentors in mentorhelps
-	var/mentor_legacy_system = 0		// Whether to use the legacy mentor system (flat file) instead of SQL
+	var/mentor_legacy_system = 0	// Whether to use the legacy mentor system (flat file) instead of SQL
 
 	var/admin_legacy_system = 0	//Defines whether the server uses the legacy admin system with admins.txt or the SQL system. Config option in config.txt
 	var/ban_legacy_system = 0	//Defines whether the server uses the legacy banning system with the files in /data or the SQL system. Config option in config.txt
 	var/use_age_restriction_for_jobs = 0 //Do jobs use account age restrictions? --requires database
 	var/see_own_notes = 0 //Can players see their own admin notes (read-only)? Config option in config.txt
-
-	var/announce_watchlist = 0
-	var/announce_adminhelps = 0
 
 	//Population cap vars
 	var/soft_popcap				= 0
@@ -95,8 +104,9 @@
 	var/list/probabilities = list()		// relative probability of each mode
 
 	var/humans_need_surnames = 0
-	var/allow_random_events = 0			// enables random events mid-round when set to 1
 	var/allow_ai = 0					// allow ai job
+	var/forbid_secborg = 0				// disallow secborg module to be chosen.
+	var/forbid_peaceborg = 0
 	var/panic_bunker = 0				// prevents new people it hasn't seen before from connecting
 	var/notify_new_player_age = 0		// how long do we notify admins of a new player
 	var/irc_first_connection_alert = 0	// do we notify the irc channel when somebody is connecting for the first time?
@@ -118,21 +128,20 @@
 	var/shuttle_refuel_delay = 12000
 	var/show_game_type_odds = 0			//if set this allows players to see the odds of each roundtype on the get revision screen
 	var/mutant_races = 0				//players can choose their mutant race before joining the game
+	var/list/roundstart_races = list()	//races you can play as from the get go. If left undefined the game's roundstart var for species is used
 	var/mutant_humans = 0				//players can pick mutant bodyparts for humans before joining the game
 
 	var/no_summon_guns		//No
 	var/no_summon_magic		//Fun
 	var/no_summon_events	//Allowed
 
+	var/intercept = 1					//Whether or not to send a communications intercept report roundstart. This may be overriden by gamemodes.
 	var/alert_desc_green = "All threats to the station have passed. Security may not have weapons visible, privacy laws are once again fully enforced."
 	var/alert_desc_blue_upto = "The station has received reliable information about possible hostile activity on the station. Security staff may have weapons visible, random searches are permitted."
 	var/alert_desc_blue_downto = "The immediate threat has passed. Security may no longer have weapons drawn at all times, but may continue to have them visible. Random searches are still allowed."
 	var/alert_desc_red_upto = "There is an immediate serious threat to the station. Security may have weapons unholstered at all times. Random searches are allowed and advised."
 	var/alert_desc_red_downto = "The station's destruction has been averted. There is still however an immediate serious threat to the station. Security may have weapons unholstered at all times, random searches are allowed and advised."
 	var/alert_desc_delta = "Destruction of the station is imminent. All crew are instructed to obey all instructions given by heads of staff. Any violations of these orders can be punished by death. This is not a drill."
-
-	var/health_threshold_crit = 0
-	var/health_threshold_dead = -100
 
 	var/revival_pod_plants = 1
 	var/revival_cloning = 1
@@ -155,11 +164,13 @@
 	var/slime_delay = 0
 	var/animal_delay = 0
 
-	var/gateway_delay = 6000 //How long the gateway takes before it activates. Default is 18000 - half an an hour.
+	var/gateway_delay = 18000 //How long the gateway takes before it activates. Default is half an hour.
 	var/ghost_interaction = 0
 
 	var/silent_ai = 0
 	var/silent_borg = 0
+
+	var/damage_multiplier = 1 //Modifier for damage to all mobs. Impacts healing as well.
 
 	var/allowwebclient = 0
 	var/webclientmembersonly = 0
@@ -172,11 +183,12 @@
 	var/assistant_cap = -1
 
 	var/starlight = 0
+	var/generate_minimaps = 0
 	var/grey_assistants = 0
 
-	var/aggressive_changelog = 0
+	var/lavaland_budget = 60
 
-	var/roundstart_awaymissions = 0 //if an away mission will be loaded at roundstart.
+	var/aggressive_changelog = 0
 
 	var/reactionary_explosions = 0 //If we use reactionary explosions, explosions that react to walls and doors
 
@@ -185,22 +197,31 @@
 	var/announce_admin_logout = 0
 	var/announce_admin_login = 0
 
-	// Templates
-	var/place_amount_min = 0
-	var/place_amount_max = 0
-	var/list/ignore_types = list()
-	var/list/zs = list()
-	var/list/place_last = list()
-	var/tries = 10
-	var/directory = null
+	var/list/datum/votablemap/maplist = list()
+	var/datum/votablemap/defaultmap = null
+	var/maprotation = 1
+	var/maprotatechancedelta = 0.75
 
-	//proxykick
-	var/proxykick = 0 // disabled by default
-	var/proxykickemail = ""
-	var/proxykicklimit = 1 // ranges from 0 to 1
+	// Enables random events mid-round when set to 1
+	var/allow_random_events = 0
+
+	// Multipliers for random events minimal starting time and minimal players amounts
+	var/events_min_time_mul = 1
+	var/events_min_players_mul = 1
+
+	// The object used for the clickable stat() button.
+	var/obj/effect/statclick/statclick
+
+	var/client_warn_version = 0
+	var/client_warn_message = "Your version of byond may have issues or be blocked from accessing this server in the future."
+	var/client_error_version = 0
+	var/client_error_message = "Your version of byond is too old, may have issues, and is blocked from accessing this server."
+
+	var/cross_name = "Other server"
+	var/showircname = 0
 
 /datum/configuration/New()
-	var/list/L = typesof(/datum/game_mode) - /datum/game_mode
+	var/list/L = subtypesof(/datum/game_mode)
 	for(var/T in L)
 		// I wish I didn't have to instance the game modes in order to look up
 		// their information, but it is the only way (at least that I know of).
@@ -221,7 +242,8 @@
 	var/list/Lines = file2list(filename)
 
 	for(var/t in Lines)
-		if(!t)	continue
+		if(!t)
+			continue
 
 		t = trim(t)
 		if(length(t) == 0)
@@ -252,6 +274,8 @@
 					config.use_age_restriction_for_jobs = 1
 				if("lobby_countdown")
 					config.lobby_countdown = text2num(value)
+				if("round_end_countdown")
+					config.round_end_countdown = text2num(value)
 				if("log_ooc")
 					config.log_ooc = 1
 				if("log_access")
@@ -259,6 +283,8 @@
 				if("log_say")
 					config.log_say = 1
 				if("log_admin")
+					config.log_admin = 1
+				if("log_mentor")
 					config.log_admin = 1
 				if("log_prayer")
 					config.log_prayer = 1
@@ -280,12 +306,12 @@
 					config.log_pda = 1
 				if("log_hrefs")
 					config.log_hrefs = 1
+				if("log_world_topic")
+					config.log_world_topic = 1
 				if("allow_admin_ooccolor")
 					config.allow_admin_ooccolor = 1
 				if("allow_vote_restart")
 					config.allow_vote_restart = 1
-				if("announce_adminhelps")
-					config.announce_adminhelps = 1
 				if("allow_vote_mode")
 					config.allow_vote_mode = 1
 				if("no_dead_vote")
@@ -318,8 +344,6 @@
 					config.rulesurl = value
 				if("githuburl")
 					config.githuburl = value
-				if("teamspeakurl")
-					config.teamspeakurl = value
 				if("guest_jobban")
 					config.guest_jobban = 1
 				if("guest_ban")
@@ -348,14 +372,24 @@
 						fps = 10 / ticklag
 				if("fps")
 					fps = text2num(value)
-				if("tickcomp")
-					Tickcomp = 1
 				if("automute_on")
 					automute_on = 1
 				if("comms_key")
 					global.comms_key = value
 					if(value != "default_pwd" && length(value) > 6) //It's the default value or less than 6 characters long, warn badmins
 						global.comms_allowed = 1
+				if("cross_server_address")
+					global.cross_address = value
+					if(value != "byond:\\address:port")
+						global.cross_allowed = 1
+				if("cross_comms_name")
+					cross_name = value
+				if("medal_hub_address")
+					global.medal_hub = value
+				if("medal_hub_password")
+					global.medal_pass = value
+				if("show_irc_name")
+					config.showircname = 1
 				if("see_own_notes")
 					config.see_own_notes = 1
 				if("soft_popcap")
@@ -376,6 +410,19 @@
 					config.notify_new_player_age = text2num(value)
 				if("irc_first_connection_alert")
 					config.irc_first_connection_alert = 1
+				if("check_randomizer")
+					config.check_randomizer = 1
+				if("ipintel_email")
+					if (value != "ch@nge.me")
+						config.ipintel_email = value
+				if("ipintel_rating_bad")
+					config.ipintel_rating_bad = text2num(value)
+				if("ipintel_domain")
+					config.ipintel_domain = value
+				if("ipintel_save_good")
+					config.ipintel_save_good = text2num(value)
+				if("ipintel_save_bad")
+					config.ipintel_save_bad = text2num(value)
 				if("aggressive_changelog")
 					config.aggressive_changelog = 1
 				if("log_runtimes")
@@ -393,27 +440,32 @@
 					config.announce_admin_logout = 1
 				if("announce_admin_login")
 					config.announce_admin_login = 1
-				if("roundstart_awaymissions")
-					roundstart_awaymissions = 1
+				if("maprotation")
+					config.maprotation = 1
+				if("maprotationchancedelta")
+					config.maprotatechancedelta = text2num(value)
 				if("autoadmin")
 					protected_config.autoadmin = 1
 					if(value)
 						protected_config.autoadmin_rank = ckeyEx(value)
-				if("proxykick")
-					proxykick = 1
-				if("proxykickemail")
-					proxykickemail = value
-				if("proxykicklimit")
-					proxykicklimit = value
+				if("generate_minimaps")
+					config.generate_minimaps = 1
+				if("client_warn_version")
+					config.client_warn_version = text2num(value)
+				if("client_warn_message")
+					config.client_warn_message = value
+				if("client_error_version")
+					config.client_error_version = text2num(value)
+				if("client_error_message")
+					config.client_error_message = value
+
 				else
 					diary << "Unknown setting in configuration: '[name]'"
 
 		else if(type == "game_options")
 			switch(name)
-				if("health_threshold_crit")
-					config.health_threshold_crit	= text2num(value)
-				if("health_threshold_dead")
-					config.health_threshold_dead	= text2num(value)
+				if("damage_multiplier")
+					config.damage_multiplier		= text2num(value)
 				if("revival_pod_plants")
 					config.revival_pod_plants		= text2num(value)
 				if("revival_cloning")
@@ -454,6 +506,8 @@
 					config.alert_desc_green			= value
 				if("alert_delta")
 					config.alert_desc_delta			= value
+				if("no_intercept_report")
+					config.intercept				= 0
 				if("assistants_have_maint_access")
 					config.jobs_have_maint_access	|= ASSISTANTS_HAVE_MAINT_ACCESS
 				if("security_has_maint_access")
@@ -521,6 +575,12 @@
 					config.allow_latejoin_antagonists	= 1
 				if("allow_random_events")
 					config.allow_random_events		= 1
+
+				if("events_min_time_mul")
+					config.events_min_time_mul		= text2num(value)
+				if("events_min_players_mul")
+					config.events_min_players_mul	= text2num(value)
+
 				if("minimal_access_threshold")
 					config.minimal_access_threshold	= text2num(value)
 				if("jobs_have_minimal_access")
@@ -531,6 +591,10 @@
 					config.force_random_names		= 1
 				if("allow_ai")
 					config.allow_ai					= 1
+				if("disable_secborg")
+					config.forbid_secborg			= 1
+				if("disable_peaceborg")
+					config.forbid_peaceborg			= 1
 				if("silent_ai")
 					config.silent_ai 				= 1
 				if("silent_borg")
@@ -543,6 +607,12 @@
 					config.silicon_max_law_amount	= text2num(value)
 				if("join_with_mutant_race")
 					config.mutant_races				= 1
+				if("roundstart_races")
+					var/race_id = lowertext(value)
+					for(var/species_id in species_list)
+						if(species_id == race_id)
+							roundstart_races += species_list[species_id]
+							roundstart_species[species_id] = species_list[species_id]
 				if("join_with_mutant_humans")
 					config.mutant_humans			= 1
 				if("assistant_cap")
@@ -551,6 +621,8 @@
 					config.starlight			= 1
 				if("grey_assistants")
 					config.grey_assistants			= 1
+				if("lavaland_budget")
+					config.lavaland_budget			= text2num(value)
 				if("no_summon_guns")
 					config.no_summon_guns			= 1
 				if("no_summon_magic")
@@ -565,26 +637,12 @@
 						continue
 					if (BombCap < 4)
 						BombCap = 4
-					if (BombCap > 128)
-						BombCap = 128
 
 					MAX_EX_DEVESTATION_RANGE = round(BombCap/4)
 					MAX_EX_HEAVY_RANGE = round(BombCap/2)
 					MAX_EX_LIGHT_RANGE = BombCap
 					MAX_EX_FLASH_RANGE = BombCap
 					MAX_EX_FLAME_RANGE = BombCap
-				if("zs")
-					config.zs += text2num(value)
-				if("place_last")
-					config.place_last += value
-				if("tries")
-					config.tries = text2num(value)
-				if("directory")
-					config.directory = value
-				if("place_amount_min")
-					config.place_amount_min = text2num(value)
-				if("place_amount_max")
-					config.place_amount_max = text2num(value)
 				else
 					diary << "Unknown setting in configuration: '[name]'"
 
@@ -592,10 +650,64 @@
 	if(fps <= 0)
 		fps = initial(fps)
 
+
+/datum/configuration/proc/loadmaplist(filename)
+	var/list/Lines = file2list(filename)
+
+	var/datum/votablemap/currentmap = null
+	for(var/t in Lines)
+		if(!t)
+			continue
+
+		t = trim(t)
+		if(length(t) == 0)
+			continue
+		else if(copytext(t, 1, 2) == "#")
+			continue
+
+		var/pos = findtext(t, " ")
+		var/command = null
+		var/data = null
+
+		if(pos)
+			command = lowertext(copytext(t, 1, pos))
+			data = copytext(t, pos + 1)
+		else
+			command = lowertext(t)
+
+		if(!command)
+			continue
+
+		if (!currentmap && command != "map")
+			continue
+
+		switch (command)
+			if ("map")
+				currentmap = new (data)
+			if ("friendlyname")
+				currentmap.friendlyname = data
+			if ("minplayers","minplayer")
+				currentmap.minusers = text2num(data)
+			if ("maxplayers","maxplayer")
+				currentmap.maxusers = text2num(data)
+			if ("friendlyname")
+				currentmap.friendlyname = data
+			if ("weight","voteweight")
+				currentmap.voteweight = text2num(data)
+			if ("default","defaultmap")
+				config.defaultmap = currentmap
+			if ("endmap")
+				config.maplist[currentmap.name] = currentmap
+				currentmap = null
+			else
+				diary << "Unknown command in map vote config: '[command]'"
+
+
 /datum/configuration/proc/loadsql(filename)
 	var/list/Lines = file2list(filename)
 	for(var/t in Lines)
-		if(!t)	continue
+		if(!t)
+			continue
 
 		t = trim(t)
 		if(length(t) == 0)
@@ -637,7 +749,7 @@
 /datum/configuration/proc/pick_mode(mode_name)
 	// I wish I didn't have to instance the game modes in order to look up
 	// their information, but it is the only way (at least that I know of).
-	for(var/T in (typesof(/datum/game_mode) - /datum/game_mode))
+	for(var/T in subtypesof(/datum/game_mode))
 		var/datum/game_mode/M = new T()
 		if(M.config_tag && M.config_tag == mode_name)
 			return M
@@ -646,7 +758,7 @@
 
 /datum/configuration/proc/get_runnable_modes()
 	var/list/datum/game_mode/runnable_modes = new
-	for(var/T in (typesof(/datum/game_mode) - /datum/game_mode))
+	for(var/T in subtypesof(/datum/game_mode))
 		var/datum/game_mode/M = new T()
 		//world << "DEBUG: [T], tag=[M.config_tag], prob=[probabilities[M.config_tag]]"
 		if(!(M.config_tag in modes))
@@ -655,14 +767,14 @@
 		if(probabilities[M.config_tag]<=0)
 			qdel(M)
 			continue
-		if(M.can_start() == 1)
+		if(M.can_start())
 			runnable_modes[M] = probabilities[M.config_tag]
 			//world << "DEBUG: runnable_mode\[[runnable_modes.len]\] = [M.config_tag]"
 	return runnable_modes
 
 /datum/configuration/proc/get_runnable_midround_modes(crew)
 	var/list/datum/game_mode/runnable_modes = new
-	for(var/T in (typesof(/datum/game_mode) - /datum/game_mode - ticker.mode.type))
+	for(var/T in (subtypesof(/datum/game_mode) - ticker.mode.type))
 		var/datum/game_mode/M = new T()
 		if(!(M.config_tag in modes))
 			qdel(M)
@@ -670,6 +782,12 @@
 		if(probabilities[M.config_tag]<=0)
 			qdel(M)
 			continue
-		if(M.required_players <= crew && (!M.max_players || M.max_players >= crew))
+		if(M.required_players <= crew)
 			runnable_modes[M] = probabilities[M.config_tag]
 	return runnable_modes
+
+/datum/configuration/proc/stat_entry()
+	if(!statclick)
+		statclick = new/obj/effect/statclick/debug("Edit", src)
+
+	stat("[name]:", statclick)

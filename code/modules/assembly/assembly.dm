@@ -9,13 +9,13 @@
 	throwforce = 2
 	throw_speed = 3
 	throw_range = 7
-	origin_tech = "magnets=1"
+	origin_tech = "magnets=1;engineering=1"
 
 	var/secured = 1
 	var/list/attached_overlays = null
 	var/obj/item/device/assembly_holder/holder = null
 	var/cooldown = 0//To prevent spam
-	var/wires = WIRE_RECEIVE | WIRE_PULSE
+	var/wire_type = WIRE_RECEIVE | WIRE_PULSE
 	var/attachable = 0 // can this be attached to wires
 	var/datum/wires/connected = null
 
@@ -24,6 +24,10 @@
 	var/const/WIRE_PULSE_SPECIAL = 4		//Allows Pulse(0) to act on the holders special assembly
 	var/const/WIRE_RADIO_RECEIVE = 8		//Allows Pulsed(1) to call Activate()
 	var/const/WIRE_RADIO_PULSE = 16		//Allows Pulse(1) to send a radio message
+
+/obj/item/device/assembly/proc/on_attach()
+
+/obj/item/device/assembly/proc/on_detach()
 
 /obj/item/device/assembly/proc/holder_movement()							//Called when the holder is moved
 	return
@@ -51,10 +55,10 @@
 
 //Called when another assembly acts on this one, var/radio will determine where it came from for wire calcs
 /obj/item/device/assembly/proc/pulsed(radio = 0)
-	if(wires & WIRE_RECEIVE)
+	if(wire_type & WIRE_RECEIVE)
 		spawn(0)
 			activate()
-	if(radio && (wires & WIRE_RADIO_RECEIVE))
+	if(radio && (wire_type & WIRE_RADIO_RECEIVE))
 		spawn(0)
 			activate()
 	return 1
@@ -62,12 +66,12 @@
 
 //Called when this device attempts to act on another device, var/radio determines if it was sent via radio or direct
 /obj/item/device/assembly/proc/pulse(radio = 0)
-	if(src.connected && src.wires)
-		connected.Pulse(src)
+	if(connected && wire_type)
+		connected.pulse_assembly(src)
 		return 1
-	if(holder && (wires & WIRE_PULSE))
+	if(holder && (wire_type & WIRE_PULSE))
 		holder.process_activation(src, 1, 0)
-	if(holder && (wires & WIRE_PULSE_SPECIAL))
+	if(holder && (wire_type & WIRE_PULSE_SPECIAL))
 		holder.process_activation(src, 0, 1)
 	return 1
 
@@ -92,7 +96,6 @@
 	if(isassembly(W))
 		var/obj/item/device/assembly/A = W
 		if((!A.secured) && (!secured))
-			playsound(get_turf(src), 'sound/items/screwdriver2.ogg', 30, 1, -2)
 			holder = new/obj/item/device/assembly_holder(get_turf(src))
 			holder.assemble(src,A,user)
 			user << "<span class='notice'>You attach and secure \the [A] to \the [src]!</span>"
@@ -100,7 +103,6 @@
 			user << "<span class='warning'>Both devices must be in attachable mode to be attached together.</span>"
 		return
 	if(istype(W, /obj/item/weapon/screwdriver))
-		playsound(get_turf(src), 'sound/items/Screwdriver.ogg', 30, 1, -1)
 		if(toggle_secure())
 			user << "<span class='notice'>\The [src] is ready!</span>"
 		else
@@ -123,7 +125,6 @@
 	user.set_machine(src)
 	interact(user)
 	return 1
-
 
 /obj/item/device/assembly/interact(mob/user)
 	return //HTML MENU FOR WIRES GOES HERE

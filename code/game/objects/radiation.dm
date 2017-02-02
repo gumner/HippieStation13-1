@@ -4,10 +4,6 @@
 	if(!istype(epicenter, /turf))
 		epicenter = get_turf(epicenter.loc)
 
-	if(log)
-		message_admins("Radiation pulse with size ([heavy_range], [light_range]) and severity [severity] in area [epicenter.loc.name] ")
-		log_game("Radiation pulse with size ([heavy_range], [light_range]) and severity [severity] in area [epicenter.loc.name] ")
-
 	if(heavy_range > light_range)
 		light_range = heavy_range
 
@@ -25,14 +21,18 @@
 				T.rad_act(light_severity)
 		else if(distance <= light_range)
 			T.rad_act(light_severity)
+
+	if(log)
+		log_game("Radiation pulse with size ([heavy_range], [light_range]) and severity [severity] in area [epicenter.loc.name] ")
 	return 1
 
 /atom/proc/rad_act(var/severity)
 	return 1
 
-/mob/living/rad_act(amount)
+/mob/living/rad_act(amount, silent = 0)
 	if(amount)
-		var/blocked = run_armor_check(null, "rad", "Your clothes feel warm.", "Your clothes feel warm.")
+		var/message = silent ? null : "Your clothes feel warm."
+		var/blocked = run_armor_check(null, "rad", message, message)
 		apply_effect(amount, IRRADIATE, blocked)
 		for(var/obj/I in src) //Radiation is also applied to items held by the mob
 			I.rad_act(amount)

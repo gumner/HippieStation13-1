@@ -9,8 +9,7 @@
 	var/apply_type = INGEST
 	var/apply_method = "swallow"
 	var/roundstart = 0
-	var/cooldown_max = 60 // 60 seconds. after those,the pill in the butt starts transferring reagents.
-	var/cooldown = 0 // for ass update, copied from spell cooldown procs
+	var/self_delay = 0 //pills are instant, this is because patches inheret their aplication from pills
 
 /obj/item/weapon/reagent_containers/pill/New()
 	..()
@@ -24,8 +23,8 @@
 	return
 
 
-/obj/item/weapon/reagent_containers/pill/attack(mob/M, mob/user, def_zone)
-	if(user.zone_sel.selecting =="groin" && user.a_intent == "grab")
+/obj/item/weapon/reagent_containers/pill/attack(mob/M, mob/user, def_zone, self_delay)
+	if(user.zone_selected == "groin" && user.a_intent == "grab")
 		if(ishuman(M))
 			var/mob/living/carbon/human/H = M
 			var/obj/item/organ/internal/butt/B = H.getorgan(/obj/item/organ/internal/butt)
@@ -41,7 +40,7 @@
 					if(itemstorevalue != -1)//if the item is not too big
 						if(B.stored < B.capacity && itemstorevalue <= buttspace) // if the butt can still hold an item
 							if(H == user)
-								user.visible_message("<span class='notice'>You stuff \the [src] into your butt.</span>", "<span class='warning'>[user] stuffs \the [src] into \his own butt.</span>")
+								user.visible_message("<span class='notice'>You stuff \the [src] into your butt.</span>", "<span class='warning'>[user] stuffs \the [src] into his own butt.</span>")
 							else
 								H.visible_message("<span class='warning'>[user] attempts to stuff \the [src] inside [H]'s butt...</span>", "<span class='warning'>You attempt to stuff \the [src] inside [H]'s butt...</span>")
 								if(!do_mob(user, H))
@@ -106,14 +105,17 @@
 		return 0
 
 	if(M == user)
+		M.visible_message("<span class='notice'>[user] attempts to [apply_method] [src].</span>")
+		if(self_delay)
+			if(!do_mob(user, M, self_delay))
+				return 0
 		M << "<span class='notice'>You [apply_method] [src].</span>"
 
 	else
 		M.visible_message("<span class='danger'>[user] attempts to force [M] to [apply_method] [src].</span>", \
 							"<span class='userdanger'>[user] attempts to force [M] to [apply_method] [src].</span>")
-
-		if(!do_mob(user, M)) return
-
+		if(!do_mob(user, M))
+			return 0
 		M.visible_message("<span class='danger'>[user] forces [M] to [apply_method] [src].</span>", \
 							"<span class='userdanger'>[user] forces [M] to [apply_method] [src].</span>")
 
@@ -166,9 +168,9 @@
 	roundstart = 1
 /obj/item/weapon/reagent_containers/pill/morphine
 	name = "morphine pill"
-	desc = "Commonly used to treat insomnia, it is actually far more effective as a painkiller."
+	desc = "Commonly used to treat insomnia."
 	icon_state = "pill8"
-	list_reagents = list("morphine" = 10)
+	list_reagents = list("morphine" = 15)
 	roundstart = 1
 /obj/item/weapon/reagent_containers/pill/stimulant
 	name = "stimulant pill"
@@ -179,7 +181,7 @@
 /obj/item/weapon/reagent_containers/pill/salbutamol
 	name = "salbutamol pill"
 	desc = "Used to treat oxygen deprivation."
-	icon_state = "pill18"
+	icon_state = "pill16"
 	list_reagents = list("salbutamol" = 30)
 	roundstart = 1
 /obj/item/weapon/reagent_containers/pill/charcoal
@@ -209,19 +211,19 @@
 /obj/item/weapon/reagent_containers/pill/bromelain
 	name = "bromelain pill"
 	desc = "Used to dull pain."
-	icon_state = "pill5"
-	list_reagents = list("bromelain" = 24)
+	icon_state = "pill9"
+	list_reagents = list("bromelain" = 15)
 	roundstart = 1
 /obj/item/weapon/reagent_containers/pill/dermaline
 	name = "dermaline pill"
 	desc = "Used to stimulate burn healing."
-	icon_state = "pill5"
-	list_reagents = list("dermaline" = 24)
+	icon_state = "pill11"
+	list_reagents = list("dermaline" = 15)
 	roundstart = 1
 
 /obj/item/weapon/reagent_containers/pill/insulin
 	name = "insulin pill"
 	desc = "Handles hyperglycaemic coma."
-	icon_state = "pill5"
+	icon_state = "pill18"
 	list_reagents = list("insulin" = 50)
 	roundstart = 1

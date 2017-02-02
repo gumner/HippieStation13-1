@@ -1,7 +1,7 @@
 //This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:33
 
 /obj/machinery/field/containment
-	name = "Containment Field"
+	name = "containment field"
 	desc = "An energy field."
 	icon = 'icons/obj/singularity.dmi'
 	icon_state = "Contain_F"
@@ -10,15 +10,13 @@
 	unacidable = 1
 	use_power = 0
 	luminosity = 4
-	layer = OBJ_LAYER + 0.1
+	layer = ABOVE_OBJ_LAYER
 	var/obj/machinery/field/generator/FG1 = null
 	var/obj/machinery/field/generator/FG2 = null
 
 /obj/machinery/field/containment/Destroy()
-	if(FG1 && !FG1.clean_up)
-		FG1.cleanup()
-	if(FG2 && !FG2.clean_up)
-		FG2.cleanup()
+	FG1.fields -= src
+	FG2.fields -= src
 	return ..()
 
 /obj/machinery/field/containment/attack_hand(mob/user)
@@ -29,13 +27,23 @@
 		return 1
 
 
-/obj/machinery/field/containment/blob_act()
+/obj/machinery/field/containment/blob_act(obj/effect/blob/B)
 	return 0
 
 
 /obj/machinery/field/containment/ex_act(severity, target)
 	return 0
 
+/obj/machinery/field/containment/attack_animal(mob/living/simple_animal/M)
+	if(!FG1 || !FG2)
+		qdel(src)
+		return
+	if(ismegafauna(M))
+		M.visible_message("<span class='warning'>[M] glows fiercely as the containment field flickers out!</span>")
+		FG1.calc_power(INFINITY) //rip that 'containment' field
+		M.adjustHealth(-M.obj_damage)
+	else
+		..()
 
 /obj/machinery/field/containment/Crossed(mob/mover)
 	if(isliving(mover))
@@ -66,38 +74,27 @@
 
 /obj/machinery/field
 	var/hasShocked = 0 //Used to add a delay between shocks. In some cases this used to crash servers by spawning hundreds of sparks every second.
-	var/bumps = 0 // to prevent a lag exploit
-	var/list/recently_bumped = list() //so that a large pile of shit being thrown at the field doesn't trigger the failsafe.
 
-/obj/machinery/field/CanPass(mob/mover, turf/target, height=0)
+/obj/machinery/field/CanPass(atom/movable/mover, turf/target, height=0)
+	if(hasShocked)
+		return 0
 	if(isliving(mover)) // Don't let mobs through
 		shock(mover)
 		return 0
-	return ..()
-
-/obj/machinery/field/CanPass(obj/mover, turf/target, height=0)
-	if((istype(mover, /obj/machinery) && !istype(mover, /obj/singularity)) || \
-		istype(mover, /obj/structure) || \
-		istype(mover, /obj/mecha))
+	if(istype(mover, /obj/machinery) || istype(mover, /obj/structure) || istype(mover, /obj/mecha))
 		bump_field(mover)
 		return 0
 	return ..()
 
 /obj/machinery/field/proc/shock(mob/living/user)
-	if(hasShocked)
-		return 0
 	if(isliving(user))
-		hasShocked = 1
 		var/shock_damage = min(rand(30,40),rand(30,40))
 
 		if(iscarbon(user))
 			var/stun = min(shock_damage, 15)
 			user.Stun(stun)
 			user.Weaken(10)
-			user.burn_skin(shock_damage)
-			user.visible_message("<span class='danger'>[user.name] was shocked by the [src.name]!</span>", \
-			"<span class='userdanger'>You feel a powerful shock course through your body, sending you flying!</span>", \
-			"<span class='italics'>You hear a heavy electrical crack.</span>")
+			user.electrocute_act(shock_damage, src, 1)
 
 		else if(issilicon(user))
 			if(prob(20))
@@ -109,37 +106,18 @@
 
 		user.updatehealth()
 		bump_field(user)
-
-		spawn(5)
-			hasShocked = 0
 	return
 
+/obj/machinery/field/proc/clear_shock()
+	hasShocked = 0
+
 /obj/machinery/field/proc/bump_field(atom/movable/AM as mob|obj)
-	if(AM in recently_bumped)
-		if(bumps <= 9)
-			var/datum/effect_system/spark_spread/s = new /datum/effect_system/spark_spread
-			s.set_up(5, 1, AM.loc)
-			s.start()
-			var/atom/target = get_edge_target_turf(AM, get_dir(src, get_step_away(AM, src)))
-			AM.throw_at(target, 200, 4)
-			bumps++
-			spawn(10)
-				bumps -= 1
-		else if(bumps == 10)
-			AM.density = 0
-			AM.anchored = 1
-			message_admins("[AM] has bumped the containment field too often at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> and triggered the failsafe, anchoring it in place and removing it's density. Last touched by [key_name_admin(fingerprintslast)]")
-			log_game("[AM] has bumped the containment field too often at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> and triggered the failsafe, anchoring it in place and removing it's density. Last touched by [key_name_admin(fingerprintslast)]")
-		else if(bumps >= 20)
-			message_admins("[AM] has bumped the containment field too often at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> and triggered the second failsafe, deleting it. Last touched by [key_name_admin(fingerprintslast)]")
-			log_game("[AM] has bumped the containment field too often at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> and triggered the second failsafe, deleting it. Last touched by [key_name_admin(fingerprintslast)]")
-			qdel(AM)
-	else
-		var/datum/effect_system/spark_spread/s = new /datum/effect_system/spark_spread
-		s.set_up(5, 1, AM.loc)
-		s.start()
-		var/atom/target = get_edge_target_turf(AM, get_dir(src, get_step_away(AM, src)))
-		AM.throw_at(target, 200, 4)
-		recently_bumped.Add(AM)
-		spawn(100)
-			recently_bumped.Remove(AM)
+	if(hasShocked)
+		return 0
+	hasShocked = 1
+	var/datum/effect_system/spark_spread/s = new /datum/effect_system/spark_spread
+	s.set_up(5, 1, AM.loc)
+	s.start()
+	var/atom/target = get_edge_target_turf(AM, get_dir(src, get_step_away(AM, src)))
+	AM.throw_at(target, 200, 4)
+	addtimer(src, "clear_shock", 5)

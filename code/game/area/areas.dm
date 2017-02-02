@@ -5,7 +5,7 @@
 // the same logical /area have the parent /area object... well, you would be mistaken.  If you
 // want to find machines, mobs, etc, in the same logical area, you will need to check all the
 // related areas.  This returns a master contents list to assist in that.
-/proc/area_contents(var/area/A)
+/proc/area_contents(area/A)
 	if(!istype(A)) return null
 	var/list/contents = list()
 	for(var/area/LSA in A.related)
@@ -22,17 +22,15 @@
 									'sound/ambience/ambigen6.ogg','sound/ambience/ambigen7.ogg',\
 									'sound/ambience/ambigen8.ogg','sound/ambience/ambigen9.ogg',\
 									'sound/ambience/ambigen10.ogg','sound/ambience/ambigen11.ogg',\
-									'sound/ambience/ambigen12.ogg','sound/ambience/ambigen13.ogg',\
-									'sound/ambience/ambigen14.ogg', 'sound/ambience/ambicreek1.ogg',\
-									'sound/ambience/ambicreek2.ogg', 'sound/ambience/ambiencegenlawnmower.ogg')
-	var/ambloop = 'sound/ambience/loop/shipambience.ogg'
+									'sound/ambience/ambigen12.ogg','sound/ambience/ambigen14.ogg')
 
 /area/New()
 	icon_state = ""
-	layer = 10
+	layer = AREA_LAYER
 	master = src
 	uid = ++global_uid
 	related = list(src)
+	map_name = name // Save the initial (the name set in the map) name of the area.
 
 	if(requires_power)
 		luminosity = 0
@@ -76,7 +74,11 @@
 					D.cancelAlarm("Power", src, source)
 				else
 					D.triggerAlarm("Power", src, cameras, source)
-	return
+			for(var/datum/computer_file/program/alarm_monitor/p in alarmdisplay)
+				if(state == 1)
+					p.cancelAlarm("Power", src, source)
+				else
+					p.triggerAlarm("Power", src, cameras, source)
 
 /area/proc/atmosalert(danger_level, obj/source)
 	if(danger_level != atmosalm)
@@ -92,6 +94,8 @@
 				a.triggerAlarm("Atmosphere", src, cameras, source)
 			for(var/mob/living/simple_animal/drone/D in mob_list)
 				D.triggerAlarm("Atmosphere", src, cameras, source)
+			for(var/datum/computer_file/program/alarm_monitor/p in alarmdisplay)
+				p.triggerAlarm("Atmosphere", src, cameras, source)
 
 		else if (src.atmosalm == 2)
 			for(var/mob/living/silicon/aiPlayer in player_list)
@@ -100,6 +104,8 @@
 				a.cancelAlarm("Atmosphere", src, source)
 			for(var/mob/living/simple_animal/drone/D in mob_list)
 				D.cancelAlarm("Atmosphere", src, source)
+			for(var/datum/computer_file/program/alarm_monitor/p in alarmdisplay)
+				p.cancelAlarm("Atmosphere", src, source)
 
 		src.atmosalm = danger_level
 		return 1
@@ -115,12 +121,11 @@
 		if (!( RA.fire ))
 			RA.set_fire_alarm_effect()
 			for(var/obj/machinery/door/firedoor/D in RA)
-				if(!D.blocked)
+				if(!D.welded)
 					if(D.operating)
 						D.nextstate = CLOSED
 					else if(!D.density)
-						spawn(0)
-							D.close()
+						addtimer(D, "close", 0)
 			for(var/obj/machinery/firealarm/F in RA)
 				F.update_icon()
 		for (var/obj/machinery/camera/C in RA)
@@ -132,7 +137,8 @@
 		aiPlayer.triggerAlarm("Fire", src, cameras, source)
 	for (var/mob/living/simple_animal/drone/D in mob_list)
 		D.triggerAlarm("Fire", src, cameras, source)
-	return
+	for(var/datum/computer_file/program/alarm_monitor/p in alarmdisplay)
+		p.triggerAlarm("Fire", src, cameras, source)
 
 /area/proc/firereset(obj/source)
 	for(var/area/RA in related)
@@ -141,12 +147,11 @@
 			RA.mouse_opacity = 0
 			RA.updateicon()
 			for(var/obj/machinery/door/firedoor/D in RA)
-				if(!D.blocked)
+				if(!D.welded)
 					if(D.operating)
 						D.nextstate = OPEN
 					else if(D.density)
-						spawn(0)
-							D.open()
+						addtimer(D, "open", 0)
 			for(var/obj/machinery/firealarm/F in RA)
 				F.update_icon()
 
@@ -156,7 +161,8 @@
 		a.cancelAlarm("Fire", src, source)
 	for (var/mob/living/simple_animal/drone/D in mob_list)
 		D.cancelAlarm("Fire", src, source)
-	return
+	for(var/datum/computer_file/program/alarm_monitor/p in alarmdisplay)
+		p.cancelAlarm("Fire", src, source)
 
 /area/proc/burglaralert(obj/trigger)
 	if(always_unpowered == 1) //no burglar alarms in space/asteroid
@@ -168,20 +174,18 @@
 		//Trigger alarm effect
 		RA.set_fire_alarm_effect()
 		//Lockdown airlocks
-		for(var/obj/machinery/door/airlock/DOOR in RA)
+		for(var/obj/machinery/door/DOOR in RA)
 			spawn(0)
 				DOOR.close()
 				if(DOOR.density)
-					DOOR.locked = 1
-					DOOR.update_icon()
+					DOOR.lock()
 		for (var/obj/machinery/camera/C in RA)
 			cameras += C
 
 	for (var/mob/living/silicon/SILICON in player_list)
 		if(SILICON.triggerAlarm("Burglar", src, cameras, trigger))
 			//Cancel silicon alert after 1 minute
-			spawn(600)
-				SILICON.cancelAlarm("Burglar", src, trigger)
+			addtimer(SILICON, "cancelAlarm", 600, FALSE,"Burglar",src,trigger)
 
 /area/proc/set_fire_alarm_effect()
 	fire = 1
@@ -194,13 +198,11 @@
 	if(!eject)
 		eject = 1
 		updateicon()
-	return
 
 /area/proc/readyreset()
 	if(eject)
 		eject = 0
 		updateicon()
-	return
 
 /area/proc/partyalert()
 	if(src.name == "Space") //no parties in space!!!
@@ -209,7 +211,6 @@
 		src.party = 1
 		src.updateicon()
 		src.mouse_opacity = 0
-	return
 
 /area/proc/partyreset()
 	if (src.party)
@@ -217,41 +218,19 @@
 		src.mouse_opacity = 0
 		src.updateicon()
 		for(var/obj/machinery/door/firedoor/D in src)
-			if(!D.blocked)
+			if(!D.welded)
 				if(D.operating)
 					D.nextstate = OPEN
 				else if(D.density)
-					spawn(0)
-					D.open()
-	return
-
-/area/proc/radalert()
-	if(src.name == "Space") //Radiation? PFF, SPACE GIVES NO SHIT
-		return
-	if (!(src.radstorm))
-		src.radstorm = 1
-		src.updateicon()
-		src.mouse_opacity = 0
-	return
-
-/area/proc/radclear()
-	if(src.name == "Space") //Space still shouldn't get it, but let's return anyways
-		return
-	if (src.radstorm)
-		src.radstorm = 0
-		src.updateicon()
-		src.mouse_opacity = 0
-	return
+					addtimer(D, "open", 0)
 
 /area/proc/updateicon()
-	if ((radstorm || fire || eject || party) && (!requires_power||power_environ))//If it doesn't require power, can still activate this proc.
-		if(radstorm) //Radiation alarms take priority
-			icon_state = "darkred"
-		else if(!radstorm && fire && !eject && !party)
+	if ((fire || eject || party) && (!requires_power||power_environ))//If it doesn't require power, can still activate this proc.
+		if(fire && !eject && !party)
 			icon_state = "blue"
-		else if(!radstorm && !fire && eject && !party)
+		else if(!fire && eject && !party)
 			icon_state = "red"
-		else if(!radstorm && party && !fire && !eject)
+		else if(party && !fire && !eject)
 			icon_state = "party"
 		else
 			icon_state = "blue-red"
@@ -344,44 +323,36 @@
 
 
 /area/Entered(A)
-	if(!istype(A,/mob/living))	return
+	if(!istype(A,/mob/living))
+		return
 
 	var/mob/living/L = A
-	if(!L.ckey)	return
-
-	if(!L.lastarea)
-		L.lastarea = get_area(L.loc)
-	var/area/newarea = get_area(L.loc)
-
-	L.lastarea = newarea
+	if(!L.ckey)
+		return
 
 	// Ambience goes down here -- make sure to list each area seperately for ease of adding things in later, thanks! Note: areas adjacent to each other should have the same sounds to prevent cutoff when possible.- LastyScratch
-	if(!(L && L.client && (L.client.prefs.toggles & SOUND_AMBIENCE)))	return
-	// if(istype(get_turf(A), /turf/space) && L.client.ambience_playing != 'sound/ambience/loop/hallow.ogg')
-	// 	L.client.ambience_playing = 'sound/ambience/loop/hallow.ogg'
-	// 	L << sound('sound/ambience/loop/hallow.ogg', repeat = 1, wait = 0, volume = 35, channel = 2)
-	// else if(L.client.ambience_playing != ambloop)
-	// 	L.client.ambience_playing = ambloop
-	// 	L << sound(ambloop, repeat = 1, wait = 0, volume = 35, channel = 2)
+	if(L.client && !L.client.ambience_playing && L.client.prefs.toggles & SOUND_SHIP_AMBIENCE)
+		L.client.ambience_playing = 1
+		L << sound('sound/ambience/shipambience.ogg', repeat = 1, wait = 0, volume = 35, channel = 2)
 
-	// Actually handled in turf now, all for the sake of space turf always having space ambience.
-	// /code/game/turfs/turf.dm, line 85
+	if(!(L.client && (L.client.prefs.toggles & SOUND_AMBIENCE)))
+		return //General ambience check is below the ship ambience so one can play without the other
 
 	if(prob(35))
 		var/sound = pick(ambientsounds)
 
-		if(L.client && L.client.played < world.time)
+		if(!L.client.played)
 			L << sound(sound, repeat = 0, wait = 0, volume = 25, channel = 1)
-			L.client.played = world.time + 900 //1.5 minutes
-
-/area/proc/mob_activate(var/mob/living/L)
-	return
+			L.client.played = 1
+			spawn(600)			//ewww - this is very very bad
+				if(L.&& L.client)
+					L.client.played = 0
 
 /proc/has_gravity(atom/AT, turf/T)
 	if(!T)
 		T = get_turf(AT)
 	var/area/A = get_area(T)
-	if(istype(T, /turf/space)) // Turf never has gravity
+	if(istype(T, /turf/open/space)) // Turf never has gravity
 		return 0
 	else if(A && A.has_gravity) // Areas which always has gravity
 		return 1
@@ -390,40 +361,12 @@
 		if(T && gravity_generators["[T.z]"] && length(gravity_generators["[T.z]"]))
 			return 1
 	return 0
-/*
-/area/proc/clear_docking_area()
-	var/list/dstturfs = list()
-	var/throwy = world.maxy
 
-	for(var/turf/T in src)
-		dstturfs += T
-		if(T.y < throwy)
-			throwy = T.y
-
-	// hey you, get out of the way!
-	for(var/turf/T in dstturfs)
-		// find the turf to move things to
-		var/turf/D = locate(T.x, throwy - 1, T.z)
-		for(var/atom/movable/AM as mob|obj in T)
-			if(ismob(AM))
-				if(istype(AM, /mob/living))//mobs take damage
-					var/mob/living/living_mob = AM
-					living_mob.Paralyse(10)
-					living_mob.take_organ_damage(80)
-					living_mob.anchored = 0 //Unbuckle them so they can be moved
-				else
-					continue
-
-			//Anything not bolted down is moved, everything else is destroyed
-			if(!AM.anchored)
-				AM.Move(D, SOUTH)
-			else
-				qdel(AM)
-		if(istype(T, /turf/simulated))
-			qdel(T)
-
-	/*for(var/atom/movable/bug in src) // If someone (or something) is somehow still in the shuttle's docking area...
-		if(ismob(bug))
-			continue
-		qdel(bug)*/
-*/
+/area/proc/setup(a_name)
+	name = a_name
+	power_equip = 0
+	power_light = 0
+	power_environ = 0
+	always_unpowered = 0
+	valid_territory = 0
+	addSorted()

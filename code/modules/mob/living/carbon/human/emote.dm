@@ -1,9 +1,13 @@
 /mob/living/carbon/human/emote(act,m_type=1,message = null)
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+		return
+
 	var/param = null
 	var/delay = 5
 	var/exception = null
 	if(spam_flag == 1)
 		return
+
 	if (findtext(act, "-", 1, null))
 		var/t1 = findtext(act, "-", 1, null)
 		param = copytext(act, t1 + 1, length(act) + 1)
@@ -21,11 +25,9 @@
 	if(mind)
 		miming=mind.miming
 
-	if(stat == 2 && (act != "deathgasp"))
-		return
 	switch(act) //Please keep this alphabetically ordered when adding or changing emotes.
 		if ("aflap") //Any emote on human that uses miming must be left in, oh well.
-			if (!restrained())
+			if (!src.restrained())
 				message = "<B>[src]</B> flaps \his wings ANGRILY!"
 				m_type = 2
 
@@ -42,7 +44,7 @@
 				..(act)
 
 		if ("clap","claps")
-			if (!restrained())
+			if (!src.restrained())
 				message = "<B>[src]</B> claps."
 				m_type = 2
 
@@ -57,14 +59,7 @@
 				message = "<B>[src]</B> appears to cough!"
 			else
 				if (!muzzled)
-					var/sound = pick('sound/misc/cough1.ogg', 'sound/misc/cough2.ogg', 'sound/misc/cough3.ogg', 'sound/misc/cough4.ogg')
-					if(gender == FEMALE)
-						sound = pick('sound/misc/cough_f1.ogg', 'sound/misc/cough_f2.ogg', 'sound/misc/cough_f3.ogg')
-					playsound(loc, sound, 50, 1, 5)
-					if(status_flags & NEARCRIT)
-						message = "<B>[src]</B> coughs painfuly!"
-					else
-						message = "<B>[src]</B> coughs!"
+					message = "<B>[src]</B> coughs!"
 					m_type = 2
 				else
 					message = "<B>[src]</B> makes a strong noise."
@@ -85,7 +80,7 @@
 			if(jobban_isbanned(src, "emote"))
 				src << "You cannot send custom emotes (banned)"
 				return
-			if(client)
+			if(src.client)
 				if(client.prefs.muted & MUTE_IC)
 					src << "You cannot send IC messages (muted)."
 					return
@@ -119,7 +114,7 @@
 
 		if ("dap","daps")
 			m_type = 1
-			if (!restrained())
+			if (!src.restrained())
 				var/M = null
 				if (param)
 					for (var/mob/A in view(1, src))
@@ -134,6 +129,25 @@
 		if ("eyebrow")
 			message = "<B>[src]</B> raises an eyebrow."
 			m_type = 1
+
+		if ("flap","flaps")
+			if (!src.restrained())
+				message = "<B>[src]</B> flaps \his wings."
+				m_type = 2
+				if(((dna.features["wings"] != "None") && !("wings" in dna.species.mutant_bodyparts)))
+					OpenWings()
+					addtimer(src, "CloseWings", 20)
+
+		if ("wings")
+			if (!src.restrained())
+				if(dna && dna.species &&((dna.features["wings"] != "None") && ("wings" in dna.species.mutant_bodyparts)))
+					message = "<B>[src]</B> opens \his wings."
+					OpenWings()
+				else if(dna && dna.species &&((dna.features["wings"] != "None") && ("wingsopen" in dna.species.mutant_bodyparts)))
+					message = "<B>[src]</B> closes \his wings."
+					CloseWings()
+				else
+					src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
 
 		if ("fart")
 			exception = 1
@@ -210,16 +224,6 @@
 					visible_message("\red <b>[src]</b> blows their ass off!", "\red Holy shit, your butt flies off in an arc!")
 				else
 					nutrition -= rand(5, 25)
-				var/turf/simulated/T = get_turf(B)
-				if(!istype(T, /turf/space))
-					T.atmos_spawn_air(SPAWN_FART, 0.3)
-				if(prob(15))
-					src.newtonian_move(src.dir)
-
-		if ("flap","flaps")
-			if (!restrained())
-				message = "<B>[src]</B> flaps \his wings."
-				m_type = 2
 
 		if ("gasp","gasps")
 			if (miming)
@@ -253,7 +257,7 @@
 
 		if ("handshake")
 			m_type = 1
-			if (!restrained() && !r_hand)
+			if (!src.restrained() && !src.r_hand)
 				var/mob/M = null
 				if (param)
 					for (var/mob/A in view(1, src))
@@ -270,7 +274,7 @@
 
 		if ("hug","hugs")
 			m_type = 1
-			if (!restrained())
+			if (!src.restrained())
 				var/M = null
 				if (param)
 					for (var/mob/A in view(1, src))
@@ -284,30 +288,17 @@
 				else
 					message = "<B>[src]</B> hugs \himself."
 
-		if ("johnny")
-			var/M
-			if (param)
-				M = param
-			if (!M)
-				param = null
-			else
-				if(miming)
-					message = "<B>[src]</B> takes a drag from a cigarette and blows \"[M]\" out in smoke."
-				else
-					message = "<B>[src]</B> says, \"[M], please. He had a family.\" [name] takes a drag from a cigarette and blows \his name out in smoke."
-					m_type = 2
-
 		if ("me")
 			if(silent)
 				return
 			if(jobban_isbanned(src, "emote"))
 				src << "You cannot send custom emotes (banned)"
 				return
-			if (client)
+			if (src.client)
 				if (client.prefs.muted & MUTE_IC)
 					src << "<span class='danger'>You cannot send IC messages (muted).</span>"
 					return
-				if (client.handle_spam_prevention(message,MUTE_IC))
+				if (src.client.handle_spam_prevention(message,MUTE_IC))
 					return
 			if (stat)
 				return
@@ -344,12 +335,12 @@
 			m_type = 1
 
 		if ("raise")
-			if (!restrained())
+			if (!src.restrained())
 				message = "<B>[src]</B> raises a hand."
 			m_type = 1
 
 		if ("salute","salutes")
-			if (!buckled)
+			if (!src.buckled)
 				var/M = null
 				if (param)
 					for (var/mob/A in view(1, src))
@@ -364,15 +355,11 @@
 					message = "<B>[src]</b> salutes."
 			m_type = 1
 
-		if ("scream")
-			if(silent) // Fixes the screaming while muffled issue. Thanks to Crystal for the fix.
-				message = "<B>[src]</B> makes a loud, muffled noise."
-				m_type = 2
+		if ("scream","screams")
+			if (miming)
+				message = "<B>[src]</B> acts out a scream!"
 			else
-				if (miming)
-					message = "<B>[src]</B> acts out a scream!"
-				else
-					..(act)
+				..(act)
 
 		if ("vomit")
 			if(nutrition >= 50)
@@ -393,6 +380,7 @@
 			m_type = 1
 			delay = 30
 
+
 		if ("shiver","shivers")
 			message = "<B>[src]</B> shivers."
 			m_type = 1
@@ -408,12 +396,12 @@
 				..(act)
 
 		if ("signal","signals")
-			if (!restrained())
+			if (!src.restrained())
 				var/t1 = round(text2num(param))
 				if (isnum(t1))
-					if (t1 <= 5 && (!r_hand || !l_hand))
+					if (t1 <= 5 && (!src.r_hand || !src.l_hand))
 						message = "<B>[src]</B> raises [t1] finger\s."
-					else if (t1 <= 10 && (!r_hand && !l_hand))
+					else if (t1 <= 10 && (!src.r_hand && !src.l_hand))
 						message = "<B>[src]</B> raises [t1] finger\s."
 			m_type = 1
 
@@ -421,15 +409,6 @@
 			if (miming)
 				message = "<B>[src]</B> sneezes."
 			else
-				if (muzzled)
-					message = "<B>[src]</B> makes a strange noise."
-				else
-					var/sound = pick('sound/misc/malesneeze01.ogg', 'sound/misc/malesneeze02.ogg', 'sound/misc/malesneeze03.ogg')
-					if(gender == FEMALE)
-						sound = pick('sound/misc/femsneeze01.ogg', 'sound/misc/femsneeze02.ogg')
-					playsound(loc, sound, 50, 1, 5)
-					message = "<B>[src]</B> sneezes."
-				m_type = 2
 				..(act)
 
 		if ("sniff","sniffs")
@@ -439,6 +418,12 @@
 		if ("snore","snores")
 			if (miming)
 				message = "<B>[src]</B> sleeps soundly."
+			else
+				..(act)
+
+		if ("whimper","whimpers")
+			if (miming)
+				message = "<B>[src]</B> appears hurt."
 			else
 				..(act)
 
@@ -459,8 +444,6 @@
 				fart_type = 2
 			else if(prob(12)) // 0.4%
 				fart_type = 3
-				if(loc.z != 1)
-					fart_type = 2
 			spawn(0)
 				spawn(1)
 					for(var/obj/item/weapon/storage/book/bible/Y in range(0))
@@ -474,7 +457,7 @@
 				for(var/i = 1, i <= 10, i++)
 					playsound(src, 'sound/misc/fart.ogg', 50, 1, 5)
 					sleep(1)
-				playsound(src, 'sound/misc/fartmassive.ogg', 75, 1, 5, extrarange = 10)
+				playsound(src, 'sound/misc/fartmassive.ogg', 75, 1, 5)
 				if(B.contents.len)
 					for(var/obj/item/O in B.contents)
 						O.assthrown = 1
@@ -506,7 +489,6 @@
 				if(B.loose) B.loose = 0
 				new /obj/effect/decal/cleanable/blood(loc)
 				nutrition -= 500
-				src.newtonian_move(src.dir)
 				switch(fart_type)
 					if(1)
 						for(var/mob/living/M in range(0))
@@ -523,38 +505,39 @@
 						gib()
 
 					if(3)
+						var/startx = 0
+						var/starty = 0
 						var/endy = 0
 						var/endx = 0
+						var/startside = pick(cardinal)
 
-						switch(dir)
+						switch(startside)
 							if(NORTH)
-								endy = 8
-								endx = loc.x
+								starty = loc
+								startx = loc
+								endy = 38
+								endx = rand(41, 199)
 							if(EAST)
-								endy = loc.y
-								endx = 8
+								starty = loc
+								startx = loc
+								endy = rand(38, 187)
+								endx = 41
 							if(SOUTH)
-								endy = 247
-								endx = loc.x
+								starty = loc
+								startx = loc
+								endy = 187
+								endx = rand(41, 199)
 							else
-								endy = loc.y
-								endx = 247
+								starty = loc
+								startx = loc
+								endy = rand(38, 187)
+								endx = 199
 
 						//ASS BLAST USA
 						visible_message("\red <b>[src]</b> blows their ass off with such force, they explode!", "\red Holy shit, your butt flies off into the galaxy!")
 						gib() //can you belive I forgot to put this here?? yeah you need to see the message BEFORE you gib
-						qdel(B)
-						new /obj/effect/immovablerod/butt(loc, locate(endx, endy, 1))
+						new /obj/effect/immovablerod/butt(locate(startx, starty, 1), locate(endx, endy, 1))
 						priority_announce("What the fuck was that?!", "General Alert")
-				var/turf/simulated/T = get_turf(B)
-				if(!istype(T, /turf/space))
-					T.atmos_spawn_air(SPAWN_FART, 6)
-
-		if ("whimper","whimpers")
-			if (miming)
-				message = "<B>[src]</B> appears hurt."
-			else
-				..(act)
 
 		if ("yawn","yawns")
 			if (!muzzled)
@@ -562,21 +545,16 @@
 				m_type = 2
 
 		if("wag","wags")
-			if(dna && dna.species && (("tail_lizard" in dna.species.mutant_bodyparts) || (dna.features["tail_human"] != "None")))
+			if(dna && dna.species && (("tail_lizard" in dna.species.mutant_bodyparts) || ((dna.features["tail_human"] != "None") && !("waggingtail_human" in dna.species.mutant_bodyparts))))
 				message = "<B>[src]</B> wags \his tail."
 				startTailWag()
-			else
-				src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
-
-		if("stopwag")
-			if(dna && dna.species && (("waggingtail_lizard" in dna.species.mutant_bodyparts) || ("waggingtail_human" in dna.species.mutant_bodyparts)))
-				message = "<B>[src]</B> stops wagging \his tail."
+			else if(dna && dna.species && (("waggingtail_lizard" in dna.species.mutant_bodyparts) || ("waggingtail_human" in dna.species.mutant_bodyparts)))
 				endTailWag()
 			else
 				src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
 
 		if ("help") //This can stay at the bottom.
-			src << "Help for human emotes. You can use these emotes with say \"*emote\":\n\naflap, airguitar, blink, blink_r, blush, bow-(none)/mob, burp, choke, chuckle, clap, collapse, cough, cry, custom, dance, dap, deathgasp, drool, eyebrow, faint, fart, flap, frown, gasp, giggle, glare-(none)/mob, grin, groan, grumble, handshake, hug-(none)/mob, jump, laugh, look-(none)/mob, me, moan, mumble, nod, pale, point-(atom), raise, salute, scream, shake, shiver, shrug, sigh, signal-#1-10, sit, smile, sneeze, sniff, snore, stare-(none)/mob, sulk, sway, stopwag, superfart, tremble, twitch, twitch_s, wave, whimper, wink, wag, yawn"
+			src << "Help for human emotes. You can use these emotes with say \"*emote\":\n\naflap, airguitar, blink, blink_r, blush, bow-(none)/mob, burp, choke, chuckle, clap, collapse, cough, cry, custom, dance, dap, deathgasp, drool, eyebrow, faint, flap, frown, gasp, giggle, glare-(none)/mob, grin, groan, grumble, handshake, hug-(none)/mob, jump, laugh, look-(none)/mob, me, moan, mumble, nod, pale, point-(atom), raise, salute, scream, shake, shiver, shrug, sigh, signal-#1-10, sit, smile, sneeze, sniff, snore, stare-(none)/mob, sulk, sway, tremble, twitch, twitch_s, wave, whimper, wink, wings, wag, yawn"
 
 		else
 			..(act)
@@ -636,4 +614,20 @@
 	if("waggingtail_human" in dna.species.mutant_bodyparts)
 		dna.species.mutant_bodyparts -= "waggingtail_human"
 		dna.species.mutant_bodyparts |= "tail_human"
+	update_body()
+
+/mob/living/carbon/human/proc/OpenWings()
+	if(!dna || !dna.species)
+		return
+	if("wings" in dna.species.mutant_bodyparts)
+		dna.species.mutant_bodyparts -= "wings"
+		dna.species.mutant_bodyparts |= "wingsopen"
+	update_body()
+
+/mob/living/carbon/human/proc/CloseWings()
+	if(!dna || !dna.species)
+		return
+	if("wingsopen" in dna.species.mutant_bodyparts)
+		dna.species.mutant_bodyparts -= "wingsopen"
+		dna.species.mutant_bodyparts |= "wings"
 	update_body()

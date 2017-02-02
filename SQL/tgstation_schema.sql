@@ -68,7 +68,6 @@ insert into admin_ranks (rank, flags) values ('Trial Admin',5638);
 insert into admin_ranks (rank, flags) values ('Badmin',5727);
 insert into admin_ranks (rank, flags) values ('Game Admin',8063);
 insert into admin_ranks (rank, flags) values ('Game Master',65535);
-insert into admin_ranks (rank, flags) values ('HeadAdmin',65535);
 insert into admin_ranks (rank, flags) values ('Host',65535);
 insert into admin_ranks (rank, flags) values ('Coder',5168);
 
@@ -264,8 +263,10 @@ CREATE TABLE `poll_question` (
   `question` varchar(255) NOT NULL,
   `adminonly` tinyint(1) DEFAULT '0',
   `multiplechoiceoptions` int(2) DEFAULT NULL,
-  `createdby_ckey` varchar(32) NOT NULL,
-  `createdby_ip` varchar(18) NOT NULL,
+  `createdby_ckey` varchar(45) NULL DEFAULT NULL,
+  `createdby_ip` varchar(45) NULL DEFAULT NULL,
+  `for_trialmin` varchar(45) NULL DEFAULT NULL,
+  `dontshow` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -364,5 +365,14 @@ CREATE TABLE `notes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-
+DROP TABLE IF EXISTS `ipintel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE  `ipintel` (
+`ip` INT UNSIGNED NOT NULL ,
+`date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL ,
+`intel` REAL NOT NULL DEFAULT  '0',
+PRIMARY KEY (  `ip` )
+) ENGINE = INNODB;
+/*!40101 SET character_set_client = @saved_cs_client */;
 -- Dump completed on 2013-03-24 18:02:35

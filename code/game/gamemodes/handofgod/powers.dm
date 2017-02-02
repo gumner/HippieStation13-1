@@ -4,7 +4,7 @@
 		return 0
 
 	if(structures)
-		if(!isturf(loc) || istype(loc, /turf/space))
+		if(!isturf(loc) || istype(loc, /turf/open/space))
 			src << "<span class='danger'>Your structure would just float away, you need stable ground!</span>"
 			return 0
 
@@ -24,6 +24,7 @@
 	if(requires_conduit)
 		//Organised this way as there can be multiple conduits, so it's more likely to be a conduit check.
 		var/valid = 0
+
 		for(var/obj/structure/divine/conduit/C in conduits)
 			if(get_dist(src, C) <= CONDUIT_RANGE)
 				valid++
@@ -32,23 +33,29 @@
 		if(!valid)
 			if(get_dist(src, god_nexus) <= CONDUIT_RANGE)
 				valid++
+
 		if(!valid)
 			src << "<span class='danger'>You must be near your Nexus or a Conduit to do this!</span>"
 			return 0
 
 	if(!can_place_near_enemy_nexus)
-		var/mob/camera/god/enemy
-		var/list/gods = get_gods()
-		for(var/mob/camera/god/badgod in gods)
-			if(badgod.side != side)
-				enemy = badgod
+		var/datum/mind/enemy
+		switch(side)
+			if("red")
+				if(ticker.mode.blue_deities.len)
+					enemy = ticker.mode.blue_deities[1]
+			if("blue")
+				if(ticker.mode.red_deities.len)
+					enemy = ticker.mode.red_deities[1]
 
-		if(enemy && istype(enemy))
-			if(enemy.god_nexus && (get_dist(src,enemy.god_nexus) <= CONDUIT_RANGE*2))
+		if(enemy && is_handofgod_god(enemy.current))
+			var/mob/camera/god/enemy_god = enemy.current
+			if(enemy_god.god_nexus && (get_dist(src,enemy_god.god_nexus) <= CONDUIT_RANGE*2))
 				src << "<span class='danger'>You are too close to the other god's stronghold!</span>"
 				return 0
 
 	return 1
+
 
 /mob/camera/god/verb/returntonexus()
 	set category = "Deity"
@@ -65,18 +72,18 @@
 	set category = "Deity"
 	set name = "Jump to Follower"
 	set desc = "Teleports you to one of your followers."
-	var/list/followerminds = get_my_followers()
 	var/list/following = list()
-	for(var/datum/mind/A in followerminds)
-		if(A.current)
-			following += A.current
-	if(!following.len)
+	if(side == "red")
+		following = ticker.mode.red_deity_followers|ticker.mode.red_deity_prophets
+	else if(side == "blue")
+		following = ticker.mode.blue_deity_followers|ticker.mode.blue_deity_prophets
+	else
 		src << "You are unaligned, and thus do not have followers"
 		return
 
-	var/mob/choice = input("Choose a follower","Jump to Follower") as null|anything in following
-	if(choice)
-		Move(get_turf(choice))
+	var/datum/mind/choice = input("Choose a follower","Jump to Follower") as null|anything in following
+	if(choice && choice.current)
+		Move(get_turf(choice.current))
 
 
 /mob/camera/god/verb/newprophet()
@@ -84,73 +91,80 @@
 	set name = "Appoint Prophet (100)"
 	set desc = "Appoint one of your followers as your Prophet, who can hear your words"
 
-	var/list/followersmind = get_my_followers()
-	var/list/followersmob = list()
+	var/list/following = list()
 
 	if(!ability_cost(100))
 		return
-	if(!side)
+	if(side == "red")
+		var/datum/mind/old_proph = locate() in ticker.mode.red_deity_prophets
+		if(old_proph && old_proph.current && old_proph.current.stat != DEAD)
+			src << "You can only have one prophet alive at a time."
+			return
+		else
+			following = ticker.mode.red_deity_followers
+	else if(side == "blue")
+		var/datum/mind/old_proph = locate() in ticker.mode.blue_deity_prophets
+		if(old_proph && old_proph.current && old_proph.current.stat != DEAD)
+			src << "You can only have one prophet alive at a time."
+			return
+		else
+			following = ticker.mode.blue_deity_followers
+
+	else
 		src << "You are unalligned, and thus do not have prophets"
 		return
-	var/datum/mind/old_proph = get_my_prophet()
 
-	if(old_proph && old_proph.current && old_proph.current.stat != DEAD)
-		src << "You can only have one prophet alive at a time."
-		return
-
-	for(var/datum/mind/A in followersmind)
-		if(A.current)
-			followersmob += A.current
-
-	var/mob/choice = input("Choose a follower to make into your prophet","Prophet Uplifting") as null|anything in followersmob
-	if(choice && choice.stat != DEAD && choice.mind)
-		src << "You choose [choice] as your prophet."
-		choice.mind.special_role = "Prophet"
-		var/datum/faction/HOG/M = choice.mind.faction
-		if(M)//should never fail
-			M.members[choice.mind] = "Prophet"
-		var/datum/action/innate/godspeak/action = new /datum/action/innate/godspeak()
-		action.gods.Add(src)
-		action.Grant(choice)
-		//endround text thingy
-		if(istype(ticker.mode, /datum/game_mode/hand_of_god))
-			var/datum/game_mode/hand_of_god/mygamemode = ticker.mode
-			mygamemode.prophets |= choice.mind // add only if not already in,we don't want double minds in our list
-
+	var/datum/mind/choice = input("Choose a follower to make into your prophet","Prophet Uplifting") as null|anything in following
+	if(choice && choice.current && choice.current.stat != DEAD)
+		src << "You choose [choice.current] as your prophet."
+		choice.make_Handofgod_prophet(side)
+		speak2god = new()
+		speak2god.god = src
+		speak2god.Grant(choice.current)
 
 		//Prophet gear
-		var/mob/living/carbon/human/H = choice
-		var/popehat = /obj/item/clothing/head/helmet/plate/advocate/prophet
-		var/popestick = /obj/item/weapon/godstaff
+		var/mob/living/carbon/human/H = choice.current
+		var/popehat = null
+		var/popestick = null
+		var/success = ""
+		switch(side)
+			if("red")
+				popehat = /obj/item/clothing/head/helmet/plate/crusader/prophet/red
+				popestick = /obj/item/weapon/godstaff/red
+			if("blue")
+				popehat = /obj/item/clothing/head/helmet/plate/crusader/prophet/blue
+				popestick = /obj/item/weapon/godstaff/blue
 
-		if(!istype(H))
-			return // we aren't gonna gear up mobs who have no slots
 		if(popehat)
-			var/obj/item/clothing/head/helmet/plate/advocate/prophet/P = new popehat(side = src.side) // using src to not get confused
+			var/obj/item/clothing/head/helmet/plate/crusader/prophet/P = new popehat()
 
-			H.unEquip(H.head)
-			H << "<span class='boldnotice'>A powerful hat has been bestowed upon your head.</span>"
-			if(!(H.equip_to_slot_if_possible(P,slot_head,0,1,1)))
-				P.loc = get_turf(H) // so this gets put on the floor if for some reasons it fails to get on yer head
+			if(H.equip_to_slot_if_possible(P,slot_in_backpack,0,1,1))
+				success = "It is in your backpack."
+			else
+				H.unEquip(H.head)
+				H.equip_to_slot_or_del(P,slot_head)
+				success = "It is on your head."
+
+			if(success)
+				H << "<span class='boldnotice'>A powerful hat has been bestowed upon you, you will need to wear it to utilize your staff fully.</span>"
+				H << "<span class='boldnotice'>[success]</span>"
 
 		if(popestick)
-			var/obj/item/weapon/godstaff/G = new popestick(side = src.side)
+			var/obj/item/weapon/godstaff/G = new popestick()
 			G.god = src
-			var/success = ""
-			if(!H.put_in_any_hand_if_possible(G, qdel_on_fail = 0, disable_warning = 1, redraw_mob = 1))
-				if(!H.equip_to_slot_if_possible(G,slot_in_backpack,0,1,1))
+			if(!H.equip_to_slot_if_possible(G,slot_in_backpack,0,1,1))
+				if(!H.put_in_hands(G))
 					G.loc = get_turf(H)
 					success = "It is on the floor..."
 				else
-					success = "It is in your backpack..."
+					success = "It is in your hands..."
 			else
-				success = "It is in your hands..."
+				success = "It is in your backpack..."
 
 			if(success)
 				H << "<span class='boldnotice'>A powerful staff has been bestowed upon you, you can use this to convert the false god's structures!</span>"
-				H << "<span class=boldnotice'>[success]</span>"
+				H << "<span class='boldnotice'>[success]</span>"
 		//end prophet gear
-		ticker.mode.update_hog_icons_added(choice.mind, side)
 
 		add_faith(-100)
 
@@ -164,7 +178,6 @@
 	var/mob/choice = input("Choose who you wish to talk to", "Talk to ANYONE") as null|anything in mob_list
 	if(choice)
 		var/original = msg
-		log_say("Hand of God: [capitalize(side)] God/[key_name(src)] > [choice] : [msg]")
 		msg = "<B>You hear a voice coming from everywhere and nowhere... <i>[msg]</i></B>"
 		choice << msg
 		src << "You say the following to [choice], [original]"
@@ -176,7 +189,7 @@
 	set name = "Smite (40)"
 	set desc = "Hits anything under you with a moderate amount of damage."
 
-	if(!ability_cost(40,requires_conduit = 1))
+	if(!ability_cost(40,0,1))
 		return
 	if(!range(7,god_nexus))
 		src << "You lack the strength to smite this far from your nexus."
@@ -184,11 +197,8 @@
 
 	var/has_smitten = 0 //Hast thou been smitten, infidel?
 	for(var/mob/living/L in get_turf(src))
-		if(L.mind && is_in_any_team(L.mind) == side)
-			return
-		L.adjustFireLoss(5)
-		L.adjustBruteLoss(5)
-		L.Weaken(10)
+		L.adjustFireLoss(20)
+		L.adjustBruteLoss(20)
 		L << "<span class='danger'><B>You feel the wrath of [name]!<B></span>"
 		has_smitten = 1
 	if(has_smitten)
@@ -200,7 +210,7 @@
 	set name = "Invoke Disaster (300)" //difficult to reach without lots of followers
 	set desc = "Tug at the fibres of reality itself and bend it to your whims!"
 
-	if(!ability_cost(300, requires_conduit = 1))
+	if(!ability_cost(300,0,1))
 		return
 
 	var/event = pick(/datum/round_event/meteor_wave, /datum/round_event/communications_blackout, /datum/round_event/radiation_storm, /datum/round_event/carp_migration,
@@ -215,36 +225,39 @@
 	set name = "Construct Nexus"
 	set desc = "Instantly creates your nexus, You can only do this once, make sure you're happy with it!"
 
-	if(!ability_cost(structures = 1))
+	if(!ability_cost(0,1,0))
 		return
 
 	place_nexus()
 
 
+/* //Transolocators have no sprite
 /mob/camera/god/verb/movenexus()
 	set category = "Deity"
 	set name = "Relocate Nexus (50)"
 	set desc = "Instantly relocates your nexus to an existing translocator belonging to your faith, this destroys the translocator in the process"
 
-	if(ability_cost(50) && god_nexus)
+	if(ability_cost(50,0,0) && god_nexus)
 		var/list/translocators = list()
-		for(var/obj/structure/divine/translocator/TL in structures)
-			translocators["[TL.name] ([get_area(TL)])"] = TL
+		var/list/used_keys = list()
+		for(var/obj/structure/divine/translocator/T in structures)
+			translocators["[T.name] ([get_area(T)])"] = T
 
 		if(!translocators.len)
 			src << "<span class='warning'>You have no translocators!</span>"
 			return
 
 		var/picked = input(src,"Choose a translocator","Relocate Nexus") as null|anything in translocators
-		if(!picked)
+		if(!picked || !translocators[picked])
 			return
-		var/obj/structure/divine/translocator/TR = translocators[picked]
-		if(!istype(TR))
-			return
-		var/turf/Tturf = get_turf(TR)
-		god_nexus.forceMove(Tturf)
+
+		var/obj/structure/divine/translocator/T = translocators[T]
+		var/turf/Tturf = get_turf(T)
+		god_nexus.loc = T
+		translocators[picked] = null
 		add_faith(-50)
-		qdel(TR)
+		qdel(T)
+*/
 
 /mob/camera/god/verb/construct_structures()
 	set category = "Deity"
@@ -266,3 +279,85 @@
 		return
 
 	trap_construction_ui(src)
+
+
+
+/mob/camera/god/verb/construct_items()
+	set category = "Deity"
+	set name = "Construct Items (20)"
+	set desc = "Construct some items for your followers"
+
+	if(!ability_cost(20,1,1))
+		return
+
+	var/list/item_types = list("claymore sword" = /obj/item/weapon/claymore/hog)
+	if(side == "red")
+		item_types["red banner"] = /obj/item/weapon/banner/red
+		item_types["red bannerbackpack"] = /obj/item/weapon/storage/backpack/bannerpack/red
+		item_types["red armour"] = /obj/item/weapon/storage/box/itemset/crusader/red
+
+	else if(side == "blue")
+		item_types["blue banner"] = /obj/item/weapon/banner/blue
+		item_types["blue bannerbackpack"] = /obj/item/weapon/storage/backpack/bannerpack/blue
+		item_types["blue armour"] = /obj/item/weapon/storage/box/itemset/crusader/blue
+
+
+	var/item = input("Choose what you wish to create.", "Divine Items") as null|anything in item_types
+	if(!item || !item_types[item] || !ability_cost(20,1,1))
+		return
+
+	src << "You produce \a [item]"
+	add_faith(-20)
+
+	var/itemtype = item_types[item]
+	new itemtype (get_turf(src))
+
+
+
+/mob/camera/god/verb/veil_structures()
+	set category = "Deity"
+	set name = "Veil Structures (20)"
+	set desc = "Hide your structures from sight and touch, but prevent yourself from using them."
+
+	if(!ability_cost(20,1,1))
+		return
+
+	src << "You focus your powers and start dragging your influence into the spiritual plane."
+	for(var/mob/M in orange(3,src))//Yes I know this is terrible, but visible message doesnt work for this
+		M << "<span class='warning'>The air begins to shimmer...</span>"
+	if(do_after(src, 30, 0, src))
+		for(var/obj/structure/divine/R in orange(3,src))
+			if(istype(R, /obj/structure/divine/nexus)|| istype(R, /obj/structure/divine/trap)||(src.side != R.side))
+				continue
+			R.visible_message("<span class='danger'>[R] fades away.</span>")
+			R.invisibility = 55
+			R.alpha = 100 //To help ghosts distinguish hidden structures
+			R.density = 0
+			R.deactivate()
+		src << "You hide your influence from view"
+		add_faith(-20)
+
+
+/mob/camera/god/verb/reveal_structures()
+	set category = "Deity"
+	set name = "Reveal Structures (20)"
+	set desc = "Make your structures visible again and allow them to be used."
+
+	if(!ability_cost(20,1,1))
+		return
+
+	src << "You focus your powers and start dragging your influence into the material plane."
+	for(var/mob/M in orange(3,src))//Yes I know this is terrible, but visible message doesnt work for this
+		M << "<span class='warning'>The air begins to shimmer...</span>"
+	if(do_after(src, 40, 0, src))
+		for(var/obj/structure/divine/R in orange(3,src))
+			if(istype(R, /obj/structure/divine/nexus)|| istype(R, /obj/structure/divine/trap)||(src.side != R.side))
+				continue
+			R.visible_message("<span class='danger'>[R] suddenly appears!</span>")
+			R.invisibility = 0
+			R.alpha = initial(R.alpha)
+			R.density = initial(R.density)
+			R.activate()
+		src << "You bring your influence into view"
+		add_faith(-20)
+

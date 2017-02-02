@@ -8,6 +8,7 @@
 	item_color = "barman"
 	alt_covers_chest = 1
 
+
 /obj/item/clothing/under/rank/captain //Alright, technically not a 'civilian' but its better then giving a .dm file for a single define.
 	desc = "It's a blue jumpsuit with some gold markings denoting the rank of \"Captain\"."
 	name = "captain's jumpsuit"
@@ -42,11 +43,12 @@
 
 
 /obj/item/clothing/under/rank/chef
-	name = "chef's suit"
-	desc = "A suit which is given only to the most <b>hardcore</b> chefs in space."
+	name = "cook's suit"
+	desc = "A suit which is given only to the most <b>hardcore</b> cooks in space."
 	icon_state = "chef"
 	item_color = "chef"
 	alt_covers_chest = 1
+
 
 /obj/item/clothing/under/rank/clown
 	name = "clown suit"
@@ -60,30 +62,6 @@
 /obj/item/clothing/under/rank/clown/hit_reaction()
 	playsound(loc, 'sound/items/bikehorn.ogg', 50, 1, -1)
 	return 0
-
-/obj/item/clothing/under/rank/clown/cluwne
-	alternate_screams = list('sound/voice/cluwnelaugh1.ogg','sound/voice/cluwnelaugh2.ogg','sound/voice/cluwnelaugh3.ogg')
-	icon_state = "cluwne"
-	item_state = "cluwne"
-	item_color = "cluwne"
-	unacidable = 1
-	burn_state = -1
-	flags = NODROP
-
-/obj/item/clothing/under/rank/clown/cluwne/equipped(mob/living/carbon/user, slot)
-	if(slot == slot_w_uniform)
-		user.add_screams(src.alternate_screams) // using src to clarify which list we want
-	else
-		if(ishuman(user))
-			var/mob/living/carbon/human/H = user
-			H.reindex_screams() // Use the more robust version
-		else
-			user.reindex_screams()
-
-	return ..()
-
-/obj/item/clothing/under/rank/clown/cluwne/dropped(mob/user)
-	qdel(src)
 
 /obj/item/clothing/under/rank/head_of_personnel
 	desc = "It's a jumpsuit worn by someone who works in the position of \"Head of Personnel\"."
@@ -109,8 +87,6 @@
 	icon_state = "janitor"
 	item_color = "janitor"
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 10, rad = 0)
-	permeability_coefficient = 0.50 //Diseases and such.
-	burn_state = -1
 
 
 /obj/item/clothing/under/lawyer
@@ -152,6 +128,7 @@
 	can_adjust = 1
 	alt_covers_chest = 1
 
+
 /obj/item/clothing/under/lawyer/purpsuit
 	name = "purple suit"
 	icon_state = "lawyer_purp"
@@ -160,6 +137,7 @@
 	fitted = NO_FEMALE_UNIFORM
 	can_adjust = 1
 	alt_covers_chest = 1
+
 
 /obj/item/clothing/under/lawyer/blacksuit
 	name = "black suit"
@@ -194,3 +172,12 @@
 	icon_state = "miner"
 	item_state = "miner"
 	item_color = "miner"
+
+
+/obj/item/clothing/under/rank/miner/lavaland
+	desc = "A green uniform for operating in hazardous environments."
+	name = "shaft miner's jumpsuit"
+	icon_state = "explorer"
+	item_state = "explorer"
+	item_color = "explorer"
+	can_adjust = 0

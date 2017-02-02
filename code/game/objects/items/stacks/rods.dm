@@ -1,7 +1,7 @@
 var/global/list/datum/stack_recipe/rod_recipes = list ( \
 	new/datum/stack_recipe("grille", /obj/structure/grille, 2, time = 10, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("table frame", /obj/structure/table_frame, 2, time = 10, one_per_turf = 1, on_floor = 1), \
-	new/datum/stack_recipe("staples", /obj/item/stack/staples, 1, 5, 10), \
+	new/datum/stack_recipe("scooter frame", /obj/item/scooter_frame, 10, time = 25, one_per_turf = 0), \
 	)
 
 /obj/item/stack/rods
@@ -13,7 +13,6 @@ var/global/list/datum/stack_recipe/rod_recipes = list ( \
 	flags = CONDUCT
 	w_class = 3
 	force = 9
-	stamina_percentage = 0.65
 	throwforce = 10
 	throw_speed = 3
 	throw_range = 7
@@ -54,16 +53,18 @@ var/global/list/datum/stack_recipe/rod_recipes = list ( \
 			R.use(2)
 			if (!R && replace)
 				user.put_in_hands(new_item)
-		return
 
-	if(istype(W,/obj/item/weapon/reagent_containers/food/snacks))
+	else if(istype(W,/obj/item/weapon/reagent_containers/food/snacks))
 		var/obj/item/weapon/reagent_containers/food/snacks/S = W
 		if(amount != 1)
 			user << "<span class='warning'>You must use a single rod!</span>"
 		else if(S.w_class > 2)
 			user << "<span class='warning'>The ingredient is too big for [src]!</span>"
-		return
-	..()
+		else
+			var/obj/item/weapon/reagent_containers/food/snacks/customizable/A = new/obj/item/weapon/reagent_containers/food/snacks/customizable/kebab(get_turf(src))
+			A.initialize_custom_food(src, S, user)
+	else
+		return ..()
 
 /obj/item/stack/rods/cyborg/
 	materials = list()

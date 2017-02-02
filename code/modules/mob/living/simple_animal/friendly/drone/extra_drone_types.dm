@@ -1,10 +1,11 @@
-
 ////////////////////
 //MORE DRONE TYPES//
 ////////////////////
 //Drones with custom laws
 //Drones with custom shells
 //Drones with overriden procs
+//Drones with camogear for hat related memes
+//Drone type for use with polymorph (no preloaded items, random appearance)
 
 
 //More types of drones
@@ -17,6 +18,8 @@
 	health = 30
 	maxHealth = 120 //If you murder other drones and cannibalize them you can get much stronger
 	faction = list("syndicate")
+	speak_emote = list("hisses")
+	bubble_icon = "syndibot"
 	heavy_emp_damage = 10
 	laws = \
 	"1. Interfere.\n"+\
@@ -25,19 +28,33 @@
 	default_storage = /obj/item/device/radio/uplink
 	default_hatmask = /obj/item/clothing/head/helmet/space/hardsuit/syndi
 	seeStatic = 0 //Our programming is superior.
+	hacked = TRUE
 
-
-//Sydrones
 /mob/living/simple_animal/drone/syndrone/New()
 	..()
-	if(internal_storage && internal_storage.hidden_uplink)
-		internal_storage.hidden_uplink.uses = (initial(internal_storage.hidden_uplink.uses) / 2)
-		internal_storage.name = "syndicate uplink"
-
+	internal_storage.hidden_uplink.telecrystals = 10
 
 /mob/living/simple_animal/drone/syndrone/Login()
 	..()
 	src << "<span class='notice'>You can kill and eat other drones to increase your health!</span>" //Inform the evil lil guy
+
+/mob/living/simple_animal/drone/syndrone/badass
+	name = "Badass Syndrone"
+	default_hatmask = /obj/item/clothing/head/helmet/space/hardsuit/syndi/elite
+	default_storage = /obj/item/device/radio/uplink/nuclear
+
+/mob/living/simple_animal/drone/syndrone/badass/New()
+	..()
+	internal_storage.hidden_uplink.telecrystals = 30
+	var/obj/item/weapon/implant/weapons_auth/W = new/obj/item/weapon/implant/weapons_auth(src)
+	W.implant(src)
+
+/mob/living/simple_animal/drone/snowflake
+	default_hatmask = /obj/item/clothing/head/chameleon/drone
+
+/mob/living/simple_animal/drone/snowflake/New()
+	..()
+	desc += " This drone appears to have a complex holoprojector built on its 'head'."
 
 /obj/item/drone_shell/syndrone
 	name = "syndrone shell"
@@ -45,131 +62,86 @@
 	icon_state = "syndrone_item"
 	drone_type = /mob/living/simple_animal/drone/syndrone
 
-//Safedrones - Excuse the awful ClickOn proc
-/mob/living/simple_animal/drone/safedrone
+/obj/item/drone_shell/syndrone/badass
+	name = "badass syndrone shell"
+	drone_type = /mob/living/simple_animal/drone/syndrone/badass
 
-/mob/living/simple_animal/drone/safedrone/ClickOn(atom/A, params)
-	if(world.time <= next_click)
-		return
-	next_click = world.time + 1
-	if(client.buildmode)
-		build_click(src, client.buildmode, params, A)
-		return
+/obj/item/drone_shell/snowflake
+	name = "snowflake drone shell"
+	desc = "A shell of a snowflake drone, a maintenance drone with a built in holographic projector to display hats and masks."
+	drone_type = /mob/living/simple_animal/drone/snowflake
 
-	var/list/modifiers = params2list(params)
-	if(modifiers["shift"] && modifiers["ctrl"])
-		CtrlShiftClickOn(A)
-		return
-	if(modifiers["middle"])
-		MiddleClickOn(A)
-		return
-	if(modifiers["shift"])
-		ShiftClickOn(A)
-		return
-	if(modifiers["alt"]) // alt and alt-gr (rightalt)
-		AltClickOn(A)
-		return
-	if(modifiers["ctrl"])
-		if(ismob(A))
-			if(!isdrone(A))
-				src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-				return
-		CtrlClickOn(A)
-		return
+/mob/living/simple_animal/drone/polymorphed
+	default_storage = null
+	default_hatmask = null
+	picked = TRUE
 
-	if(stat || paralysis || stunned || weakened)
-		return
+/mob/living/simple_animal/drone/polymorphed/New()
+	. = ..()
+	liberate()
+	visualAppearence = pick(MAINTDRONE, REPAIRDRONE, SCOUTDRONE)
+	if(visualAppearence == MAINTDRONE)
+		var/colour = pick("grey", "blue", "red", "green", "pink", "orange")
+		icon_state = "[visualAppearence]_[colour]"
+	else
+		icon_state = visualAppearence
 
-	face_atom(A)
+	icon_living = icon_state
+	icon_dead = "[visualAppearence]_dead"
 
-	if(next_move > world.time) // in the year 2000...
-		return
+/mob/living/simple_animal/drone/cogscarab
+	name = "cogscarab"
+	desc = "A strange, drone-like machine. It constantly emits the hum of gears."
+	icon_state = "drone_clock"
+	icon_living = "drone_clock"
+	icon_dead = "drone_clock_dead"
+	picked = TRUE
+	languages_spoken = RATVAR
+	languages_understood = HUMAN|RATVAR
+	pass_flags = PASSTABLE
+	health = 50
+	maxHealth = 50
+	density = TRUE
+	speed = 1
+	ventcrawler = 0
+	faction = list("ratvar")
+	speak_emote = list("clinks", "clunks")
+	bubble_icon = "clock"
+	heavy_emp_damage = 10
+	laws = "0. Purge all untruths and honor Ratvar."
+	default_storage = /obj/item/weapon/storage/toolbox/brass/prefilled
+	seeStatic = 0
+	hacked = TRUE
+	visualAppearence = CLOCKDRONE
 
-	if(restrained())
-		changeNext_move(CLICK_CD_HANDCUFFED)   //Doing shit in cuffs shall be vey slow
-		RestrainedClickOn(A)
-		return
+/mob/living/simple_animal/drone/cogscarab/ratvar //a subtype for spawning when ratvar is alive, has a slab that it can use and a normal proselytizer
+	default_storage = /obj/item/weapon/storage/toolbox/brass/prefilled/ratvar
 
-	var/obj/item/W = get_active_hand()
+/mob/living/simple_animal/drone/cogscarab/admin //an admin-only subtype of cogscarab with a no-cost proselytizer and slab in its box
+	default_storage = /obj/item/weapon/storage/toolbox/brass/prefilled/ratvar/admin
 
-	//Banned drone weapons:
-	if(istype(W, /obj/item/weapon/gun))
-		src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-		return
+/mob/living/simple_animal/drone/cogscarab/New()
+	. = ..()
+	SetLuminosity(2,1)
+	qdel(access_card) //we don't have free access
+	access_card = null
+	verbs -= /mob/living/simple_animal/drone/verb/check_laws
+	verbs -= /mob/living/simple_animal/drone/verb/toggle_light
+	verbs -= /mob/living/simple_animal/drone/verb/drone_ping
 
-
-	if(W == A)
-		W.attack_self(src)
-		if(hand)
-			update_inv_l_hand(0)
-		else
-			update_inv_r_hand(0)
-		return
-
-	// operate three levels deep here (item in backpack in src; item in box in backpack in src, not any deeper)
-	if(!isturf(A) && A == loc || (A in contents) || (A.loc in contents) || (A.loc && (A.loc.loc in contents)))
-		// No adjacency needed
-		if(W)
-			var/resolved = A.attackby(W,src)
-			if(!resolved && A && W)
-				W.afterattack(A,src,1,params) // 1 indicates adjacency
-		else
-			if(ismob(A))
-				changeNext_move(CLICK_CD_MELEE)
-			UnarmedAttack(A)
-		return
-
-
-	if(!isturf(loc)) // This is going to stop you from telekinesing from inside a closet, but I don't shed many tears for that
-		return
-
-	// Allows you to click on a box's contents, if that box is on the ground, but no deeper than that
-	if(isturf(A) || isturf(A.loc) || (A.loc && isturf(A.loc.loc)))
-		if(A.Adjacent(src)) // see adjacent.dm
-			if(W)
-				// Return 1 in attackby() to prevent afterattack() effects (when safely moving items for example)
-				if(ismob(A))
-					if(!isdrone(A))
-						src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-						return
-				var/resolved = A.attackby(W,src,params)
-				if(!resolved && A && W)
-					W.afterattack(A,src,1,params) // 1: clicking something Adjacent
-			else
-				if(ismob(A))
-					if(!isdrone(A))
-						src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-						return
-					changeNext_move(CLICK_CD_MELEE)
-				UnarmedAttack(A, 1)
-			return
-		else // non-adjacent click
-			if(W)
-				W.afterattack(A,src,0,params) // 0: not Adjacent
-			else
-				RangedAttack(A, params)
-
-//Stop right click pulling too
-/mob/living/simple_animal/drone/safedrone/pulled(atom/movable/AM as mob|obj in oview(1))
-	if(ismob(AM))
-		if(!isdrone(AM))
-			src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-			return
+/mob/living/simple_animal/drone/cogscarab/Login()
 	..()
+	add_servant_of_ratvar(src, TRUE)
+	src << "<span class='heavy_brass'>You are a cogscarab</span><b>, a clockwork creation of Ratvar. As a cogscarab, you have low health, an inbuilt proselytizer that can convert rods, \
+	metal, and plasteel to alloy, a set of relatively fast tools, can communicate over the Hierophant Network with </b><span class='heavy_brass'>:b</span><b>, and are immune to extreme \
+	temperatures and pressures. \nYour goal is to serve the Justiciar and his servants by repairing and defending all they create. \
+	\nYou yourself are one of these servants, and will be able to utilize almost anything they can, excluding a clockwork slab.</b>"
 
-/mob/living/simple_animal/drone/safedrone/stripPanelUnequip(obj/item/what, mob/who, where)
-	if(!isdrone(who))
-		src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-		return
-	..(what, who, where, 1)
+/mob/living/simple_animal/drone/cogscarab/binarycheck()
+	return FALSE
 
+/mob/living/simple_animal/drone/cogscarab/update_drone_hack()
+	return //we don't get hacked or give a shit about it
 
-/mob/living/simple_animal/drone/safedrone/stripPanelEquip(obj/item/what, mob/who, where)
-	if(!isdrone(who))
-		src << "<span class='danger'>Your laws prevent you from doing this!</span>"
-		return
-	..(what, who, where, 1)
-
-/obj/item/drone_shell/safedrone
-	drone_type = /mob/living/simple_animal/drone/safedrone
-
+/mob/living/simple_animal/drone/cogscarab/drone_chat(msg)
+	titled_hierophant_message(src, msg, "heavy_alloy") //HIEROPHANT DRONES

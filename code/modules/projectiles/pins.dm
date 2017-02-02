@@ -4,6 +4,7 @@
 	icon = 'icons/obj/device.dmi'
 	icon_state = "firing_pin"
 	item_state = "pen"
+	origin_tech = "materials=2;combat=4"
 	flags = CONDUCT
 	w_class = 1
 	attack_verb = list("poked")
@@ -61,13 +62,10 @@
 	if(selfdestruct)
 		user.show_message("<span class='danger'>SELF-DESTRUCTING...</span><br>", 1)
 		user << "<span class='userdanger'>[gun] explodes!</span>"
-		explosion(get_turf(gun), -1, 1, 2, 3)
+		explosion(get_turf(gun), -1, 0, 2, 3)
 		if(gun)
 			qdel(gun)
 
-/obj/item/device/firing_pin/generic
-	name = "Generic firing pin"
-	desc = "A firing pin, like the ones in the ol' west. This one incoperates absolutely no security features"
 
 
 /obj/item/device/firing_pin/magic
@@ -81,6 +79,7 @@
 	desc = "This safety firing pin allows weapons to be fired within proximity to a firing range."
 	fail_message = "<span class='warning'>TEST RANGE CHECK FAILED.</span>"
 	pin_removeable = 1
+	origin_tech = "combat=2;materials=2"
 
 /obj/item/device/firing_pin/test_range/pin_auth(mob/living/user)
 	for(var/obj/machinery/magnetic_controller/M in range(user, 3))
@@ -101,43 +100,17 @@
 			return 1
 	return 0
 
-/obj/item/device/firing_pin/implant/loyalty
-	name = "loyalty firing pin"
-	desc = "This Security firing pin authorizes the weapon for only loyalty-implanted users."
+/obj/item/device/firing_pin/implant/mindshield
+	name = "mindshield firing pin"
+	desc = "This Security firing pin authorizes the weapon for only mindshield-implanted users."
 	icon_state = "firing_pin_loyalty"
-	req_implant = /obj/item/weapon/implant/loyalty
+	req_implant = /obj/item/weapon/implant/mindshield
 
 /obj/item/device/firing_pin/implant/pindicate
 	name = "syndicate firing pin"
 	icon_state = "firing_pin_pindi"
 	req_implant = /obj/item/weapon/implant/weapons_auth
 
-/obj/item/device/firing_pin/area
-	name = "area-denial pin"
-	desc = "this doesnt matter"
-	fail_message = "<span class='warning'>AREA CHECK FAILED.</span>"
-	var/area/A = null
-
-/obj/item/device/firing_pin/area/pin_auth(mob/living/user)
-	if(istype(get_area(src), A))
-		return 0
-	return 1
-
-/obj/item/device/firing_pin/area/syndicate
-	force_replace = 1
-	A = /area/syndicate_mothership
-	name = "safety firing pin"
-	desc = "This pin will prevent firing whilst at sensitive areas."
-	icon_state = "firing_pin_pindi"
-
-/obj/item/device/firing_pin/trick
-	name = "Generic firing pin"
-	desc = "This pin will detonate the weapon it is put into upon trying to use it"
-	selfdestruct = 1
-	force_replace = 1
-
-/obj/item/device/firing_pin/trick/pin_auth(mob/living/user)
-	return 0
 
 
 // Honk pin, clown's joke item.
@@ -239,3 +212,8 @@
 	icon_state = "firing_pin_blue"
 	suit_requirement = /obj/item/clothing/suit/bluetag
 	tagcolor = "blue"
+
+/obj/item/device/firing_pin/Destroy()
+	if(gun)
+		gun.pin = null
+	return ..()

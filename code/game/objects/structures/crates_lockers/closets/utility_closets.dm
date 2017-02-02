@@ -109,11 +109,11 @@
 	if(prob(20))
 		new /obj/item/weapon/storage/belt/utility(src)
 	if(prob(30))
-		new /obj/item/stack/cable_coil
+		new /obj/item/stack/cable_coil/random(src)
 	if(prob(30))
-		new /obj/item/stack/cable_coil
+		new /obj/item/stack/cable_coil/random(src)
 	if(prob(30))
-		new /obj/item/stack/cable_coil
+		new /obj/item/stack/cable_coil/random(src)
 	if(prob(20))
 		new /obj/item/device/multitool(src)
 	if(prob(5))
@@ -174,11 +174,5 @@
 
 /obj/structure/closet/ammunitionlocker/New()
 	..()
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
-	new /obj/item/ammo_casing/shotgun/beanbag(src)
+	for(var/i in 1 to 8)
+		new /obj/item/ammo_casing/shotgun/beanbag(src)

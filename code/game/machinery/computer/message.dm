@@ -8,7 +8,7 @@
 	name = "message monitor console"
 	desc = "Used to Monitor the crew's messages, that are sent via PDA. Can also be used to view Request Console messages."
 	icon_screen = "comm_logs"
-	circuit = /obj/item/weapon/circuitboard/message_monitor
+	circuit = /obj/item/weapon/circuitboard/computer/message_monitor
 	//Server linked to.
 	var/obj/machinery/message_server/linkedServer = null
 	//Sparks effect - For emag
@@ -34,8 +34,8 @@
 	if(istype(O, /obj/item/weapon/screwdriver) && emagged)
 		//Stops people from just unscrewing the monitor and putting it back to get the console working again.
 		user << "<span class='warning'>It is too hot to mess with!</span>"
-		return
-	..()
+	else
+		return ..()
 
 /obj/machinery/computer/message_monitor/emag_act(mob/user)
 	if(!emagged)
@@ -48,7 +48,8 @@
 			MK.loc = src.loc
 			// Will help make emagging the console not so easy to get away with.
 			MK.info += "<br><br><font color='red'>£%@%(*$%&(£&?*(%&£/{}</font>"
-			spawn(100*length(src.linkedServer.decryptkey)) UnmagConsole()
+			var/time = 100 * length(src.linkedServer.decryptkey)
+			addtimer(src, "UnmagConsole", time)
 			message = rebootmsg
 		else
 			user << "<span class='notice'>A no server error appears on the screen.</span>"
@@ -93,10 +94,8 @@
 				else
 					dat += "<dd><A href='?src=\ref[src];view=1'>&#09;[++i]. View Message Logs </a><br></dd>"
 					dat += "<dd><A href='?src=\ref[src];viewr=1'>&#09;[++i]. View Request Console Logs </a></br></dd>"
-					dat += "<dd><A href='?src=\ref[src];viewc=1'>&#09;[++i]. View Chatroom Logs </a></br></dd>"
 					dat += "<dd><A href='?src=\ref[src];clear=1'>&#09;[++i]. Clear Message Logs</a><br></dd>"
 					dat += "<dd><A href='?src=\ref[src];clearr=1'>&#09;[++i]. Clear Request Console Logs</a><br></dd>"
-					dat += "<dd><A href='?src=\ref[src];clearc=1'>&#09;[++i]. Clear Chatroom Logs</a><br></dd>"
 					dat += "<dd><A href='?src=\ref[src];pass=1'>&#09;[++i]. Set Custom Key</a><br></dd>"
 					dat += "<dd><A href='?src=\ref[src];msg=1'>&#09;[++i]. Send Admin Message</a><br></dd>"
 			else
@@ -217,24 +216,6 @@
 				<td width='15%'>[rc.rec_dpt]</td><td width='300px'>[rc.message]</td><td width='15%'>[rc.stamp]</td><td width='15%'>[rc.id_auth]</td><td width='15%'>[rc.priority]</td></tr>"}
 			dat += "</table>"
 
-		//Chatroom Logs
-		if(5)
-
-			var/index = 0
-			//var/sender = "Anon"
-			//var/channel = "ss13"
-			//var/message = "Blank"
-			dat += "<center><A href='?src=\ref[src];back=1'>Back</a> - <A href='?src=\ref[src];refresh=1'>Refresh</center><hr>"
-			dat += "<table border='1' width='100%'><tr><th width = '5%'>X</th><th width='15%'>Channel</th><th width='15%'>Nick</th><th width='300px' word-wrap: break-word>Message</th></tr>"
-			for(var/datum/data_chat_msg/msg in src.linkedServer.chat_msgs)
-				index++
-				if(index > 3000)
-					break
-				// Del - Channel - Sender - Message
-				// X   - #ss13   - bigdik - hi asl
-				dat += "<tr><td width = '5%'><center><A href='?src=\ref[src];delete=\ref[msg]' style='color: rgb(255,0,0)'>X</a></center></td><td width='15%'>[msg.channel]</td><td width='15%'>[msg.sender]</td><td width='300px'>[msg.message]</td></tr>"
-			dat += "</table>"
-
 	message = defaultmsg
 	//user << browse(dat, "window=message;size=700x700")
 	//onclose(user, "message")
@@ -269,16 +250,19 @@
 	if ((usr.contents.Find(src) || (in_range(src, usr) && istype(src.loc, /turf))) || (istype(usr, /mob/living/silicon)))
 		//Authenticate
 		if (href_list["auth"])
-			if(auth)
-				auth = 0
-				screen = 0
+			if(!linkedServer || linkedServer.stat & (NOPOWER|BROKEN))
+				message = noserver
 			else
-				var/dkey = trim(input(usr, "Please enter the decryption key.") as text|null)
-				if(dkey && dkey != "")
-					if(src.linkedServer.decryptkey == dkey)
-						auth = 1
-					else
-						message = incorrectkey
+				if(auth)
+					auth = 0
+					screen = 0
+				else
+					var/dkey = trim(input(usr, "Please enter the decryption key.") as text|null)
+					if(dkey && dkey != "")
+						if(src.linkedServer.decryptkey == dkey)
+							auth = 1
+						else
+							message = incorrectkey
 
 		//Turn the server on/off.
 		if (href_list["active"])
@@ -317,14 +301,6 @@
 			else
 				if(auth)
 					src.linkedServer.rc_msgs = list()
-					message = "<span class='notice'>NOTICE: Logs cleared.</span>"
-		//Clears the chatroom logs - KEY REQUIRED
-		if (href_list["clearc"])
-			if(!linkedServer || (src.linkedServer.stat & (NOPOWER|BROKEN)))
-				message = noserver
-			else
-				if(auth)
-					src.linkedServer.chat_msgs = list()
 					message = "<span class='notice'>NOTICE: Logs cleared.</span>"
 		//Change the password - KEY REQUIRED
 		if (href_list["pass"])
@@ -442,8 +418,8 @@
 									var/mob/living/carbon/human/H = customrecepient.loc
 									H << "\icon[customrecepient] <b>Message from [customsender] ([customjob]), </b>\"[custommessage]\" (<a href='byond://?src=\ref[src];choice=Message;skiprefresh=1;target=\ref[src]'>Reply</a>)"
 								log_pda("[usr]/([usr.ckey]) (PDA: [customsender]) sent \"[custommessage]\" to [customrecepient.owner]")
-								customrecepient.overlays.Cut()
-								customrecepient.overlays += image('icons/obj/pda.dmi', "pda-r")
+								customrecepient.cut_overlays()
+								customrecepient.add_overlay(image('icons/obj/pda.dmi', "pda-r"))
 						//Sender is faking as someone who exists
 						else
 							src.linkedServer.send_pda_message("[customrecepient.owner]", "[PDARec.owner]","[custommessage]")
@@ -455,8 +431,8 @@
 									var/mob/living/carbon/human/H = customrecepient.loc
 									H << "\icon[customrecepient] <b>Message from [PDARec.owner] ([customjob]), </b>\"[custommessage]\" (<a href='byond://?src=\ref[customrecepient];choice=Message;skiprefresh=1;target=\ref[PDARec]'>Reply</a>)"
 								log_pda("[usr]/([usr.ckey]) (PDA: [PDARec.owner]) sent \"[custommessage]\" to [customrecepient.owner]")
-								customrecepient.overlays.Cut()
-								customrecepient.overlays += image('icons/obj/pda.dmi', "pda-r")
+								customrecepient.cut_overlays()
+								customrecepient.add_overlay(image('icons/obj/pda.dmi', "pda-r"))
 						//Finally..
 						ResetMessage()
 
@@ -467,15 +443,6 @@
 			else
 				if(auth)
 					src.screen = 4
-		//Chatroom Logs - KEY REQUIRED
-		if(href_list["viewc"])
-			if(src.linkedServer == null || (src.linkedServer.stat & (NOPOWER|BROKEN)))
-				message = noserver
-			else
-				if(auth)
-					src.screen = 5
-
-			//usr << href_list["select"]
 
 		if (href_list["back"])
 			src.screen = 0
@@ -497,5 +464,5 @@
 					if(!isnull(server.decryptkey))
 						info = "<center><h2>Daily Key Reset</h2></center><br>The new message monitor key is '[server.decryptkey]'.<br>Please keep this a secret and away from the clown.<br>If necessary, change the password to a more secure one."
 						info_links = info
-						overlays += "paper_words"
+						add_overlay("paper_words")
 						break

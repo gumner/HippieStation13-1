@@ -3,7 +3,6 @@
 /area/mine
 	icon_state = "mining"
 	has_gravity = 1
-	ambloop = 'sound/ambience/loop/asteroid.ogg'
 
 /area/mine/explored
 	name = "Mine"
@@ -15,6 +14,7 @@
 	power_environ = 0
 	power_equip = 0
 	power_light = 0
+	outdoors = 1
 	ambientsounds = list('sound/ambience/ambimine.ogg')
 
 /area/mine/unexplored
@@ -27,6 +27,7 @@
 	power_environ = 0
 	power_equip = 0
 	power_light = 0
+	outdoors = 1
 	ambientsounds = list('sound/ambience/ambimine.ogg')
 
 /area/mine/lobby
@@ -68,16 +69,9 @@
 /area/mine/west_outpost
 	name = "West Mining Outpost"
 
-/area/mine/permaprison
-	name = "Perma Prison"
-	icon_state = "security"
+/area/mine/laborcamp
+	name = "Labor Camp"
 
-/area/mine/permaprison/control
-	name = "Perma Prison Control Room"
+/area/mine/laborcamp/security
+	name = "Labor Camp Security"
 	icon_state = "security"
-	color = "yellow"
-
-/area/mine/permaprison/recreation
-	name = "Perma Prison Recreation"
-	icon_state = "security"
-	color = "blue"

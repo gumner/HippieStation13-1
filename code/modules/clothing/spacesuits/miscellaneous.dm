@@ -3,6 +3,7 @@
 Contains:
  - Captain's spacesuit
  - Death squad's hardsuit
+ - SWAT suit
  - Officer's beret/spacesuit
  - NASA Voidsuit
  - Father Christmas' magical clothes
@@ -19,7 +20,7 @@ Contains:
 	icon_state = "capspace"
 	item_state = "capspacehelmet"
 	desc = "A special helmet designed for only the most fashionable of military figureheads."
-	flags_inv = HIDEFACE
+	flags_inv = HIDEFACE|HIDEEARS|HIDEHAIR
 	permeability_coefficient = 0.01
 	armor = list(melee = 40, bullet = 50, laser = 50, energy = 25, bomb = 50, bio = 100, rad = 50)
 
@@ -43,7 +44,7 @@ Contains:
 	strip_delay = 130
 	max_heat_protection_temperature = FIRE_IMMUNITY_HELM_MAX_TEMP_PROTECT
 	unacidable = 1
-	action_button_name = null
+	actions_types = list()
 
 /obj/item/clothing/head/helmet/space/hardsuit/deathsquad/attack_self(mob/user)
 	return
@@ -53,12 +54,23 @@ Contains:
 	desc = "A heavily armored, advanced space suit that protects against most forms of damage."
 	icon_state = "deathsquad"
 	item_state = "swat_suit"
-	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals)
+	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals,/obj/item/weapon/kitchen/knife/combat)
 	armor = list(melee = 80, bullet = 80, laser = 50, energy = 50, bomb = 100, bio = 100, rad = 100)
 	strip_delay = 130
-	max_heat_protection_temperature = FIRE_IMMUNITY_HELM_MAX_TEMP_PROTECT
+	max_heat_protection_temperature = FIRE_IMMUNITY_SUIT_MAX_TEMP_PROTECT
 	unacidable = 1
 	helmettype = /obj/item/clothing/head/helmet/space/hardsuit/deathsquad
+	dog_fashion = /datum/dog_fashion/back/deathsquad
+
+	//NEW SWAT suit
+/obj/item/clothing/suit/space/swat
+	name = "SWAT armor"
+	desc = "Space-proof tactical SWAT armor."
+	icon_state = "heavy"
+	item_state = "swat_suit"
+	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals,/obj/item/weapon/kitchen/knife/combat)
+	armor = list(melee = 40, bullet = 30, laser = 30,energy = 30, bomb = 50, bio = 90, rad = 20)
+	strip_delay = 120
 
 /obj/item/clothing/head/helmet/space/beret
 	name = "officer's beret"
@@ -107,8 +119,10 @@ Contains:
 	name = "Santa's hat"
 	desc = "Ho ho ho. Merrry X-mas!"
 	icon_state = "santahat"
-	flags = BLOCKHAIR | STOPSPRESSUREDMAGE
+	flags = STOPSPRESSUREDMAGE
 	flags_cover = HEADCOVERSEYES
+
+	dog_fashion = /datum/dog_fashion/head/santa
 
 /obj/item/clothing/suit/space/santa
 	name = "Santa's suit"
@@ -127,7 +141,7 @@ Contains:
 	icon_state = "pirate"
 	item_state = "pirate"
 	armor = list(melee = 30, bullet = 50, laser = 30,energy = 15, bomb = 30, bio = 30, rad = 30)
-	flags = BLOCKHAIR | STOPSPRESSUREDMAGE
+	flags = STOPSPRESSUREDMAGE
 	strip_delay = 40
 	put_on_delay = 20
 	flags_cover = HEADCOVERSEYES
@@ -139,7 +153,7 @@ Contains:
 	item_state = "pirate"
 	w_class = 3
 	flags_inv = 0
-	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals)
+	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals, /obj/item/weapon/melee/energy/sword/pirate, /obj/item/clothing/glasses/eyepatch, /obj/item/weapon/reagent_containers/food/drinks/bottle/rum)
 	slowdown = 0
 	armor = list(melee = 30, bullet = 50, laser = 30,energy = 15, bomb = 30, bio = 30, rad = 30)
 	strip_delay = 40
@@ -154,11 +168,8 @@ Contains:
 	item_color = "ert_commander"
 	armor = list(melee = 65, bullet = 50, laser = 50, energy = 50, bomb = 50, bio = 100, rad = 100)
 	strip_delay = 130
-	flags = BLOCKHAIR | STOPSPRESSUREDMAGE | THICKMATERIAL | NODROP
+	flags = STOPSPRESSUREDMAGE | THICKMATERIAL | NODROP
 	brightness_on = 7
-	flags_cover = HEADCOVERSEYES | HEADCOVERSMOUTH
-	heat_protection = HEAD
-	max_heat_protection_temperature = FIRE_IMMUNITY_HELM_MAX_TEMP_PROTECT
 
 /obj/item/clothing/suit/space/hardsuit/ert
 	name = "emergency response team suit"
@@ -170,8 +181,6 @@ Contains:
 	armor = list(melee = 30, bullet = 50, laser = 30, energy = 50, bomb = 50, bio = 100, rad = 100)
 	slowdown = 0
 	strip_delay = 130
-	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	max_heat_protection_temperature = FIRE_IMMUNITY_SUIT_MAX_TEMP_PROTECT
 
 	//ERT Security
 /obj/item/clothing/head/helmet/space/hardsuit/ert/sec
@@ -211,6 +220,7 @@ Contains:
 	icon_state = "ert_medical"
 	item_state = "ert_medical"
 	helmettype = /obj/item/clothing/head/helmet/space/hardsuit/ert/med
+	species_exception = list(/datum/species/angel)
 
 /obj/item/clothing/suit/space/eva
 	name = "EVA suit"
@@ -225,7 +235,6 @@ Contains:
 	item_state = "space"
 	desc = "A lightweight space helmet with the basic ability to protect the wearer from the vacuum of space during emergencies."
 	flash_protect = 0
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 100, rad = 20)
 
 /obj/item/clothing/head/helmet/space/freedom
@@ -257,10 +266,8 @@ Contains:
 	item_state = "syndicate"
 	armor = list(melee = -20, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 100, rad = 75)	//As whimpy as a space carp
 	brightness_on = 0 //luminosity when on
-	action_button_name = ""
-	flags = BLOCKHAIR | STOPSPRESSUREDMAGE | THICKMATERIAL | NODROP
-	flags_cover = HEADCOVERSEYES | HEADCOVERSMOUTH
-	flags_inv = HIDEEARS|HIDEEYES|HIDEFACE
+	actions_types = list()
+	flags = STOPSPRESSUREDMAGE | THICKMATERIAL | NODROP
 
 
 /obj/item/clothing/suit/space/hardsuit/carp
@@ -273,77 +280,6 @@ Contains:
 	allowed = list(/obj/item/weapon/tank/internals, /obj/item/weapon/gun/projectile/automatic/speargun)	//I'm giving you a hint here
 	helmettype = /obj/item/clothing/head/helmet/space/hardsuit/carp
 
-//Facepunch ASS armor
-
-/obj/item/clothing/suit/space/ass
-	name = "ASS Armor"
-	desc = "Assault System Specialist Combat Suit. Highly resistant to pressure and all forms of damage."
-	icon_state = "tcom"
-	item_state = "tcom"
-	flags_inv = null
-	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals)
-	armor = list(melee = 80, bullet = 60, laser = 60, energy = 40, bomb = 40, bio = 100, rad = 100)
-	slowdown = 0.5
-	strip_delay = 130
-
-/obj/item/clothing/head/helmet/space/ass
-	name = "ass helmet"
-	desc = "Assault System Specialist Combat Helmet. Highly resistant to pressure and all forms of damage."
-	icon_state = "tcom"
-	item_state = "tcom"
-	armor = list(melee = 80, bullet = 60, laser = 60, energy = 40, bomb = 40, bio = 100, rad = 100)
-	strip_delay = 130
-
-//Space Marine Power Armor from Facepunch
-
-/obj/item/clothing/head/helmet/space/imperium
-	name = "Mark VII Aquila Helmet"
-	desc = "The Mark VII Helmet corresponding to it's parent Power Armour."
-	icon_state = "bloodraven_helmet"
-	item_state = "bloodraven_helmet"
-	armor = list(melee = 80, bullet = 70, laser = 70, energy = 40, bomb = 80, bio = 100, rad = 100)
-	strip_delay = 200
-
-/obj/item/clothing/suit/space/imperium
-	name = "Mark VII Aquila Power Armour"
-	desc = "Mark VII armour was developed during the Horus Heresy, and remains in use as the most common form of power armour."
-	icon_state = "bloodraven_suit"
-	item_state = "bloodraven_suit"
-	allowed = list(/obj/item/weapon/gun,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/tank/internals)
-	slowdown = 1
-	armor = list(melee = 80, bullet = 70, laser = 70, energy = 40, bomb = 80, bio = 100, rad = 100)
-	strip_delay = 200
-/obj/item/clothing/suit/space/mime
-	name = "Miming spacesuit"
-	icon_state = "spacemime"
-	item_state = "spacemime"
-	desc = "A special spacesuit designed for silent baguette munching in hazardous, low pressure environment. Has reinforced plating in case the white flag is not seen."
-	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 50)
-
-/obj/item/clothing/head/helmet/space/mime
-	name = "Miming spacehelmet"
-	icon_state = "hardsuit0-mime"
-	item_state = "hardsuit0-mime"
-	desc = "A special helmet designed for silent baguette munching in hazardous, low pressure environment. Has reinforced plating in case the white flag is not seen."
-	flash_protect = 1
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES
-	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 50)
-
-/obj/item/clothing/suit/space/clown
-	name = "Clowning spacesuit"
-	icon_state = "spaceclown"
-	item_state = "spaceclown"
-	desc = "A special spacesuit designed for HONKing in a hazardous, low pressure environment. Has reinforced plating for assistant encounters."
-	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 50)
-
-/obj/item/clothing/head/helmet/space/clown
-	name = "Clowning spacehelmet"
-	icon_state = "hardsuit0-clown"
-	item_state = "hardsuit0-clown"
-	desc = "A special helmet designed for HONKing in a hazardous, low pressure environment. Has reinforced plating for assistant encounters."
-	flash_protect = 1
-	flags_inv = HIDEMASK|HIDEEARS|HIDEEYES
-	armor = list(melee = 10, bullet = 5, laser = 10, energy = 5, bomb = 10, bio = 100, rad = 50)
 
 /obj/item/clothing/head/helmet/space/hardsuit/ert/paranormal
 	name = "paranormal response unit helmet"
@@ -352,6 +288,7 @@ Contains:
 	item_state = "hardsuit0-prt"
 	item_color = "knight_grey"
 	max_heat_protection_temperature = FIRE_IMMUNITY_HELM_MAX_TEMP_PROTECT
+	actions_types = list()
 
 /obj/item/clothing/suit/space/hardsuit/ert/paranormal
 	name = "paranormal response team suit"
@@ -365,3 +302,27 @@ Contains:
 /obj/item/clothing/suit/space/hardsuit/ert/paranormal/New()
 	..()
 	new /obj/item/weapon/nullrod(src)
+
+/obj/item/clothing/suit/space/hardsuit/ert/paranormal/inquisitor
+	name = "inquisitor's hardsuit"
+	icon_state = "hardsuit-inq"
+	item_state = "hardsuit-inq"
+	helmettype = /obj/item/clothing/head/helmet/space/hardsuit/ert/paranormal/inquisitor
+
+/obj/item/clothing/head/helmet/space/hardsuit/ert/paranormal/inquisitor
+	name = "inquisitor's helmet"
+	icon_state = "hardsuit0-inq"
+	item_state = "hardsuit0-inq"
+
+/obj/item/clothing/suit/space/hardsuit/ert/paranormal/beserker
+	name = "champion's hardsuit"
+	desc = "Voices echo from the hardsuit, driving the user insane."
+	icon_state = "hardsuit-beserker"
+	item_state = "hardsuit-beserker"
+	helmettype = /obj/item/clothing/head/helmet/space/hardsuit/ert/paranormal/beserker
+
+/obj/item/clothing/head/helmet/space/hardsuit/ert/paranormal/beserker
+	name = "champion's helmet"
+	desc = "Peering into the eyes of the helmet is enough to seal damnation."
+	icon_state = "hardsuit0-beserker"
+	item_state = "hardsuit0-beserker"

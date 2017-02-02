@@ -1,3 +1,4 @@
+#define DRONE_MINIMUM_AGE 14
 
 ///////////////////
 //DRONES AS ITEMS//
@@ -5,7 +6,6 @@
 //Drone shells
 //Drones as hats
 
-var/list/existing_shells = list() // for the drone shit objective suggested by who else other than Spacedong
 
 //DRONE SHELL
 /obj/item/drone_shell
@@ -18,22 +18,27 @@ var/list/existing_shells = list() // for the drone shit objective suggested by w
 
 /obj/item/drone_shell/New()
 	..()
-	existing_shells |= src
-
-/obj/item/drone_shell/Destroy()
-	existing_shells -= src
-	..()
+	var/area/A = get_area(src)
+	if(A)
+		notify_ghosts("A drone shell has been created in \the [A.name].", source = src, action=NOTIFY_ATTACK)
 
 /obj/item/drone_shell/attack_ghost(mob/user)
 	if(jobban_isbanned(user,"drone"))
 		return
+	if(config.use_age_restriction_for_jobs)
+		if(!isnum(user.client.player_age)) //apparently what happens when there's no DB connected. just don't let anybody be a drone without admin intervention
+			return
+		if(user.client.player_age < DRONE_MINIMUM_AGE)
+			user << "<span class='danger'>You're too new to play as a drone! Please try again in [DRONE_MINIMUM_AGE - user.client.player_age] days.</span>"
+			return
 	if(!ticker.mode)
 		user << "Can't become a drone before the game has started."
 		return
 	var/be_drone = alert("Become a drone? (Warning, You can no longer be cloned!)",,"Yes","No")
-	if(be_drone == "No" || gc_destroyed)
+	if(be_drone == "No" || qdeleted(src))
 		return
 	var/mob/living/simple_animal/drone/D = new drone_type(get_turf(loc))
+	D.admin_spawned = admin_spawned
 	D.key = user.key
 	qdel(src)
 
@@ -41,7 +46,7 @@ var/list/existing_shells = list() // for the drone shit objective suggested by w
 //DRONE HOLDER
 /obj/item/clothing/head/drone_holder//Only exists in someones hand.or on their head
 	name = "drone (hiding)"
-	desc = "This drone is scared and has curled up into a ball"
+	desc = "This drone is scared and has curled up into a ball."
 	icon = 'icons/mob/drone.dmi'
 	icon_state = "drone_maint_hat"
 	var/mob/living/simple_animal/drone/drone //stored drone
@@ -52,16 +57,16 @@ var/list/existing_shells = list() // for the drone shit objective suggested by w
 
 	if(istype(loc, /mob/living))
 		var/mob/living/L = loc
-		L.show_message("<span class='notice'>[drone] is trying to escape!</span>")
-		if(!do_after(L, 50, target = L) || loc != L)
+		L << "<span class='warning'>[drone] is trying to escape!</span>"
+		if(!do_after(drone, 50, target = L))
 			return
 		L.unEquip(src)
 
 	contents -= drone
 	drone.loc = get_turf(src)
-	drone.reset_view()
-	drone.dir = SOUTH //Looks better
-	drone.visible_message("<span class='notice'>[drone] uncurls!</span>")
+	drone.reset_perspective()
+	drone.setDir(SOUTH )//Looks better
+	drone.visible_message("<span class='warning'>[drone] uncurls!</span>")
 	drone = null
 	qdel(src)
 

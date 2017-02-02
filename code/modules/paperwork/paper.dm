@@ -14,12 +14,12 @@
 	w_class = 1
 	throw_range = 1
 	throw_speed = 1
-	layer = 3
 	pressure_resistance = 0
 	slot_flags = SLOT_HEAD
 	body_parts_covered = HEAD
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 	burntime = 5
+	dog_fashion = /datum/dog_fashion/head
 
 	var/info		//What's actually written on the paper.
 	var/info_links	//A different version of the paper which includes html links at fields and EOF
@@ -28,48 +28,26 @@
 	var/list/stamped
 	var/rigged = 0
 	var/spam_flag = 0
-	var/atom/attached = null //For stapling
 
 
 /obj/item/weapon/paper/New()
 	..()
 	pixel_y = rand(-8, 8)
 	pixel_x = rand(-9, 9)
-	spawn(2)
-		update_icon()
-		updateinfolinks()
+	update_icon()
+	updateinfolinks()
 
 
 /obj/item/weapon/paper/update_icon()
-	if(burn_state == 1)
+
+	if(burn_state == ON_FIRE)
 		icon_state = "paper_onfire"
 		return
 	if(info)
 		icon_state = "paper_words"
 		return
 	icon_state = "paper"
-	if(attached)
-		overlays += "stapled"
 
-/obj/item/weapon/paper/attack_hand(mob/user as mob)
-	if(attached)
-		var/temp_loc = user.loc
-		switch(alert("Do you want to take \the [src] off \the [attached]?","[src]","Yes","No"))
-			if("Yes")
-				if(user.loc != temp_loc || !attached)
-					return
-				attached = null
-				flags &= ~NODROP //You can now pick it up
-				anchored = 0 //and now you can pull it around, too!
-				update_icon()
-				src.loc = user.loc
-				if(prob(30)) new /obj/item/stack/staples(user.loc, 1)
-				user.put_in_hands(src)
-				add_fingerprint(user)
-			if("No")
-				return
-	else
-		..()
 
 /obj/item/weapon/paper/examine(mob/user)
 	..()
@@ -81,17 +59,14 @@
 			user << "<span class='danger'>There are indecipherable images scrawled on the paper in what looks to be... <i>blood?</i></span>"
 			return
 	if(in_range(user, src) || isobserver(user))
-		if( !(ishuman(user) || isobserver(user) || issilicon(user)) )
-			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[stars(info)]<HR>[stamps]</BODY></HTML>", "window=[name]")
+		if(user.is_literate())
+			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[info]<HR>[stamps]</BODY></HTML>", "window=[name]")
 			onclose(user, "[name]")
 		else
-			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[info]<HR>[stamps]</BODY></HTML>", "window=[name]")
+			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[stars(info)]<HR>[stamps]</BODY></HTML>", "window=[name]")
 			onclose(user, "[name]")
 	else
 		user << "<span class='notice'>It is too far away.</span>"
-
-	if(attached)
-		user << "<span class='notice'>It is attached to \the [attached].</span>"
 
 
 /obj/item/weapon/paper/verb/rename()
@@ -99,16 +74,15 @@
 	set category = "Object"
 	set src in usr
 
-	if(usr.stat || !usr.canmove || usr.restrained())
+	if(usr.incapacitated() || !usr.is_literate())
 		return
-
-	if(!ishuman(usr))
-		return
-	var/mob/living/carbon/human/H = usr
-	if(H.disabilities & CLUMSY && prob(25))
-		H << "<span class='warning'>You cut yourself on the paper! Ahhhh! Ahhhhh!</span>"
-		H.damageoverlaytemp = 9001
-		return
+	if(ishuman(usr))
+		var/mob/living/carbon/human/H = usr
+		if(H.disabilities & CLUMSY && prob(25))
+			H << "<span class='warning'>You cut yourself on the paper! Ahhhh! Ahhhhh!</span>"
+			H.damageoverlaytemp = 9001
+			H.update_damage_hud()
+			return
 	var/n_name = stripped_input(usr, "What would you like to label the paper?", "Paper Labelling", null, MAX_NAME_LEN)
 	if((loc == usr && usr.stat == 0))
 		name = "paper[(n_name ? text("- '[n_name]'") : null)]"
@@ -192,7 +166,7 @@
 	info = null
 	stamps = null
 	stamped = list()
-	overlays.Cut()
+	cut_overlays()
 	updateinfolinks()
 	update_icon()
 
@@ -214,10 +188,7 @@
 	t = replacetext(t, "\[/u\]", "</U>")
 	t = replacetext(t, "\[large\]", "<font size=\"4\">")
 	t = replacetext(t, "\[/large\]", "</font>")
-	var/a = replacetext(t, "\[sign\]", "<font face=\"[SIGNFONT]\"><i>[user.real_name]</i></font>")
-	if(a)//This code is used for the lawyer's petition objective.
-		t = a
-		feedback_add_details("paperwork", "SIGN|[user.real_name]")
+	t = replacetext(t, "\[sign\]", "<font face=\"[SIGNFONT]\"><i>[user.real_name]</i></font>")
 	t = replacetext(t, "\[field\]", "<span class=\"paper_field\"></span>")
 
 	if(!iscrayon)
@@ -230,6 +201,7 @@
 
 		t = "<font face=\"[PEN_FONT]\" color=[P.colour]>[t]</font>"
 	else // If it is a crayon, and he still tries to use these, make them empty!
+		var/obj/item/toy/crayon/C = P
 		t = replacetext(t, "\[*\]", "")
 		t = replacetext(t, "\[hr\]", "")
 		t = replacetext(t, "\[small\]", "")
@@ -237,7 +209,7 @@
 		t = replacetext(t, "\[list\]", "")
 		t = replacetext(t, "\[/list\]", "")
 
-		t = "<font face=\"[CRAYON_FONT]\" color=[P.colour]><b>[t]</b></font>"
+		t = "<font face=\"[CRAYON_FONT]\" color=[C.paint_color]><b>[t]</b></font>"
 
 //	t = replacetext(t, "#", "") // Junk converted to nothing!
 
@@ -311,14 +283,14 @@
 /obj/item/weapon/paper/attackby(obj/item/weapon/P, mob/living/carbon/human/user, params)
 	..()
 
-	if(burn_state == 1)
+	if(burn_state == ON_FIRE)
 		return
 
 	if(is_blind(user))
 		return
 
 	if(istype(P, /obj/item/weapon/pen) || istype(P, /obj/item/toy/crayon))
-		if(user.IsAdvancedToolUser())
+		if(user.is_literate())
 			user << browse("<HTML><HEAD><TITLE>[name]</TITLE></HEAD><BODY>[info_links]<HR>[stamps]</BODY></HTML>", "window=[name]")
 			return
 		else
@@ -329,11 +301,11 @@
 			return
 
 	else if(istype(P, /obj/item/weapon/stamp))
-		if(!in_range(src, usr) && loc != user && !istype(loc, /obj/item/weapon/clipboard) && loc.loc != user && user.get_active_hand() != P)
+
+		if(!in_range(src, user))
 			return
 
 		stamps += "<img src=large_[P.icon_state].png>"
-
 		var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
 		stampoverlay.pixel_x = rand(-2, 2)
 		stampoverlay.pixel_y = rand(-3, 2)
@@ -343,7 +315,7 @@
 		if(!stamped)
 			stamped = new
 		stamped += P.type
-		overlays += stampoverlay
+		add_overlay(stampoverlay)
 
 		user << "<span class='notice'>You stamp the paper with your rubber stamp.</span>"
 
@@ -362,7 +334,6 @@
 		user.unEquip(src)
 		user.visible_message("<span class='danger'>[user] lights [src] ablaze with [P]!</span>", "<span class='danger'>You light [src] on fire!</span>")
 		fire_act()
-
 
 
 	add_fingerprint(user)
@@ -384,10 +355,6 @@
 /obj/item/weapon/paper/Court
 	name = "paper- 'Judgement'"
 	info = "For crimes against the station, the offender is sentenced to:<BR>\n<BR>\n"
-
-/obj/item/weapon/paper/pmc_contract
-	name = "paper- 'ION PMC Contract'"
-	info = "<B>ION, Incorporated, hereafter referred to as the COMPANY, and the CONTRACTOR agree to enter into a new formal arrangement commencing on the TWENTY-FIRST (21) Day of the SEVENTH (7) Month of the year TWO THOUSAND FIVE-HUNDRED AND FIFTY-FIVE (2555), hereafter referred to as the OPERATION. <BR> The CONTRACTOR agrees that the rules of engagement hereafter referred to as the ROE (Expounded in detail in Annex II) fall under the remit of the UCMH. Furthermore, the OPERATION stipulates NO UNAUTHORIZED USE OF DEADLY FORCE unless fired upon. <BR> The COMPANY reserves the right to extend or narrow the scope of the UCMJ (Uniform Code of Military Justice) are to be detailed and countersigned in future addenda to this contract. <BR> Agile changes to the ROE are authorized under tactical COMPANY supervision. <BR> The CONTRACTOR agrees to the full liability of any and all deviations from the ROE within the OPERATION AOR nonwithstanding CLIENT or COMPANY contractual addenda. <BR> <BR> --ION <B>"
 
 /obj/item/weapon/paper/Toxin
 	name = "paper- 'Chemical Information'"
@@ -431,7 +398,6 @@
 
 /obj/item/weapon/paper/crumpled/update_icon()
 	return
-
 
 /obj/item/weapon/paper/crumpled/bloody
 	icon_state = "scrap_bloodied"

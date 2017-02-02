@@ -2,22 +2,39 @@
 	name = "pulse rifle"
 	desc = "A heavy-duty, multifaceted energy rifle with three modes. Preferred by front-line combat personnel."
 	icon_state = "pulse"
-	item_state = "pulse"
+	item_state = null
 	w_class = 4
 	force = 10
-	stamina_percentage = 0.3
 	flags =  CONDUCT
 	slot_flags = SLOT_BACK
 	ammo_type = list(/obj/item/ammo_casing/energy/laser/pulse, /obj/item/ammo_casing/energy/electrode, /obj/item/ammo_casing/energy/laser)
 	cell_type = "/obj/item/weapon/stock_parts/cell/pulse"
 
-/obj/item/weapon/gun/energy/pulse/attack_self(mob/living/user)
-	select_fire(user)
-
 /obj/item/weapon/gun/energy/pulse/emp_act(severity)
 	return
 
+/obj/item/weapon/gun/energy/pulse/prize
+	pin = /obj/item/device/firing_pin
+
+/obj/item/weapon/gun/energy/pulse/prize/New()
+	. = ..()
+	poi_list |= src
+	var/msg = "A pulse rifle prize has been created at ([x],[y],[z] - (\
+	<A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[x];Y=[y];Z=[z]'>\
+	JMP</a>)"
+
+	message_admins(msg)
+	log_game(msg)
+
+	notify_ghosts("Someone won a pulse rifle as a prize!", source = src,
+		action = NOTIFY_ORBIT)
+
+/obj/item/weapon/gun/energy/pulse/prize/Destroy()
+	poi_list -= src
+	. = ..()
+
 /obj/item/weapon/gun/energy/pulse/loyalpin
+	pin = /obj/item/device/firing_pin/implant/mindshield
 
 /obj/item/weapon/gun/energy/pulse/carbine
 	name = "pulse carbine"
@@ -30,11 +47,9 @@
 	can_flashlight = 1
 	flight_x_offset = 18
 	flight_y_offset = 12
-	can_knife = 1
-	knife_x_offset = 18
-	knife_y_offset = 12
 
 /obj/item/weapon/gun/energy/pulse/carbine/loyalpin
+	pin = /obj/item/device/firing_pin/implant/mindshield
 
 /obj/item/weapon/gun/energy/pulse/pistol
 	name = "pulse pistol"
@@ -47,7 +62,7 @@
 	can_charge = 0
 
 /obj/item/weapon/gun/energy/pulse/pistol/loyalpin
-
+	pin = /obj/item/device/firing_pin/implant/mindshield
 
 /obj/item/weapon/gun/energy/pulse/destroyer
 	name = "pulse destroyer"
@@ -64,11 +79,3 @@
 	icon_state = "m1911"
 	item_state = "gun"
 	cell_type = "/obj/item/weapon/stock_parts/cell/infinite"
-
-/obj/item/weapon/gun/energy/pulse/plasmoid
-	name = "plasma rifle"
-	desc = "An experimental heavy duty energy rifle with standard laser and electrode fire modes and an experimental plasma mode with a high energy draw which fires a burst of 3 superhot plasmoids that immolate targets, the range is limited however."
-	icon_state = "plasmoidr"
-	item_state = "plasmoidr"
-	slot_flags = SLOT_BACK
-	ammo_type = list(/obj/item/ammo_casing/energy/plasmoid/burst, /obj/item/ammo_casing/energy/electrode, /obj/item/ammo_casing/energy/laser)

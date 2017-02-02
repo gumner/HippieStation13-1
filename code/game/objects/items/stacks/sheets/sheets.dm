@@ -2,7 +2,6 @@
 	name = "sheet"
 	w_class = 3
 	force = 5
-	stamina_percentage = 0.5
 	throwforce = 5
 	max_amount = 50
 	throw_speed = 1

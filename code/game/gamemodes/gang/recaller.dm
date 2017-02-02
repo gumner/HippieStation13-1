@@ -9,11 +9,11 @@
 	throw_speed = 3
 	throw_range = 7
 	flags = CONDUCT
+	origin_tech = "programming=5;bluespace=2;syndicate=5"
 	var/datum/gang/gang //Which gang uses this?
 	var/recalling = 0
 	var/outfits = 3
 	var/free_pen = 0
-	var/recall_cost = 25
 	var/promotable = 0
 
 /obj/item/device/gangtool/New() //Initialize supply point income if it hasn't already been started
@@ -41,8 +41,8 @@
 		else
 			dat += "This device is not authorized to promote.<br>"
 	else
-		if(isnum(gang.dom_timer))
-			dat += "<center><font color='red'>Takeover In Progress:<br><B>[gang.dom_timer] seconds remain</B></font></center>"
+		if(gang.is_dominating)
+			dat += "<center><font color='red'>Takeover In Progress:<br><B>[gang.domination_time_remaining()] seconds remain</B></font></center>"
 
 		var/isboss = (user.mind == gang.bosses[1])
 		var/points = gang.points
@@ -59,11 +59,7 @@
 		else
 			dat += "<b>Create Gang Outfit</b> (Restocking)<br>"
 		if(isboss)
-			dat += "([recall_cost] Influence) "
-			if(points >= recall_cost)
-				dat += "<a href='?src=\ref[src];choice=recall'>Recall Emergency Shuttle</a><br>"
-			else
-				dat += "Recall Emergency Shuttle"
+			dat += "<a href='?src=\ref[src];choice=recall'>Recall Emergency Shuttle</a><br>"
 
 		dat += "<br>"
 		dat += "<B>Purchase Weapons:</B><br>"
@@ -103,109 +99,11 @@
 			else
 				dat += "Uzi Ammo<br>"
 
-			dat += "<br>"
-
-		//////////////////
-		// MARTIAL ARTS //
-		//////////////////
-
-		else if(gang.fighting_style == "martial")
-			dat += "(10 Influence) "
-			if(points >= 10)
-				dat += "<a href='?src=\ref[src];purchase=bostaff'>Bo Staff</a><br>"
+			dat += "(1 Influence) "
+			if(points >=1)
+				dat += "<a href='?src=\ref[src];purchase=necklace'>Dope Necklace</a><br>"
 			else
-				dat += "Bo Staff<br>"
-
-			dat += "(20 Influence) "
-			if(points >= 20)
-				dat += "<a href='?src=\ref[src];purchase=wrestlingbelt'>Wrestling Belt</a><br>"
-			else
-				dat += "Wrestling Belt<br>"
-
-			dat += "(30 Influence) "
-			if(points >= 30)
-				dat += "<a href='?src=\ref[src];purchase=scroll'>Sleeping Carp Scroll (one-use)</a><br>"
-			else
-				dat += "Sleeping Carp Scroll (one-use)<br>"
-			dat += "<br>"
-
-
-		//////////////////
-		// RIGATONI FAM //
-		//////////////////
-
-		else if(gang.fighting_style == "mobster")
-			dat += "(10 Influence) "
-			if(points >= 10)
-				dat += "<a href='?src=\ref[src];purchase=brassknuckles'>Brass Knuckles</a><br>"
-			else
-				dat += "Brass Knuckles<br>"
-
-			dat += "(30 Influence) "
-			if(points >= 30)
-				dat += "<a href='?src=\ref[src];purchase=.38revolver'>.38 Revolver</a><br>"
-			else
-				dat += ".38 Revolver<br>"
-
-			dat += "(20 Influence) "
-			if(points >= 20)
-				dat += "<a href='?src=\ref[src];purchase=.38ammo'>.38 Ammo</a><br>"
-			else
-				dat += ".38 Ammo<br>"
-
-			dat += "(50 Influence) "
-			if(points >= 50)
-				dat += "<a href='?src=\ref[src];purchase=tommyammo'>Thompson Ammo</a><br>"
-			else
-				dat += "Thompson Ammo<br>"
-
-			dat += "(80 Influence) "
-			if(points >= 80)
-				dat += "<a href='?src=\ref[src];purchase=thompson'>Thompson Machinegun</a><br>"
-			else
-				dat += "Thompson Machinegun <br>"
-			dat += "<br>"
-
-		//////////////////
-		// CLANDESTINE  //
-		//////////////////
-
-		else if(gang.fighting_style == "stealth")
-			dat += "(5 Influence) "
-			if(points >= 5)
-				dat += "<a href='?src=\ref[src];purchase=suppressor'>Suppressor</a><br>"
-			else
-				dat += "Suppressor<br>"
-
-			dat += "(10 Influence) "
-			if(points >= 10)
-				dat += "<a href='?src=\ref[src];purchase=dagger'>Energy Dagger</a><br>"
-			else
-				dat += "Energy Dagger<br>"
-
-			dat += "(25 Influence) "
-			if(points >= 25)
-				dat += "<a href='?src=\ref[src];purchase=glock'>Glock 17</a><br>"
-			else
-				dat += "Glock 17<br>"
-
-			dat += "(10 Influence) "
-			if(points >= 10)
-				dat += "<a href='?src=\ref[src];purchase=glockammo'>Glock Magazine</a><br>"
-			else
-				dat += "Glock Magazine<br>"
-
-			dat += "(60 Influence) "
-			if(points >= 60)
-				dat += "<a href='?src=\ref[src];purchase=uzi'>Uzi SMG</a><br>"
-			else
-				dat += "Uzi SMG<br>"
-
-			dat += "&nbsp;&#8627;(40 Influence) "
-			if(points >= 40)
-				dat += "<a href='?src=\ref[src];purchase=9mmammo'>Uzi Ammo</a><br>"
-			else
-				dat += "Uzi Ammo<br>"
+				dat += "Dope Necklace<br>"
 
 			dat += "<br>"
 
@@ -227,8 +125,8 @@
 		else
 			dat += "C4 Explosive<br>"
 
-		dat += "(10 Influence) "
-		if(points >= 10)
+		dat += "(15 Influence) "
+		if(points >= 15)
 			dat += "<a href='?src=\ref[src];purchase=implant'>Implant Breaker</a><br>"
 		else
 			dat += "Implant Breaker<br>"
@@ -259,7 +157,7 @@
 				dat += "<a href='?src=\ref[src];purchase=dominator'><b>Station Dominator</b></a><br>"
 			else
 				dat += "<b>Station Dominator</b><br>"
-			dat += "<i>(Estimated Takeover Time: [round(get_domination_time(gang)/60,0.1)] minutes)</i><br>"
+			dat += "<i>(Estimated Takeover Time: [round(determine_domination_time(gang)/60,0.1)] minutes)</i><br>"
 
 	dat += "<br>"
 	dat += "<a href='?src=\ref[src];choice=refresh'>Refresh</a><br>"
@@ -294,10 +192,10 @@
 				if(gang.points >= 10)
 					item_type = /obj/item/weapon/switchblade
 					pointcost = 10
-			if("brassknuckles")
-				if(gang.points >= 10)
-					item_type = /obj/item/clothing/gloves/brassknuckles
-					pointcost = 10
+			if("necklace")
+				if(gang.points >=1)
+					item_type = /obj/item/clothing/tie/dope_necklace
+					pointcost = 1
 			if("pistol")
 				if(gang.points >= 25)
 					item_type = /obj/item/weapon/gun/projectile/automatic/pistol
@@ -310,42 +208,6 @@
 				if(gang.points >= 60)
 					item_type = /obj/item/weapon/gun/projectile/automatic/mini_uzi
 					pointcost = 60
-			if("glock")
-				if(gang.points >= 25)
-					item_type = /obj/item/weapon/gun/projectile/automatic/pistol/g17
-					pointcost = 25
-			if("glockammo")
-				if(gang.points >= 10)
-					item_type = /obj/item/ammo_box/magazine/g17
-					pointcost = 10
-			if("suppressor")
-				if(gang.points >= 5)
-					item_type = /obj/item/weapon/suppressor
-					pointcost = 5
-			if("dagger")
-				if(gang.points >= 10)
-					item_type = /obj/item/weapon/pen/edagger
-					pointcost = 10
-			if("projector")
-				if(gang.points >= 15)
-					item_type = /obj/item/device/chameleon
-					pointcost = 15
-			if("thompson")
-				if(gang.points >= 80)
-					item_type = /obj/item/weapon/gun/projectile/automatic/tommygun
-					pointcost = 80
-			if("tommyammo")
-				if(gang.points >= 50)
-					item_type = /obj/item/ammo_box/magazine/tommygunm45
-					pointcost = 50
-			if(".38ammo")
-				if(gang.points >= 20)
-					item_type = /obj/item/ammo_box/c38
-					pointcost = 20
-			if(".38revolver")
-				if(gang.points >= 30)
-					item_type = /obj/item/weapon/gun/projectile/revolver/rigatoni
-					pointcost = 30
 			if("9mmammo")
 				if(gang.points >= 40)
 					item_type = /obj/item/ammo_box/magazine/uzim9mm
@@ -366,7 +228,7 @@
 					pointcost = 10
 			if("C4")
 				if(gang.points >= 10)
-					item_type = /obj/item/weapon/c4
+					item_type = /obj/item/weapon/grenade/plastic/c4
 					pointcost = 10
 			if("pen")
 				if((gang.points >= 50) || free_pen)
@@ -377,10 +239,10 @@
 					else
 						pointcost = 50
 			if("implant")
-				if(gang.points >= 10)
+				if(gang.points >= 15)
 					item_type = /obj/item/weapon/implanter/gang
 					usr << "<span class='notice'>The <b>implant breaker</b> is a single-use device that destroys all implants within the target before trying to recruit them to your gang. Also works on enemy gangsters.</span>"
-					pointcost = 10
+					pointcost = 15
 			if("gangtool")
 				if(gang.points >= 10)
 					if(usr.mind == gang.bosses[1])
@@ -396,7 +258,7 @@
 
 				var/area/usrarea = get_area(usr.loc)
 				var/usrturf = get_turf(usr.loc)
-				if(initial(usrarea.name) == "Space" || istype(usrturf,/turf/space) || usr.z != 1)
+				if(initial(usrarea.name) == "Space" || istype(usrturf,/turf/open/space) || usr.z != 1)
 					usr << "<span class='warning'>You can only use this on the station!</span>"
 					return
 
@@ -406,23 +268,20 @@
 						return
 
 				if(usrarea.type in gang.territory|gang.territory_new)
-					if(!is_type_in_list(get_area(src), the_station_areas))
-						usr << "<span class='warning'>You can only use this on station areas!</span>"
-						return
 					if(gang.points >= 30)
 						item_type = /obj/machinery/dominator
 						usr << "<span class='notice'>The <b>dominator</b> will secure your gang's dominance over the station. Turn it on when you are ready to defend it.</span>"
 						pointcost = 30
 				else
-					usr << "<span class='notice'>The <b>dominator</b> can be spawned only on territory controlled by your gang.</span>"
+					usr << "<span class='warning'>The <b>dominator</b> can be spawned only on territory controlled by your gang!</span>"
+					return
 
-					
 		if(item_type)
 			gang.points -= pointcost
 			if(ispath(item_type))
 				var/obj/purchased = new item_type(get_turf(usr),gang)
 				var/mob/living/carbon/human/H = usr
-				H.put_in_any_hand_if_possible(purchased)
+				H.put_in_hands(purchased)
 				if(pointcost)
 					gang.message_gangtools("A [href_list["purchase"]] was purchased by [usr.real_name] for [pointcost] Influence.")
 			log_game("A [href_list["purchase"]] was purchased by [key_name(usr)] ([gang.name] Gang) for [pointcost] Influence.")
@@ -434,15 +293,7 @@
 		switch(href_list["choice"])
 			if("recall")
 				if(usr.mind == gang.bosses[1])
-					gang.points -= recall_cost
-					gang.message_gangtools("[usr.real_name] has attempted to recall the shuttle for [recall_cost] Influence.")
-					log_game("The shuttle has attempted to be recalled by [key_name(usr)] ([gang.name] Gang) for [recall_cost] Influence.")
-					if(recall(usr))
-						recall_cost *= 2
-					else
-						gang.points += recall_cost
-						gang.message_gangtools("[usr.real_name]'s attempt to recall the shuttle has failed and has been refunded [recall_cost] Influence.")
-						log_game("[key_name(usr)]'s ([gang.name] Gang) recall attempt has failed and has been refunded [recall_cost] Influence.")
+					recall(usr)
 			if("outfit")
 				if(outfits > 0)
 					if(gang.gang_outfit(usr,src))
@@ -483,7 +334,8 @@
 			if(ganger.current && (ganger.current.z <= 2) && (ganger.current.stat == CONSCIOUS))
 				ganger.current << ping
 		for(var/mob/M in dead_mob_list)
-			M << ping
+			var/link = FOLLOW_LINK(M, user)
+			M << "[link] [ping]"
 		log_game("[key_name(user)] Messaged [gang.name] Gang: [message].")
 
 

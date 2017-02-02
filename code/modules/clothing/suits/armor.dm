@@ -1,18 +1,5 @@
-
-/obj/item/clothing/suit/armor/banecoat
-    name = "banecoat"
-    desc = "When Gotham is in ashes, then you have my permission to die."
-    icon_state = "banecoat"
-    item_state = "banecoat"
-    body_parts_covered = CHEST|GROIN|ARMS|LEGS
-    armor = list(melee = 20, bullet = 25, laser = 10)
-    flags_inv = HIDEJUMPSUIT
-    cold_protection = CHEST|GROIN|LEGS|ARMS
-    heat_protection = CHEST|GROIN|LEGS|ARMS
-    strip_delay = 80
-
 /obj/item/clothing/suit/armor
-	allowed = list(/obj/item/weapon/gun/energy,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/weapon/gun/projectile,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/device/flashlight/seclite,/obj/item/weapon/melee/classic_baton/telescopic)
+	allowed = list(/obj/item/weapon/gun/energy,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/weapon/gun/projectile,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/device/flashlight/seclite,/obj/item/weapon/melee/classic_baton/telescopic,/obj/item/weapon/kitchen/knife/combat,/obj/item/weapon/tank/internals/emergency_oxygen)
 	body_parts_covered = CHEST
 	cold_protection = CHEST|GROIN
 	min_cold_protection_temperature = ARMOR_MIN_TEMP_PROTECT
@@ -20,63 +7,25 @@
 	max_heat_protection_temperature = ARMOR_MAX_TEMP_PROTECT
 	strip_delay = 60
 	put_on_delay = 40
-	burn_state = -1 //Won't burn in fires
-	can_be_washed = 0
+	burn_state = FIRE_PROOF
 
 /obj/item/clothing/suit/armor/vest
 	name = "armor"
 	desc = "A slim armored vest that protects against most types of damage."
-	icon_state = "armor"
-	item_state = "armor"
-	blood_overlay_type = "armor"
-	armor = list(melee = 50, bullet = 30, laser = 50, energy = 10, bomb = 25, bio = 0, rad = 0)
-
-/obj/item/clothing/suit/armor/chestrig
-	name = "chestrig"
-	desc = "A lightweight, flat-green camoflauge vest which can carry just about any kind of gear, at the cost of offering virtually no protection."
-	icon_state = "chestrig"
-	item_state = "chestrig"
-	allowed = list(/obj/item/weapon/gun/energy,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/weapon/gun/projectile,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/device/flashlight/seclite,/obj/item/weapon/melee/classic_baton/telescopic)
-	blood_overlay_type = "armor"
-	armor = list(melee = 10, bullet = 5, laser = 5, energy = 0, bomb = 0, bio = 0, rad = 0)
-
-/obj/item/clothing/suit/armor/defender
-	name = "Defender MK2 Body Armor"
-	desc = "A New-Russia combat armor vest with a flat-green camoflauge. It uses ceramic plates to grant the wearer extremely effective protection against ballistic weaponry and moderate protection from explosions."
-	icon_state = "defender"
-	item_state = "defender"
-	armor = list(melee = 35, bullet = 80, laser = 20, energy = 15, bomb = 45, bio = 0, rad = 0)
-	strip_delay = 70
-	put_on_delay = 50
-
-/obj/item/clothing/suit/armor/hev_suit
-	name = "H.E.V Suit"
-	desc = "A highly advanced Hazardous Environment suit, this is the Mk7 version. Able to efficiently protect the user from just about any danger that a true scientist in the field may encounter. Also has some moderate protection from lasers, bullets, and blunt objects, just incase an angry military force decides to attempt to stop the progression of SCIENCE!"
-	icon_state = "hev"
-	item_state = "armor"
-	w_class = 4		//bulky item
-	gas_transfer_coefficient = 0.01
-	permeability_coefficient = 0.01
-	flags = STOPSPRESSUREDMAGE | THICKMATERIAL
-	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
-	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	max_heat_protection_temperature = FIRE_SUIT_MAX_TEMP_PROTECT
-	cold_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	min_cold_protection_temperature = FIRE_SUIT_MIN_TEMP_PROTECT
-	strip_delay = 120
-	put_on_delay = 70
-	unacidable = 1	//Acids have no effect
-	burn_state = -1 //Not Burnable
-	armor = list(melee = 40, bullet = 45, laser = 45, energy = 30, bomb = 90, bio = 100, rad = 90)
-
-/obj/item/clothing/suit/armor/vest/alt
-	name = "armor"
-	desc = "An armored vest that protects against most types of damage. This is a civilian variant."
 	icon_state = "armoralt"
 	item_state = "armoralt"
 	blood_overlay_type = "armor"
-	armor = list(melee = 50, bullet = 15, laser = 50, energy = 10, bomb = 25, bio = 0, rad = 0)
+	armor = list(melee = 30, bullet = 30, laser = 30, energy = 10, bomb = 25, bio = 0, rad = 0)
+	dog_fashion = /datum/dog_fashion/back
+
+/obj/item/clothing/suit/armor/vest/alt
+	desc = "An armored vest that protects against most types of damage."
+	icon_state = "armor"
+	item_state = "armor"
+
+/obj/item/clothing/suit/armor/vest/blueshirt
+	icon_state = "blueshift"
+	item_state = "blueshift"
 
 /obj/item/clothing/suit/armor/hos
 	name = "armored greatcoat"
@@ -84,10 +33,10 @@
 	icon_state = "hos"
 	item_state = "greatcoat"
 	body_parts_covered = CHEST|GROIN|ARMS|LEGS
-	armor = list(melee = 50, bullet = 30, laser = 50, energy = 10, bomb = 25, bio = 0, rad = 0)
-	flags_inv = HIDEJUMPSUIT
+	armor = list(melee = 30, bullet = 30, laser = 30, energy = 10, bomb = 25, bio = 0, rad = 0)
 	cold_protection = CHEST|GROIN|LEGS|ARMS
 	heat_protection = CHEST|GROIN|LEGS|ARMS
+	pockets = /obj/item/weapon/storage/internal/pocket
 	strip_delay = 80
 
 /obj/item/clothing/suit/armor/hos/trenchcoat
@@ -100,19 +49,20 @@
 
 /obj/item/clothing/suit/armor/vest/warden
 	name = "warden's jacket"
-	desc = "A red jacket with silver rank pips and body armor strapped on top."
-	icon_state = "warden_jacket"
+	desc = "A navy-blue armored jacket with blue shoulder designations and '/Warden/' stitched into one of the chest pockets."
+	icon_state = "warden_alt"
 	item_state = "armor"
 	body_parts_covered = CHEST|GROIN|ARMS
 	cold_protection = CHEST|GROIN|ARMS|HANDS
 	heat_protection = CHEST|GROIN|ARMS|HANDS
 	strip_delay = 70
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
+	dog_fashion = null
 
 /obj/item/clothing/suit/armor/vest/warden/alt
 	name = "warden's armored jacket"
-	desc = "A navy-blue armored jacket with blue shoulder designations and '/Warden/' stitched into one of the chest pockets."
-	icon_state = "warden_alt"
+	desc = "A red jacket with silver rank pips and body armor strapped on top."
+	icon_state = "warden_jacket"
 
 /obj/item/clothing/suit/armor/vest/leather
 	name = "security overcoat"
@@ -122,6 +72,8 @@
 	body_parts_covered = CHEST|GROIN|ARMS|LEGS
 	cold_protection = CHEST|GROIN|LEGS|ARMS
 	heat_protection = CHEST|GROIN|LEGS|ARMS
+	dog_fashion = null
+	pockets = /obj/item/weapon/storage/internal/pocket
 
 /obj/item/clothing/suit/armor/vest/capcarapace
 	name = "captain's carapace"
@@ -130,6 +82,7 @@
 	item_state = "armor"
 	body_parts_covered = CHEST|GROIN
 	armor = list(melee = 50, bullet = 40, laser = 50, energy = 10, bomb = 25, bio = 0, rad = 0)
+	dog_fashion = null
 
 /obj/item/clothing/suit/armor/vest/capcarapace/alt
 	name = "captain's parade jacket"
@@ -139,18 +92,25 @@
 
 /obj/item/clothing/suit/armor/riot
 	name = "riot suit"
-	desc = "A suit of armor with heavy padding to protect against melee attacks. Looks like it might impair movement."
+	desc = "A suit of armor with heavy padding to protect against melee attacks."
 	icon_state = "riot"
 	item_state = "swat_suit"
 	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	cold_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	flags = THICKMATERIAL
-	armor = list(melee = 80, bullet = 10, laser = 10, energy = 10, bomb = 0, bio = 0, rad = 0)
+	armor = list(melee = 50, bullet = 10, laser = 10, energy = 10, bomb = 0, bio = 0, rad = 0)
 	flags_inv = HIDEJUMPSUIT
 	strip_delay = 80
 	put_on_delay = 60
-	slowdown = 1
+
+/obj/item/clothing/suit/armor/bone
+	name = "bone armor"
+	desc = "A tribal armor plate, crafted from animal bone."
+	icon_state = "bonearmor"
+	item_state = "bonearmor"
+	blood_overlay_type = "armor"
+	armor = list(melee = 35, bullet = 25, laser = 25, energy = 10, bomb = 25, bio = 0, rad = 0)
+	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS
 
 /obj/item/clothing/suit/armor/bulletproof
 	name = "bulletproof armor"
@@ -158,32 +118,17 @@
 	icon_state = "bulletproof"
 	item_state = "armor"
 	blood_overlay_type = "armor"
-	armor = list(melee = 25, bullet = 80, laser = 10, energy = 10, bomb = 40, bio = 0, rad = 0)
+	armor = list(melee = 15, bullet = 80, laser = 10, energy = 10, bomb = 40, bio = 0, rad = 0)
 	strip_delay = 70
 	put_on_delay = 50
 
-/obj/item/clothing/suit/armor/heavycombat
-	name = "MK48 Heavy Combat Armor"
-	desc = "A full-body combat armor produced by Ion Incorporated for its private military forces. Often seen worn by riflemen or other combat troops. Covers the entire body excluding the head with ceramic plates infused with goliath plates and coated in ablative materials, allowing for extreme ballistic protection and moderate laser or energy protection. Comes in a dark, urban camouflage."
-	icon_state = "combat_armor"
-	item_state = "combat_armor"
-	blood_overlay_type = "armor"
-	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	cold_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	armor = list(melee = 65, bullet = 90, laser = 50, energy = 35, bomb = 75, bio = 0, rad = 30)
-	strip_delay = 130
-	put_on_delay = 75
-	slowdown = 0.2
-	unacidable = 1
-
 /obj/item/clothing/suit/armor/laserproof
-	name = "ablative armor vest"
+	name = "reflector vest"
 	desc = "A vest that excels in protecting the wearer against energy projectiles, as well as occasionally reflecting them."
 	icon_state = "armor_reflec"
 	item_state = "armor_reflec"
 	blood_overlay_type = "armor"
-	armor = list(melee = 10, bullet = 10, laser = 80, energy = 50, bomb = 0, bio = 0, rad = 0)
+	armor = list(melee = 10, bullet = 10, laser = 60, energy = 50, bomb = 0, bio = 0, rad = 0)
 	var/hit_reflect_chance = 40
 
 /obj/item/clothing/suit/armor/laserproof/IsReflect(def_zone)
@@ -196,24 +141,26 @@
 	name = "armor"
 	desc = "An armored vest with a detective's badge on it."
 	icon_state = "detective-armor"
-	allowed = list(/obj/item/weapon/tank/internals/emergency_oxygen,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/device/flashlight,/obj/item/weapon/gun/energy,/obj/item/weapon/gun/projectile,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/storage/fancy/cigarettes,/obj/item/weapon/lighter,/obj/item/device/detective_scanner,/obj/item/device/taperecorder)
-	burn_state = 0 //Burnable
+	allowed = list(/obj/item/weapon/tank/internals/emergency_oxygen,/obj/item/weapon/reagent_containers/spray/pepper,/obj/item/device/flashlight,/obj/item/weapon/gun/energy,/obj/item/weapon/gun/projectile,/obj/item/ammo_box,/obj/item/ammo_casing,/obj/item/weapon/melee/baton,/obj/item/weapon/restraints/handcuffs,/obj/item/weapon/storage/fancy/cigarettes,/obj/item/weapon/lighter,/obj/item/device/detective_scanner,/obj/item/device/taperecorder,/obj/item/weapon/melee/classic_baton/telescopic)
+	burn_state = FLAMMABLE
+	dog_fashion = null
 
 
 //Reactive armor
-//When the wearer gets hit, this armor will teleport the user a short distance away (to safety or to more danger, no one knows. That's the fun of it!)
 /obj/item/clothing/suit/armor/reactive
-	name = "reactive teleport armor"
-	desc = "Someone seperated our Research Director from his own head!"
+	name = "reactive armor"
+	desc = "Doesn't seem to do much for some reason."
 	var/active = 0
+	var/reactivearmor_cooldown_duration = 0 //cooldown specific to reactive armor
+	var/reactivearmor_cooldown = 0
 	icon_state = "reactiveoff"
 	item_state = "reactiveoff"
 	blood_overlay_type = "armor"
 	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 0, rad = 0)
-	action_button_name = "Toggle Armor"
+	actions_types = list(/datum/action/item_action/toggle)
 	unacidable = 1
-	hit_reaction_chance = 25
-	slowdown = 1
+	hit_reaction_chance = 50
+
 
 /obj/item/clothing/suit/armor/reactive/attack_self(mob/user)
 	src.active = !( src.active )
@@ -232,58 +179,79 @@
 	active = 0
 	src.icon_state = "reactiveoff"
 	src.item_state = "reactiveoff"
+	reactivearmor_cooldown = world.time + 200
 	..()
 
-/obj/item/clothing/suit/armor/reactive/hit_reaction(mob/living/carbon/human/owner, attack_text, final_block_chance)
+//When the wearer gets hit, this armor will teleport the user a short distance away (to safety or to more danger, no one knows. That's the fun of it!)
+/obj/item/clothing/suit/armor/reactive/teleport
+	name = "reactive teleport armor"
+	desc = "Someone seperated our Research Director from his own head!"
+	var/tele_range = 6
+	var/rad_amount= 15
+	reactivearmor_cooldown_duration = 100
+
+/obj/item/clothing/suit/armor/reactive/teleport/hit_reaction(mob/living/carbon/human/owner, attack_text, final_block_chance)
 	if(!active)
 		return 0
 	if(prob(hit_reaction_chance))
 		var/mob/living/carbon/human/H = owner
-		owner.visible_message("<span class='danger'>The reactive teleport system flings [H] clear of [attack_text]!</span>")
+		if(world.time < reactivearmor_cooldown)
+			owner.visible_message("<span class='danger'>The reactive teleport system is still recharging! It fails to teleport [H]!</span>")
+			return
+		owner.visible_message("<span class='danger'>The reactive teleport system flings [H] clear of [attack_text], shutting itself off in the process!</span>")
 		var/list/turfs = new/list()
-		for(var/turf/T in orange(6, H))
+		for(var/turf/T in orange(tele_range, H))
 			if(T.density)
 				continue
-			if(T.x>world.maxx-6 || T.x<6)
+			if(T.x>world.maxx-tele_range || T.x<tele_range)
 				continue
-			if(T.y>world.maxy-6 || T.y<6)
+			if(T.y>world.maxy-tele_range || T.y<tele_range)
 				continue
 			turfs += T
 		if(!turfs.len)
-			turfs += pick(/turf in orange(6, H))
+			turfs += pick(/turf in orange(tele_range, H))
 		var/turf/picked = pick(turfs)
 		if(!isturf(picked))
 			return
-		if(H.buckled)
-			H.buckled.unbuckle_mob()
 		H.forceMove(picked)
+		H.rad_act(rad_amount)
+		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
 		return 1
 	return 0
 
 /obj/item/clothing/suit/armor/reactive/fire
 	name = "reactive incendiary armor"
+	desc = "An experimental suit of armor with a reactive sensor array rigged to a flame emitter. For the stylish pyromaniac."
 
 /obj/item/clothing/suit/armor/reactive/fire/hit_reaction(mob/living/carbon/human/owner, attack_text)
 	if(!active)
 		return 0
 	if(prob(hit_reaction_chance))
+		if(world.time < reactivearmor_cooldown)
+			owner.visible_message("<span class='danger'>The reactive incendiary armor on [owner] activates, but fails to send out flames as it is still recharging its flame jets!</spawn>")
+			return
 		owner.visible_message("<span class='danger'>The [src] blocks the [attack_text], sending out jets of flame!</span>")
-		for(var/mob/living/carbon/C in range(3, owner))
+		for(var/mob/living/carbon/C in range(6, owner))
 			if(C != owner)
-				C.fire_stacks += 4
+				C.fire_stacks += 8
 				C.IgniteMob()
 		owner.fire_stacks = -20
+		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
 		return 1
 	return 0
 
 
 /obj/item/clothing/suit/armor/reactive/stealth
 	name = "reactive stealth armor"
+	desc = "An experimental suit of armor that renders the wearer invisible on detection of imminent harm, and creates a decoy that runs away from the owner. You can't fight what you can't see."
 
 /obj/item/clothing/suit/armor/reactive/stealth/hit_reaction(mob/living/carbon/human/owner, attack_text)
 	if(!active)
 		return 0
 	if(prob(hit_reaction_chance))
+		if(world.time < reactivearmor_cooldown)
+			owner.visible_message("<span class='danger'>The reactive stealth system on [owner] activates, but is still recharging its holographic emitters!</spawn>")
+			return
 		var/mob/living/simple_animal/hostile/illusion/escape/E = new(owner.loc)
 		E.Copy_Parent(owner, 50)
 		E.GiveTarget(owner) //so it starts running right away
@@ -292,10 +260,73 @@
 		owner.visible_message("<span class='danger'>[owner] is hit by [attack_text] in the chest!</span>") //We pretend to be hit, since blocking it would stop the message otherwise
 		spawn(40)
 			owner.alpha = initial(owner.alpha)
+		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
 		return 1
 
-//All of the armor below is mostly unused
+/obj/item/clothing/suit/armor/reactive/tesla
+	name = "reactive tesla armor"
+	desc = "An experimental suit of armor with sensitive detectors hooked up to a huge capacitor grid, with emitters strutting out of it. Zap."
 
+/obj/item/clothing/suit/armor/reactive/tesla/hit_reaction(mob/living/carbon/human/owner, attack_text)
+	if(!active)
+		return 0
+	if(prob(hit_reaction_chance))
+		if(world.time < reactivearmor_cooldown)
+			var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
+			sparks.set_up(1, 1, src)
+			sparks.start()
+			owner.visible_message("<span class='danger'>The tesla capacitors on [owner]'s reactive telsa armor are still recharging! The armor merely emits some sparks.</spawn>")
+			return
+		owner.visible_message("<span class='danger'>The [src] blocks the [attack_text], sending out arcs of lightning!</span>")
+		for(var/mob/living/M in view(6, owner))
+			if(M == owner)
+				continue
+			owner.Beam(M,icon_state="lightning[rand(1, 12)]",icon='icons/effects/effects.dmi',time=5)
+			M.adjustFireLoss(25)
+			playsound(M, 'sound/machines/defib_zap.ogg', 50, 1, -1)
+		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
+		return 1
+
+/obj/item/clothing/suit/armor/reactive/table
+	name = "reactive table armor"
+	desc = "If you can't beat the memes, embrace them."
+	var/tele_range = 10
+
+/obj/item/clothing/suit/armor/reactive/table/hit_reaction(mob/living/carbon/human/owner, attack_text)
+	if(!active)
+		return 0
+	if(prob(hit_reaction_chance))
+		var/mob/living/carbon/human/H = owner
+		if(world.time < reactivearmor_cooldown)
+			owner.visible_message("<span class='danger'>The reactive table armor's fabricators are still on cooldown!</span>")
+			return
+		owner.visible_message("<span class='danger'>The reactive teleport system flings [H] clear of [attack_text] and slams them into a fabricated table!</span>")
+		owner.visible_message("<font color='red' size='3'>[H] GOES ON THE TABLE!!!</font>")
+		owner.Weaken(2)
+		var/list/turfs = new/list()
+		for(var/turf/T in orange(tele_range, H))
+			if(T.density)
+				continue
+			if(T.x>world.maxx-tele_range || T.x<tele_range)
+				continue
+			if(T.y>world.maxy-tele_range || T.y<tele_range)
+				continue
+			turfs += T
+		if(!turfs.len)
+			turfs += pick(/turf in orange(tele_range, H))
+		var/turf/picked = pick(turfs)
+		if(!isturf(picked))
+			return
+		H.forceMove(picked)
+		new /obj/structure/table(get_turf(owner))
+		reactivearmor_cooldown = world.time + reactivearmor_cooldown_duration
+		return 1
+	return 0
+
+/obj/item/clothing/suit/armor/reactive/table/emp_act()
+	return
+
+//All of the armor below is mostly unused
 
 /obj/item/clothing/suit/armor/centcom
 	name = "\improper Centcom armor"
@@ -311,6 +342,7 @@
 	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
 	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
+	armor = list(melee = 80, bullet = 80, laser = 50, energy = 50, bomb = 100, bio = 100, rad = 100)
 
 /obj/item/clothing/suit/armor/heavy
 	name = "heavy armor"
@@ -323,6 +355,7 @@
 	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	slowdown = 3
 	flags_inv = HIDEGLOVES|HIDESHOES|HIDEJUMPSUIT
+	armor = list(melee = 80, bullet = 80, laser = 50, energy = 50, bomb = 100, bio = 100, rad = 100)
 
 /obj/item/clothing/suit/armor/tdome
 	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
@@ -330,6 +363,7 @@
 	flags = THICKMATERIAL
 	cold_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
+	armor = list(melee = 80, bullet = 80, laser = 50, energy = 50, bomb = 100, bio = 100, rad = 100)
 
 /obj/item/clothing/suit/armor/tdome/red
 	name = "thunderdome suit"
@@ -368,67 +402,4 @@
 	icon_state = "knight_templar"
 	item_state = "knight_templar"
 
-/obj/item/clothing/suit/armor/riot/knight/templar/holy
-	var/active = 0
-	name = "crusader armour"
-	desc = "A holy suit of armor, blessed in holy water and tears."
-	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 0, rad = 0) //No armor
-	unacidable = 1
-	hit_reaction_chance = 50
-	action_button_name = "Toggle Blessing"
 
-/obj/item/clothing/suit/armor/riot/knight/templar/holy/New()
-	..()
-	SSobj.processing.Add(src)
-
-/obj/item/clothing/suit/armor/riot/knight/templar/holy/Destroy()
-	..()
-	SSobj.processing.Remove(src)
-
-/obj/item/clothing/suit/armor/riot/knight/templar/holy/process()
-	if(active)
-		if(ishuman(loc))
-			var/mob/living/carbon/human/H = loc
-			if(H.stat == DEAD)
-				active = !active
-				flags &= ~NODROP
-
-/obj/item/clothing/suit/armor/riot/knight/templar/holy/attack_self(mob/user)
-	active = !active
-	if(active)
-		user << "<span class='notice'>[src] has been blessed.</span>"
-		flags |= NODROP
-	else
-		user << "<span class='notice'>[src] has been unblessed.</span>"
-		flags &= ~NODROP
-	add_fingerprint(user)
-	return
-
-/obj/item/clothing/suit/armor/riot/knight/templar/holy/hit_reaction(mob/living/carbon/human/owner, attack_text, damage)
-	if(!active)
-		return
-	if(prob(hit_reaction_chance) && damage)
-		owner.visible_message("<span class='danger'>The [src] blocks the [attack_text], sending out arcs of holy lightning!</span>")
-		for(var/mob/living/M in view(3, owner))
-			if(M == owner)
-				continue
-			owner.Beam(M,icon_state="purple_lightning",icon='icons/effects/effects.dmi',time=5)
-			M.adjustFireLoss(20)
-			playsound(M, 'sound/machines/defib_zap.ogg', 50, 1, -1)
-		return 1
-
-/obj/item/clothing/suit/armor/hockey
-	name = "Ka-Nada winter sport combat suit"
-	desc = "A suit of armour used by Ka-Nada Special Sport Forces teams. Protects you from the elements as well as your opponents."
-	icon_state = "hockey_suit"
-	item_state = "hockey_suit"
-	blood_overlay_type = "armor"
-	allowed = list(/obj/item/weapon/tank/internals)
-	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	cold_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
-	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
-	max_heat_protection_temperature = FIRE_SUIT_MAX_TEMP_PROTECT
-	flags = THICKMATERIAL | NODROP | STOPSPRESSUREDMAGE
-	armor = list(melee = 70, bullet = 45, laser = 80, energy = 45, bomb = 75, bio = 0, rad = 30)
-	unacidable = 1

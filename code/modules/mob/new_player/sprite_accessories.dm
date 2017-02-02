@@ -16,21 +16,33 @@
 	from doing this unless you absolutely know what you are doing, and have defined a
 	conversion in savefile.dm
 */
-/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female)
-	if(!istype(L))		L = list()
-	if(!istype(male))	male = list()
-	if(!istype(female))	female = list()
+/proc/init_sprite_accessory_subtypes(prototype, list/L, list/male, list/female,var/roundstart = FALSE)//Roundstart argument builds a specific list for roundstart parts where some parts may be locked
+	if(!istype(L))
+		L = list()
+	if(!istype(male))
+		male = list()
+	if(!istype(female))
+		female = list()
 
 	for(var/path in typesof(prototype))
-		if(path == prototype)	continue
+		if(path == prototype)
+			continue
+		if(roundstart)
+			var/datum/sprite_accessory/P = path
+			if(initial(P.locked))
+				continue
 		var/datum/sprite_accessory/D = new path()
 
-		if(D.icon_state)	L[D.name] = D
-		else				L += D.name
+		if(D.icon_state)
+			L[D.name] = D
+		else
+			L += D.name
 
 		switch(D.gender)
-			if(MALE)	male += D.name
-			if(FEMALE)	female += D.name
+			if(MALE)
+				male += D.name
+			if(FEMALE)
+				female += D.name
 			else
 				male += D.name
 				female += D.name
@@ -44,6 +56,10 @@
 	var/gender_specific //Something that can be worn by either gender, but looks different on each
 	var/color_src = MUTCOLORS	//Currently only used by mutantparts so don't worry about hair and stuff. This is the source that this accessory will get its color from. Default is MUTCOLOR, but can also be HAIR, FACEHAIR, EYECOLOR and 0 if none.
 	var/hasinner		//Decides if this sprite has an "inner" part, such as the fleshy parts on ears.
+	var/locked = 0		//Is this part locked from roundstart selection? Used for parts that apply effects
+	var/dimension_x = 32
+	var/dimension_y = 32
+	var/center = FALSE	//Should we center the sprite?
 
 //////////////////////
 // Hair Definitions //
@@ -472,45 +488,13 @@
 	name = "Long Ponytail"
 	icon_state = "hair_longstraightponytail"
 
-/datum/sprite_accessory/hair/birdnest
-	name = "Birdnest"
-	icon_state = "hair_birdnest"
-
-/datum/sprite_accessory/hair/unkept
-	name = "Unkept"
-	icon_state = "hair_unkept"
-
-/datum/sprite_accessory/hair/duelist
-	name = "Duelist"
-	icon_state = "hair_duelist"
-
-/datum/sprite_accessory/hair/fastline
-	name = "Fastline"
-	icon_state = "hair_fastline"
-
-/datum/sprite_accessory/hair/modern
-	name = "Modern"
+/datum/sprite_accessory/hair/sidepartlongalt
+	name = "Long Side Part"
 	icon_state = "hair_longsidepart"
 
-/datum/sprite_accessory/hair/quadcurls	//weaboo supreme
-	name = "Quadcurls"
-	icon_state = "hair_quadcurls"
-
-/datum/sprite_accessory/hair/rapunzel
-	name = "Rapunzel"
-	icon_state = "hair_rapunzel"
-
-/datum/sprite_accessory/hair/unshaven_mohawk
-	name = "Unshaven Mohawk"
-	icon_state = "hair_unshavenmohawk"
-
-/datum/sprite_accessory/hair/twincurl
-	name = "Twincurls"
-	icon_state = "hair_twincurl"
-
-/datum/sprite_accessory/hair/twincurl_alt
-	name = "Upper Twincurls"
-	icon_state = "hair_twincurl2"
+/datum/sprite_accessory/hair/boddicker
+	name = "Boddicker"
+	icon_state = "hair_boddicker"
 
 
 /////////////////////////////
@@ -596,26 +580,6 @@
 /datum/sprite_accessory/facial_hair/fu
 	name = "Fu Manchu"
 	icon_state = "facial_fumanchu"
-
-/datum/sprite_accessory/facial_hair/britstache
-	name = "Britstache"
-	icon_state = "facial_britstache"
-
-/datum/sprite_accessory/facial_hair/martial_artist
-	name = "Martial Artist"
-	icon_state = "facial_martialartist"
-
-/datum/sprite_accessory/facial_hair/moonshiner
-	name = "Moonshiner"
-	icon_state = "facial_moonshiner"
-
-/datum/sprite_accessory/facial_hair/tribeard
-	name = "Tri-Beard"
-	icon_state = "facial_tribeard"
-
-/datum/sprite_accessory/facial_hair/unshaven
-	name = "Unshaven"
-	icon_state = "facial_unshaven"
 
 ///////////////////////////
 // Underwear Definitions //
@@ -766,6 +730,31 @@
 /datum/sprite_accessory/underwear/female_blackalt
 	name = "Ladies Black Sport"
 	icon_state = "female_blackalt"
+	gender = FEMALE
+
+/datum/sprite_accessory/underwear/female_white_neko
+	name = "Ladies White Neko"
+	icon_state = "female_neko_white"
+	gender = FEMALE
+
+/datum/sprite_accessory/underwear/female_black_neko
+	name = "Ladies Black Neko"
+	icon_state = "female_neko_black"
+	gender = FEMALE
+
+/datum/sprite_accessory/underwear/female_usastripe
+	name = "Ladies Freedom"
+	icon_state = "female_assblastusa"
+	gender = FEMALE
+
+/datum/sprite_accessory/underwear/female_uk
+	name = "Ladies UK"
+	icon_state = "female_uk"
+	gender = FEMALE
+
+/datum/sprite_accessory/underwear/female_commie
+	name = "Ladies Commie"
+	icon_state = "female_commie"
 	gender = FEMALE
 
 ////////////////////////////
@@ -1050,112 +1039,90 @@
 /datum/sprite_accessory/socks/nude
 	name = "Nude"
 	icon_state = null
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/white_norm
 	name = "Normal White"
 	icon_state = "white_norm"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/black_norm
 	name = "Normal Black"
 	icon_state = "black_norm"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/white_short
 	name = "Short White"
 	icon_state = "white_short"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/black_short
 	name = "Short Black"
 	icon_state = "black_short"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/white_knee
 	name = "Knee-high White"
 	icon_state = "white_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/black_knee
 	name = "Knee-high Black"
 	icon_state = "black_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/thin_knee
 	name = "Knee-high Thin"
 	icon_state = "thin_knee"
-	gender = FEMALE
 
 /datum/sprite_accessory/socks/striped_knee
 	name = "Knee-high Striped"
 	icon_state = "striped_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/rainbow_knee
 	name = "Knee-high Rainbow"
 	icon_state = "rainbow_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/white_thigh
 	name = "Thigh-high White"
 	icon_state = "white_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/black_thigh
 	name = "Thigh-high Black"
 	icon_state = "black_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/thin_thigh
 	name = "Thigh-high Thin"
 	icon_state = "thin_thigh"
-	gender = FEMALE
 
 /datum/sprite_accessory/socks/striped_thigh
 	name = "Thigh-high Striped"
 	icon_state = "striped_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/rainbow_thigh
 	name = "Thigh-high Rainbow"
 	icon_state = "rainbow_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/usa_knee
 	name = "Knee-High Freedom Stripes"
 	icon_state = "assblastusa_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/usa_thigh
 	name = "Thigh-high Freedom Stripes"
 	icon_state = "assblastusa_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/uk_knee
 	name = "Knee-High UK Stripes"
 	icon_state = "uk_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/uk_thigh
 	name = "Thigh-high UK Stripes"
 	icon_state = "uk_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/commie_knee
 	name = "Knee-High Commie Stripes"
 	icon_state = "commie_knee"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/commie_thigh
 	name = "Thigh-high Commie Stripes"
 	icon_state = "commie_thigh"
-	gender = NEUTER
 
 /datum/sprite_accessory/socks/pantyhose
 	name = "Pantyhose"
 	icon_state = "pantyhose"
-	gender = FEMALE
 
 //////////.//////////////////
 // MutantParts Definitions //
@@ -1331,6 +1298,9 @@
 	name = "Angeler"
 	icon_state = "angler"
 
+/datum/sprite_accessory/ears
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+
 /datum/sprite_accessory/ears/none
 	name = "None"
 	icon_state = "none"
@@ -1340,6 +1310,103 @@
 	icon_state = "cat"
 	hasinner = 1
 	color_src = HAIR
+
+/datum/sprite_accessory/wing
+	color_src = 0
+	icon = 'icons/mob/mutant_bodyparts.dmi'
+	hasinner = 1
+
+/datum/sprite_accessory/wing/plain
+	name = "Plain"
+	icon_state = "plain"
+
+/datum/sprite_accessory/wing/monarch
+	name = "Monarch"
+	icon_state = "monarch"
+
+/datum/sprite_accessory/wing/luna
+	name = "Luna"
+	icon_state = "luna"
+
+/datum/sprite_accessory/wing/atlas
+	name = "Atlas"
+	icon_state = "atlas"
+
+/datum/sprite_accessory/wing/redish
+	name = "Redish"
+	icon_state = "redish"
+
+/datum/sprite_accessory/wing/royal
+	name = "Royal"
+	icon_state = "royal"
+
+/datum/sprite_accessory/wing/gothic
+	name = "Gothic"
+	icon_state = "gothic"
+
+/datum/sprite_accessory/wing/Lovers
+	name = "Lovers"
+	icon_state = "lovers"
+
+/datum/sprite_accessory/wing/whitefly
+	name = "White fly"
+	icon_state = "whitefly"
+
+/datum/sprite_accessory/wing/punished
+	name = "Punished"
+	icon_state = "punished"
+
+/datum/sprite_accessory/wing/firewatch
+	name = "Fire watch"
+	icon_state = "firewatch"
+
+/datum/sprite_accessory/wing/deathhead
+	name = "Death head"
+	icon_state = "deathhead"
+
+/datum/sprite_accessory/wing/poison
+	name = "Poison"
+	icon_state = "poison"
+
+/datum/sprite_accessory/wing/ragged
+	name = "Ragged"
+	icon_state = "ragged"
+
+/datum/sprite_accessory/wing/moonfly
+	name = "Moon Fly"
+	icon_state = "moonfly"
+
+/datum/sprite_accessory/wing/snow
+	name = "Snow"
+	icon_state = "snow"
+	icon_state = "atlas"
+
+/datum/sprite_accessory/wings/none
+	name = "None"
+	icon_state = "none"
+
+/datum/sprite_accessory/wings_open
+	icon = 'icons/mob/wings.dmi'
+
+/datum/sprite_accessory/wings_open/angel
+	name = "Angel"
+	icon_state = "angel"
+	color_src = 0
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+
+/datum/sprite_accessory/wings
+	icon = 'icons/mob/wings.dmi'
+
+/datum/sprite_accessory/wings/angel
+	name = "Angel"
+	icon_state = "angel"
+	color_src = 0
+	dimension_x = 46
+	center = TRUE
+	dimension_y = 34
+	locked = TRUE
 
 /datum/sprite_accessory/frills
 	icon = 'icons/mob/mutant_bodyparts.dmi'
@@ -1413,70 +1480,3 @@
 /datum/sprite_accessory/spines_animated/aqautic
 	name = "Aquatic"
 	icon_state = "aqua"
-
-/datum/sprite_accessory/wing
-	color_src = 0
-
-/datum/sprite_accessory/wing/plain
-	name = "Plain"
-	icon_state = "plain"
-
-/datum/sprite_accessory/wing/monarch
-	name = "Monarch"
-	icon_state = "monarch"
-
-/datum/sprite_accessory/wing/luna
-	name = "Luna"
-	icon_state = "luna"
-
-/datum/sprite_accessory/wing/atlas
-	name = "Atlas"
-	icon_state = "atlas"
-
-/datum/sprite_accessory/wing/redish
-	name = "Redish"
-	icon_state = "redish"
-
-/datum/sprite_accessory/wing/royal
-	name = "Royal"
-	icon_state = "royal"
-
-/datum/sprite_accessory/wing/gothic
-	name = "Gothic"
-	icon_state = "gothic"
-
-/datum/sprite_accessory/wing/Lovers
-	name = "Lovers"
-	icon_state = "lovers"
-
-/datum/sprite_accessory/wing/whitefly
-	name = "White fly"
-	icon_state = "whitefly"
-
-/datum/sprite_accessory/wing/punished
-	name = "Punished"
-	icon_state = "punished"
-
-/datum/sprite_accessory/wing/firewatch
-	name = "Fire watch"
-	icon_state = "firewatch"
-
-/datum/sprite_accessory/wing/deathhead
-	name = "Death head"
-	icon_state = "deathhead"
-
-/datum/sprite_accessory/wing/poison
-	name = "Poison"
-	icon_state = "poison"
-
-/datum/sprite_accessory/wing/ragged
-	name = "Ragged"
-	icon_state = "ragged"
-
-/datum/sprite_accessory/wing/moonfly
-	name = "Moon Fly"
-	icon_state = "moonfly"
-
-/datum/sprite_accessory/wing/snow
-	name = "Snow"
-	icon_state = "snow"

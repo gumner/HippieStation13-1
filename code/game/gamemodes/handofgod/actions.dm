@@ -1,23 +1,28 @@
+/* Prophet's innate godspeak */
 /datum/action/innate/godspeak
 	name = "Godspeak"
 	button_icon_state = "godspeak"
-	action_type = AB_INNATE
-	check_flags = AB_CHECK_ALIVE
-	var/list/datum/mind/gods = list()
+	check_flags = AB_CHECK_CONSCIOUS
+	var/mob/camera/god/god = null
 
 /datum/action/innate/godspeak/IsAvailable()
 	if(..())
-		if(gods.len)
+		if(god)
 			return 1
-		gods = get_team_gods(is_in_any_team(owner.mind)) // so it'll refresh automatically everytime you click to check if there are new gods
 		return 0
 
 /datum/action/innate/godspeak/Activate()
-	active = 1
-	var/msg = input(owner,"Speak to your [gods.len > 1 ? "gods" : "god"]","Godspeak","") as null|text
+	var/msg = input(owner,"Speak to your god","Godspeak","") as null|text
 	if(!msg)
 		return
-	for(var/mob/camera/god/god in gods)
-		god << "<span class='notice'><B>[owner]:</B> [msg]</span>"
-	owner << "You say: [msg]"
-	active = 0
+	var/rendered = "<font color='[god.side]'><span class='game say'><i>Prophet [owner]:</i> <span class='message'>[msg]</span></span>"
+	god << rendered
+	owner << rendered
+	for(var/mob/M in mob_list)
+		if(isobserver(M))
+			var/link = FOLLOW_LINK(M, owner)
+			M << "[link] [rendered]"
+
+/datum/action/innate/godspeak/Destroy()
+	god = null
+	return ..()

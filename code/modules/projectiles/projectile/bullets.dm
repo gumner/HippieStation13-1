@@ -1,13 +1,11 @@
 /obj/item/projectile/bullet
 	name = "bullet"
 	icon_state = "bullet"
-	hitsound = 'sound/effects/bullet_hit_mob.ogg'
-	hitsound_wall = "ricochet"
 	damage = 60
 	damage_type = BRUTE
 	nodamage = 0
 	flag = "bullet"
-
+	hitsound_wall = "ricochet"
 
 /obj/item/projectile/bullet/weakbullet //beanbag, heavy stamina damage
 	damage = 5
@@ -20,9 +18,6 @@
 
 /obj/item/projectile/bullet/weakbullet3
 	damage = 20
-
-/obj/item/projectile/bullet/weakbullet4
-	damage = 10
 
 /obj/item/projectile/bullet/toxinbullet
 	damage = 15
@@ -39,21 +34,30 @@
 	name = "pellet"
 	damage = 15
 
-/obj/item/projectile/bullet/pellet/weak
+/obj/item/projectile/bullet/pellet/weak/New()
+	damage = 6
+	range = rand(8)
+
+/obj/item/projectile/bullet/pellet/weak/on_range()
+ 	var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
+ 	sparks.set_up(1, 1, src)
+ 	sparks.start()
+ 	..()
+
+/obj/item/projectile/bullet/pellet/overload/New()
 	damage = 3
+	range = rand(10)
 
-/obj/item/projectile/bullet/pellet/shrapnel
-	name = "metal shrapnel"
-	damage = 7
+/obj/item/projectile/bullet/pellet/overload/on_hit(atom/target, blocked = 0)
+ 	..()
+ 	explosion(target, 0, 0, 2)
 
-/obj/item/projectile/bullet/pellet/coinshot
-	name = "coin pellet"
-	damage = 3
-	stamina = 10
-
-/obj/item/projectile/bullet/pellet/coinshot/overload
-	damage = 5
-	stamina = 15
+/obj/item/projectile/bullet/pellet/overload/on_range()
+ 	explosion(src, 0, 0, 2)
+ 	var/datum/effect_system/spark_spread/sparks = new /datum/effect_system/spark_spread
+ 	sparks.set_up(3, 3, src)
+ 	sparks.start()
+ 	..()
 
 /obj/item/projectile/bullet/midbullet
 	damage = 20
@@ -68,14 +72,6 @@
 
 /obj/item/projectile/bullet/heavybullet
 	damage = 35
-
-/obj/item/projectile/bullet/heavybullet2	//This is used in the automag .44 handgun exclusively available to the nuke op leader. The AP is because this is meant to be used on heavily-armored opponents.
-	damage = 85
-	armour_penetration = 10
-
-/obj/item/projectile/bullet/heavybullet3
-	damage = 40
-	armour_penetration = 15
 
 /obj/item/projectile/bullet/rpellet
 	damage = 3
@@ -96,7 +92,7 @@
 	. = ..()
 	if(iscarbon(target))
 		var/mob/living/carbon/M = target
-		M.adjust_fire_stacks(1)
+		M.adjust_fire_stacks(4)
 		M.IgniteMob()
 
 
@@ -125,6 +121,26 @@
 	stun = 8
 	hitsound = 'sound/effects/meteorimpact.ogg'
 
+/obj/item/projectile/bullet/meteorshot/weak
+	damage = 10
+	weaken = 4
+	stun = 4
+
+/obj/item/projectile/bullet/honker
+	damage = 0
+	weaken = 3
+	stun = 3
+	forcedodge = 1
+	nodamage = 1
+	hitsound = 'sound/items/bikehorn.ogg'
+	icon = 'icons/obj/hydroponics/harvest.dmi'
+	icon_state = "banana"
+	range = 200
+
+/obj/item/projectile/bullet/honker/New()
+	..()
+	SpinAnimation()
+
 /obj/item/projectile/bullet/meteorshot/on_hit(atom/target, blocked = 0)
 	. = ..()
 	if(istype(target, /atom/movable))
@@ -151,18 +167,20 @@
 	name = "dart"
 	icon_state = "cbbolt"
 	damage = 6
+	var/piercing = 0
 
 /obj/item/projectile/bullet/dart/New()
 	..()
-	flags |= NOREACT
 	create_reagents(50)
+	reagents.set_reacting(FALSE)
 
 /obj/item/projectile/bullet/dart/on_hit(atom/target, blocked = 0, hit_zone)
 	if(iscarbon(target))
 		var/mob/living/carbon/M = target
 		if(blocked != 100) // not completely blocked
-			if(M.can_inject(null,0,hit_zone)) // Pass the hit zone to see if it can inject by whether it hit the head or the body.
+			if(M.can_inject(null,0,hit_zone,piercing)) // Pass the hit zone to see if it can inject by whether it hit the head or the body.
 				..()
+				reagents.reaction(M, INJECT)
 				reagents.trans_to(M, reagents.total_volume)
 				return 1
 			else
@@ -171,16 +189,15 @@
 									   "<span class='userdanger'>You were protected against the [name]!</span>")
 
 	..(target, blocked, hit_zone)
-	flags &= ~NOREACT
+	reagents.set_reacting(TRUE)
 	reagents.handle_reactions()
 	return 1
 
-/obj/item/projectile/bullet/dart/metalfoam
-	New()
-		..()
-		reagents.add_reagent("aluminium", 15)
-		reagents.add_reagent("foaming_agent", 5)
-		reagents.add_reagent("facid", 5)
+/obj/item/projectile/bullet/dart/metalfoam/New()
+	..()
+	reagents.add_reagent("aluminium", 15)
+	reagents.add_reagent("foaming_agent", 5)
+	reagents.add_reagent("facid", 5)
 
 //This one is for future syringe guns update
 /obj/item/projectile/bullet/dart/syringe
@@ -188,16 +205,118 @@
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "syringeproj"
 
+//Piercing Syringe
+/obj/item/projectile/bullet/dart/syringe/piercing
+	piercing = 1
+
 /obj/item/projectile/bullet/neurotoxin
 	name = "neurotoxin spit"
 	icon_state = "neurotoxin"
-	damage = 6
+	damage = 5
 	damage_type = TOX
-	weaken = 6
-	flag = "bio" //changed from the default of bullet
+	weaken = 5
 
 /obj/item/projectile/bullet/neurotoxin/on_hit(atom/target, blocked = 0)
 	if(isalien(target))
 		weaken = 0
 		nodamage = 1
 	. = ..() // Execute the rest of the code.
+
+
+
+//// SNIPER BULLETS
+
+/obj/item/projectile/bullet/sniper
+	damage = 70
+	stun = 5
+	weaken = 5
+	armour_penetration = 50
+	var/breakthings = TRUE
+
+/obj/item/projectile/bullet/sniper/on_hit(atom/target, blocked = 0, hit_zone)
+	if((blocked != 100) && (!ismob(target) && breakthings))
+		target.ex_act(rand(1,2))
+	return ..()
+
+
+/obj/item/projectile/bullet/sniper/soporific
+	armour_penetration = 0
+	nodamage = 1
+	stun = 0
+	weaken = 0
+	breakthings = FALSE
+
+/obj/item/projectile/bullet/sniper/soporific/on_hit(atom/target, blocked = 0, hit_zone)
+	if((blocked != 100) && istype(target, /mob/living))
+		var/mob/living/L = target
+		L.Sleeping(20)
+	return ..()
+
+
+/obj/item/projectile/bullet/sniper/haemorrhage
+	armour_penetration = 15
+	damage = 15
+	stun = 0
+	weaken = 0
+	breakthings = FALSE
+
+/obj/item/projectile/bullet/sniper/haemorrhage/on_hit(atom/target, blocked = 0, hit_zone)
+	if((blocked != 100) && iscarbon(target))
+		var/mob/living/carbon/C = target
+		C.bleed(100)
+	return ..()
+
+
+/obj/item/projectile/bullet/sniper/penetrator
+	icon_state = "gauss"
+	name = "penetrator round"
+	damage = 60
+	forcedodge = 1
+	stun = 0
+	weaken = 0
+	breakthings = FALSE
+
+
+
+//// SAW BULLETS
+
+
+/obj/item/projectile/bullet/saw
+	damage = 45
+	armour_penetration = 5
+
+/obj/item/projectile/bullet/saw/bleeding
+	damage = 20
+	armour_penetration = 0
+
+/obj/item/projectile/bullet/saw/bleeding/on_hit(atom/target, blocked = 0, hit_zone)
+	. = ..()
+	if((blocked != 100) && iscarbon(target))
+		var/mob/living/carbon/C = target
+		C.bleed(35)
+
+/obj/item/projectile/bullet/saw/hollow
+	damage = 60
+	armour_penetration = -10
+
+/obj/item/projectile/bullet/saw/ap
+	damage = 40
+	armour_penetration = 75
+
+/obj/item/projectile/bullet/saw/incen
+	damage = 7
+	armour_penetration = 0
+
+obj/item/projectile/bullet/saw/incen/Move()
+	..()
+	var/turf/location = get_turf(src)
+	if(location)
+		PoolOrNew(/obj/effect/hotspot, location)
+		location.hotspot_expose(700, 50, 1)
+
+/obj/item/projectile/bullet/saw/incen/on_hit(atom/target, blocked = 0)
+	. = ..()
+	if(iscarbon(target))
+		var/mob/living/carbon/M = target
+		M.adjust_fire_stacks(3)
+		M.IgniteMob()

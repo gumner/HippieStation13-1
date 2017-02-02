@@ -13,10 +13,12 @@
 	var/list/territory = list()
 	var/list/territory_new = list()
 	var/list/territory_lost = list()
-	var/dom_timer = "OFFLINE"
 	var/dom_attempts = 2
 	var/points = 15
-	var/datum/atom_hud/antag/ganghud
+	var/datum/atom_hud/antag/gang/ganghud
+
+	var/domination_timer
+	var/is_dominating
 
 /datum/gang/New(loc,gangname)
 	if(!gang_colors_pool.len)
@@ -39,20 +41,12 @@
 				color_hex = "#00B7EF"
 			if("purple")
 				color_hex = "#DA00FF"
-			if("black")
-				color_hex = "#111111"
 
 	name = (gangname ? gangname : pick(gang_name_pool))
 	gang_name_pool -= name
-	if(name == "Sleeping Carp")
-		fighting_style = "martial"
-	if(name == "Rigatoni")
-		fighting_style = "mobster"
-	if(name == "Clandestine")
-		fighting_style = "stealth"
-
 
 	ganghud = new()
+	ganghud.color = color_hex
 	log_game("The [name] Gang has been created. Their gang color is [color].")
 
 /datum/gang/proc/add_gang_hud(datum/mind/recruit_mind)
@@ -64,10 +58,16 @@
 	ticker.mode.set_antag_hud(defector_mind.current, null)
 
 /datum/gang/proc/domination(modifier=1)
-	dom_timer = get_domination_time(src) * modifier
+	set_domination_time(determine_domination_time(src) * modifier)
+	is_dominating = TRUE
 	set_security_level("delta")
-	SSshuttle.emergencyNoEscape = 1
 
+/datum/gang/proc/set_domination_time(d)
+	domination_timer = world.time + (10 * d)
+
+/datum/gang/proc/domination_time_remaining()
+	var/diff = domination_timer - world.time
+	return diff / 10
 //////////////////////////////////////////// OUTFITS
 
 
@@ -109,7 +109,7 @@
 			outfit.armor = list(melee = 20, bullet = 30, laser = 10, energy = 10, bomb = 20, bio = 0, rad = 0)
 			outfit.desc += " Tailored for the [name] Gang to offer the wearer moderate protection against ballistics and physical trauma."
 			outfit.gang = src
-			user.put_in_any_hand_if_possible(outfit)
+			user.put_in_hands(outfit)
 			return 1
 
 	return 0
@@ -126,8 +126,7 @@
 		if(mob && mob.mind && mob.stat == CONSCIOUS)
 			if(mob.mind.gang_datum == src)
 				mob << "<span class='[warning ? "warning" : "notice"]'>\icon[tool] [message]</span>"
-				if(beep)
-					playsound(mob.loc, 'sound/machines/twobeep.ogg', 50, 1)
+			return
 
 
 //////////////////////////////////////////// INCOME
@@ -179,12 +178,13 @@
 
 	//Calculate and report influence growth
 	var/message = "<b>[src] Gang Status Report:</b><BR>*---------*<br>"
-	if(isnum(dom_timer))
-		var/new_time = max(180,dom_timer - (uniformed * 4) - (territory.len * 2))
-		if(new_time < dom_timer)
-			message += "Takeover shortened by [dom_timer - new_time] seconds for defending [territory.len] territories and [uniformed] uniformed gangsters.<BR>"
-			dom_timer = new_time
-		message += "<b>[dom_timer] seconds remain</b> in hostile takeover.<BR>"
+	if(is_dominating)
+		var/seconds_remaining = domination_time_remaining()
+		var/new_time = max(180, seconds_remaining - (uniformed * 4) - (territory.len * 2))
+		if(new_time < seconds_remaining)
+			message += "Takeover shortened by [seconds_remaining - new_time] seconds for defending [territory.len] territories and [uniformed] uniformed gangsters.<BR>"
+			set_domination_time(new_time)
+		message += "<b>[seconds_remaining] seconds remain</b> in hostile takeover.<BR>"
 	else
 		var/points_new = min(999,points + 15 + (uniformed * 2) + territory.len)
 		if(points_new != points)

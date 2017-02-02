@@ -13,10 +13,9 @@
 			log_game("SQL ERROR obtaining ckey from player table. Error : \[[err]\]\n")
 			return
 		if(!query_find_ckey.NextRow())
-			usr << "<span class='redtext'>[new_ckey] has not been seen before, you can only add notes to known players.</span>"
-			return
-		else
-			target_ckey = new_ckey
+			if(alert(usr, "[new_ckey] has not been seen before, are you sure you want to add them to the watchlist?", "Unknown ckey", "Yes", "No", "Cancel") != "Yes")
+				return
+		target_ckey = new_ckey
 	var/target_sql_ckey = sanitizeSQL(target_ckey)
 	if(!notetext)
 		notetext = input(usr,"Write your Note","Add Note") as message
@@ -128,7 +127,10 @@
 			return
 		output += "<h2><center>Notes of [target_ckey]</center></h2>"
 		if(!linkless)
-			output += "<center><a href='?_src_=holder;addnote=[target_ckey]'>\[Add Note\]</a></center>"
+			output += "<center><a href='?_src_=holder;addnote=[target_ckey]'>\[Add Note\]</a>"
+			output += " <a href='?_src_=holder;shownoteckey=[target_ckey]'>\[Refresh Page\]</a></center>"
+		else
+			output += " <a href='?_src_=holder;shownoteckeylinkless=[target_ckey]'>\[Refresh Page\]</a></center>"
 		output += ruler
 		while(query_get_notes.NextRow())
 			var/id = query_get_notes.item[1]
@@ -170,7 +172,6 @@
 		output += ruler
 	usr << browse(output, "window=show_notes;size=900x500")
 
-
 #define NOTESFILE "data/player_notes.sav"
 //if the AUTOCONVERT_NOTES is turned on, anytime a player connects this will be run to try and add all their notes to the databas
 /proc/convert_notes_sql(ckey)
@@ -183,7 +184,7 @@
 		var/notetext
 		notesfile >> notetext
 		var/server
-		if (config && config.server_name)
+		if(config && config.server_name)
 			server = config.server_name
 		var/regex/note = new("^(\\d{2}-\\w{3}-\\d{4}) \\| (.+) ~(\\w+)$", "i")
 		note.Find(notetext)

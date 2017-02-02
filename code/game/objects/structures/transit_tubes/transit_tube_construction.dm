@@ -6,7 +6,7 @@
 	icon = 'icons/obj/atmospherics/pipes/transit_tube.dmi'
 	icon_state = "E-W" //icon_state decides which tube will be built
 	density = 0
-	layer = 3.1 //same as the built tube
+	layer = ABOVE_OBJ_LAYER //same as the built tube
 	anchored = 0
 
 /obj/structure/c_transit_tube/examine(mob/user)
@@ -35,6 +35,9 @@
 	//for junctions, just swap the diagonals with each other
 	if(split_text.len == 3 && split_text[3] != "Pass")
 		split_text.Swap(2,3)
+	else if(length(split_text[1]) == 2 && length(split_text[2]) == 2) //diagonals
+		split_text[1] = copytext(split_text[1],1,2) + copytext(split_text[2],2,3)
+		split_text[2] = copytext(split_text[2],1,2) + ((copytext(split_text[2],2,3) == "E") ? "W" : "E")
 	//for curves, swap the diagonal direction that is not in the same axis as the cardinal direction
 	else
 		if(split_text[1] == "N" || split_text[1] == "S")
@@ -49,14 +52,14 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(!usr.canUseTopic(src))
+	if(usr.incapacitated())
 		return
 
 	tube_turn(-90)
 
 /obj/structure/c_transit_tube/AltClick(mob/user)
 	..()
-	if(!user.canUseTopic(user))
+	if(user.incapacitated())
 		user << "<span class='warning'>You can't do that right now!</span>"
 		return
 	if(!in_range(src, user))
@@ -69,7 +72,7 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(!usr.canUseTopic(src))
+	if(usr.incapacitated())
 		return
 
 	tube_turn(90)
@@ -79,7 +82,7 @@
 	set category = "Object"
 	set src in view(1)
 
-	if(!usr.canUseTopic(src))
+	if(usr.incapacitated())
 		return
 
 	tube_flip()
@@ -101,7 +104,8 @@
 			var/obj/structure/transit_tube/R = src.buildtube()
 			src.transfer_fingerprints_to(R)
 			qdel(src)
-			return
+	else
+		return ..()
 
 // transit tube station
 /obj/structure/c_transit_tube/station
@@ -110,14 +114,14 @@
 	icon_state = "closed"
 
 /obj/structure/c_transit_tube/station/tube_turn(var/angle)
-	src.dir = turn(src.dir, angle)
+	src.setDir(turn(src.dir, angle))
 
 /obj/structure/c_transit_tube/station/tube_flip()
 	src.tube_turn(180)
 
 /obj/structure/c_transit_tube/station/buildtube()
 	var/obj/structure/transit_tube/station/R = new/obj/structure/transit_tube/station(src.loc)
-	R.dir = src.dir
+	R.setDir(src.dir)
 	R.init_dirs()
 	return R
 
@@ -127,7 +131,7 @@
 
 /obj/structure/c_transit_tube/station/reverse/buildtube()
 	var/obj/structure/transit_tube/station/reverse/R = new/obj/structure/transit_tube/station/reverse(src.loc)
-	R.dir = src.dir
+	R.setDir(src.dir)
 	R.init_dirs()
 	return R
 
@@ -142,7 +146,7 @@
 /obj/structure/c_transit_tube/station/block/buildtube()
 	var/obj/structure/transit_tube/R = new/obj/structure/transit_tube(src.loc)
 	R.icon_state = src.icon_state
-	R.dir = src.dir
+	R.setDir(src.dir)
 	R.init_dirs()
 	return R
 

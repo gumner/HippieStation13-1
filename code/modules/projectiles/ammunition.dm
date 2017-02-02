@@ -12,9 +12,10 @@
 	var/projectile_type = null					//The bullet type to create when New() is called
 	var/obj/item/projectile/BB = null 			//The loaded bullet
 	var/pellets = 1								//Pellets for spreadshot
-	var/variance = 0							//Variance for inaccuracy fundamental to the casing, also known as bullet spread
-	var/randomspread = 0						//Spread the projectiles out in a cone or just random?
+	var/variance = 0							//Variance for inaccuracy fundamental to the casing
+	var/randomspread = 0						//Randomspread for automatics
 	var/delay = 0								//Delay for energy weapons
+	var/click_cooldown_override = 0				//Override this to make your gun have a faster fire rate, in tenths of a second. 4 is the default gun cooldown.
 
 /obj/item/ammo_casing/New()
 	..()
@@ -22,7 +23,7 @@
 		BB = new projectile_type(src)
 	pixel_x = rand(-10, 10)
 	pixel_y = rand(-10, 10)
-	dir = pick(alldirs)
+	setDir(pick(alldirs))
 	update_icon()
 
 /obj/item/ammo_casing/update_icon()
@@ -31,9 +32,8 @@
 	desc = "[initial(desc)][BB ? "" : " This one is spent"]"
 
 /obj/item/ammo_casing/proc/newshot() //For energy weapons, shotgun shells and wands (!).
-	if (!BB)
+	if(!BB)
 		BB = new projectile_type(src)
-	return
 
 /obj/item/ammo_casing/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/ammo_box))
@@ -78,6 +78,7 @@
 	var/multiload = 1
 
 /obj/item/ammo_box/New()
+	..()
 	for(var/i = 1, i <= max_ammo, i++)
 		stored_ammo += new ammo_type(src)
 	update_icon()
@@ -94,13 +95,8 @@
 
 /obj/item/ammo_box/proc/give_round(obj/item/ammo_casing/R, replace_spent = 0)
 	// Boxes don't have a caliber type, magazines do. Not sure if it's intended or not, but if we fail to find a caliber, then we fall back to ammo_type.
-	if ((!R || (caliber && R.caliber != caliber) || (!caliber && R.type != ammo_type)) && (caliber != "all"))
+	if(!R || (caliber && R.caliber != caliber) || (!caliber && R.type != ammo_type))
 		return 0
-
-	if ((caliber == "all") && (stored_ammo.len < max_ammo))
-		stored_ammo += R
-		R.loc = src
-		return 1
 
 	if (stored_ammo.len < max_ammo)
 		stored_ammo += R
@@ -120,8 +116,13 @@
 
 	return 0
 
+/obj/item/ammo_box/proc/can_load(mob/user)
+	return 1
+
 /obj/item/ammo_box/attackby(obj/item/A, mob/user, params, silent = 0, replace_spent = 0)
 	var/num_loaded = 0
+	if(!can_load(user))
+		return
 	if(istype(A, /obj/item/ammo_box))
 		var/obj/item/ammo_box/AM = A
 		for(var/obj/item/ammo_casing/AC in AM.stored_ammo)
@@ -164,3 +165,9 @@
 //Behavior for magazines
 /obj/item/ammo_box/magazine/proc/ammo_count()
 	return stored_ammo.len
+
+/obj/item/ammo_box/magazine/proc/empty_magazine()
+	var/turf_mag = get_turf(src)
+	for(var/obj/item/ammo in stored_ammo)
+		ammo.forceMove(turf_mag)
+		stored_ammo -= ammo

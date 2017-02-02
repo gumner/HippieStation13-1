@@ -13,6 +13,8 @@ var/list/moth_names_male = file2list("config/names/moth_male.txt")
 var/list/moth_names_female = file2list("config/names/moth_female.txt")
 var/list/clown_names = file2list("config/names/clown.txt")
 var/list/mime_names = file2list("config/names/mime.txt")
+var/list/carp_names = file2list("config/names/carp.txt")
+var/list/golem_names = file2list("config/names/golem.txt")
 
 
 var/list/verbs = file2list("config/names/verbs.txt")

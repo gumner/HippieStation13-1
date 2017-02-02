@@ -9,13 +9,14 @@
 	desc = "" // Fluff
 	var/helptext = "" // Details
 	var/chemical_cost = 0 // negative chemical cost is for passive abilities (chemical glands)
-	var/evopoints_cost = -1 //cost of the sting in dna points. 0 = auto-purchase, -1 = cannot be purchased
+	var/dna_cost = -1 //cost of the sting in dna points. 0 = auto-purchase, -1 = cannot be purchased
 	var/req_dna = 0  //amount of dna needed to use this ability. Changelings always have atleast 1
 	var/req_human = 0 //if you need to be human to use this ability
 	var/req_stat = CONSCIOUS // CONSCIOUS, UNCONSCIOUS or DEAD
-	var/allow_brain = 0 //Whether or not to allow changeling brains to use this power
 	var/genetic_damage = 0 // genetic damage caused by using the sting. Nothing to do with cloneloss.
 	var/max_genetic_damage = 100 // hard counter for spamming abilities. Not used/balanced much yet.
+	var/always_keep = 0 // important for abilities like revive that screw you if you lose them.
+	var/ignores_fakedeath = FALSE // usable with the FAKEDEATH flag
 
 
 /obj/effect/proc_holder/changeling/proc/on_purchase(mob/user)
@@ -50,25 +51,22 @@
 
 //Fairly important to remember to return 1 on success >.<
 /obj/effect/proc_holder/changeling/proc/can_sting(mob/user, mob/target)
-	if(!ishuman(user) && !ismonkey(user) && !isbrain(user)) //typecast everything from mob to carbon from this point onwards
+	if(!ishuman(user) && !ismonkey(user)) //typecast everything from mob to carbon from this point onwards
 		return 0
 	if(req_human && !ishuman(user))
 		user << "<span class='warning'>We cannot do that in this form!</span>"
 		return 0
-	if(!allow_brain && isbrain(user))
-		user << "<span class='warning'>We cannot do that in this form!</span>"
-		return 0
 	var/datum/changeling/c = user.mind.changeling
-	if(c.chem_charges<chemical_cost)
+	if(c.chem_charges < chemical_cost)
 		user << "<span class='warning'>We require at least [chemical_cost] unit\s of chemicals to do that!</span>"
 		return 0
-	if(c.absorbedcount<req_dna)
+	if(c.absorbedcount < req_dna)
 		user << "<span class='warning'>We require at least [req_dna] sample\s of compatible DNA.</span>"
 		return 0
 	if(req_stat < user.stat)
 		user << "<span class='warning'>We are incapacitated.</span>"
 		return 0
-	if((user.status_flags & FAKEDEATH) && name != "Regenerate")
+	if((user.status_flags & FAKEDEATH) && (!ignores_fakedeath))
 		user << "<span class='warning'>We are incapacitated.</span>"
 		return 0
 	if(c.geneticdamage > max_genetic_damage)
@@ -78,9 +76,7 @@
 
 //used in /mob/Stat()
 /obj/effect/proc_holder/changeling/proc/can_be_used_by(mob/user)
-	if(!ishuman(user) && !ismonkey(user) && !isbrain(user))
-		return 0
-	if(!allow_brain && isbrain(user))
+	if(!ishuman(user) && !ismonkey(user))
 		return 0
 	if(req_human && !ishuman(user))
 		return 0

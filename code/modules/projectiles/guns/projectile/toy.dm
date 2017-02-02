@@ -12,12 +12,12 @@
 	can_suppress = 0
 	clumsy_check = 0
 	needs_permit = 0
-	mag_load_sound = 'sound/effects/wep_magazines/smg_load.ogg'
-	mag_unload_sound = 'sound/effects/wep_magazines/smg_unload.ogg'
-	chamber_sound = 'sound/effects/wep_magazines/smg_chamber.ogg'
 
 /obj/item/weapon/gun/projectile/automatic/toy/process_chamber(eject_casing = 0, empty_chamber = 1)
 	..()
+
+/obj/item/weapon/gun/projectile/automatic/toy/unrestricted
+	pin = /obj/item/device/firing_pin
 
 /obj/item/weapon/gun/projectile/automatic/toy/pistol
 	name = "foam force pistol"
@@ -29,7 +29,7 @@
 	can_suppress = 0
 	burst_size = 1
 	fire_delay = 0
-	action_button_name = null
+	actions_types = list()
 
 /obj/item/weapon/gun/projectile/automatic/toy/pistol/update_icon()
 	..()
@@ -41,6 +41,12 @@
 /obj/item/weapon/gun/projectile/automatic/toy/pistol/riot/New()
 	magazine = new /obj/item/ammo_box/magazine/toy/pistol/riot(src)
 	..()
+
+/obj/item/weapon/gun/projectile/automatic/toy/pistol/unrestricted
+	pin = /obj/item/device/firing_pin
+
+/obj/item/weapon/gun/projectile/automatic/toy/pistol/riot/unrestricted
+	pin = /obj/item/device/firing_pin
 
 /obj/item/weapon/gun/projectile/shotgun/toy
 	name = "foam force shotgun"
@@ -57,6 +63,9 @@
 	..()
 	if(chambered && !chambered.BB)
 		qdel(chambered)
+
+/obj/item/weapon/gun/projectile/shotgun/toy/unrestricted
+	pin = /obj/item/device/firing_pin
 
 /obj/item/weapon/gun/projectile/shotgun/toy/crossbow
 	name = "foam force crossbow"
@@ -80,6 +89,10 @@
 /obj/item/weapon/gun/projectile/automatic/c20r/toy/process_chamber(eject_casing = 0, empty_chamber = 1)
 	..()
 
+
+/obj/item/weapon/gun/projectile/automatic/c20r/toy/unrestricted
+	pin = /obj/item/device/firing_pin
+
 /obj/item/weapon/gun/projectile/automatic/l6_saw/toy
 	name = "donksoft LMG"
 	desc = "A heavily modified toy light machine gun, designated 'L6 SAW'. Ages 8 and up."
@@ -90,3 +103,6 @@
 
 /obj/item/weapon/gun/projectile/automatic/l6_saw/toy/process_chamber(eject_casing = 0, empty_chamber = 1)
 	..()
+
+/obj/item/weapon/gun/projectile/automatic/l6_saw/toy/unrestricted
+	pin = /obj/item/device/firing_pin

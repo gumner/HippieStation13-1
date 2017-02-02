@@ -10,7 +10,8 @@
  *		Plant Bag
  *		Sheet Snatcher
  *		Book Bag
- *		Biowaste Bag
+ *      Biowaste Bag
+ *
  *	-Sayu
  */
 
@@ -18,8 +19,8 @@
 /obj/item/weapon/storage/bag
 	allow_quick_gather = 1
 	allow_quick_empty = 1
-	collection_mode = 1
 	display_contents_with_number = 1 // should work fine now
+	use_to_pickup = 1
 	slot_flags = SLOT_BELT
 
 // -----------------------------
@@ -29,7 +30,7 @@
 	name = "trash bag"
 	desc = "It's the heavy-duty black polymer kind. Time to take out the trash!"
 	icon = 'icons/obj/janitor.dmi'
-	icon_state = "trashbag0"
+	icon_state = "trashbag"
 	item_state = "trashbag"
 
 	w_class = 4
@@ -46,12 +47,12 @@
 
 /obj/item/weapon/storage/bag/trash/update_icon()
 	if(contents.len == 0)
-		icon_state = "trashbag0"
+		icon_state = "[initial(icon_state)]"
 	else if(contents.len < 12)
-		icon_state = "trashbag1"
+		icon_state = "[initial(icon_state)]1"
 	else if(contents.len < 21)
-		icon_state = "trashbag2"
-	else icon_state = "trashbag3"
+		icon_state = "[initial(icon_state)]2"
+	else icon_state = "[initial(icon_state)]3"
 
 /obj/item/weapon/storage/bag/trash/cyborg
 
@@ -63,6 +64,14 @@
 /obj/item/weapon/storage/bag/trash/cyborg/janicart_insert(mob/user, obj/structure/janitorialcart/J)
 	return
 
+/obj/item/weapon/storage/bag/trash/bluespace
+	name = "trash bag of holding"
+	desc = "The latest and greatest in custodial convenience, a trashbag that is capable of holding vast quantities of garbage."
+	icon_state = "bluetrashbag"
+	origin_tech = "materials=4;bluespace=4;engineering=4;plasmatech=3"
+	max_combined_w_class = 60
+	storage_slots = 60
+
 // -----------------------------
 //        Mining Satchel
 // -----------------------------
@@ -72,13 +81,13 @@
 	desc = "This little bugger can be used to store and transport ores."
 	icon = 'icons/obj/mining.dmi'
 	icon_state = "satchel"
+	origin_tech = "engineering=2"
 	slot_flags = SLOT_BELT | SLOT_POCKET
 	w_class = 3
 	storage_slots = 50
 	max_combined_w_class = 200 //Doesn't matter what this is, so long as it's more or equal to storage_slots * ore.w_class
 	max_w_class = 3
 	can_hold = list(/obj/item/weapon/ore)
-	burn_state = 0
 
 /obj/item/weapon/storage/bag/ore/cyborg
 	name = "cyborg mining satchel"
@@ -88,7 +97,7 @@
 	desc = "A revolution in convenience, this satchel allows for infinite ore storage. It's been outfitted with anti-malfunction safety measures."
 	storage_slots = INFINITY
 	max_combined_w_class = INFINITY
-	origin_tech = "bluespace=3"
+	origin_tech = "bluespace=4;materials=3;engineering=3"
 	icon_state = "satchel_bspace"
 
 // -----------------------------
@@ -99,12 +108,12 @@
 	name = "plant bag"
 	icon = 'icons/obj/hydroponics/equipment.dmi'
 	icon_state = "plantbag"
-	storage_slots = 50; //the number of plant pieces it can carry.
-	max_combined_w_class = 200 //Doesn't matter what this is, so long as it's more or equal to storage_slots * plants.w_class
+	storage_slots = 100; //the number of plant pieces it can carry.
+	max_combined_w_class = 100 //Doesn't matter what this is, so long as it's more or equal to storage_slots * plants.w_class
 	max_w_class = 3
 	w_class = 1
 	can_hold = list(/obj/item/weapon/reagent_containers/food/snacks/grown,/obj/item/seeds,/obj/item/weapon/grown)
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 
 ////////
 
@@ -112,7 +121,7 @@
 	name = "portable seed extractor"
 	desc = "For the enterprising botanist on the go. Less efficient than the stationary model, it creates one seed per plant."
 	icon_state = "portaseeder"
-	burn_state = -1
+	origin_tech = "biotech=3;engineering=2"
 
 /obj/item/weapon/storage/bag/plants/portaseeder/verb/dissolve_contents()
 	set name = "Activate Seed Extraction"
@@ -192,6 +201,8 @@
 		if(!S.amount)
 			qdel(S)
 		else
+			if(S.pulledby)
+				S.pulledby.stop_pulling()
 			S.loc = src
 
 	orient2hud(usr)
@@ -283,7 +294,7 @@
 	max_w_class = 3
 	w_class = 4 //Bigger than a book because physics
 	can_hold = list(/obj/item/weapon/book, /obj/item/weapon/storage/book, /obj/item/weapon/spellbook)
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 
 /*
  * Trays - Agouri
@@ -326,17 +337,17 @@
 			M.Weaken(2)
 
 /obj/item/weapon/storage/bag/tray/proc/rebuild_overlays()
-	overlays.Cut()
+	cut_overlays()
 	for(var/obj/item/I in contents)
-		overlays += image("icon" = I.icon, "icon_state" = I.icon_state, "layer" = -1)
+		add_overlay(image("icon" = I.icon, "icon_state" = I.icon_state, "layer" = -1))
 
 /obj/item/weapon/storage/bag/tray/remove_from_storage(obj/item/W as obj, atom/new_location)
 	..()
 	rebuild_overlays()
 
 /obj/item/weapon/storage/bag/tray/handle_item_insertion(obj/item/I, prevent_warning = 0)
-	overlays += image("icon" = I.icon, "icon_state" = I.icon_state, "layer" = -1)
-	..()
+	add_overlay(image("icon" = I.icon, "icon_state" = I.icon_state, "layer" = -1))
+	. = ..()
 
 
 /*
@@ -353,7 +364,7 @@
 	w_class = 1
 	preposition = "in"
 	can_hold = list(/obj/item/weapon/reagent_containers/pill, /obj/item/weapon/reagent_containers/glass/beaker, /obj/item/weapon/reagent_containers/glass/bottle)
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 
 /*
  *  Biowaste bag (mostly for xenobiologists)
@@ -369,4 +380,4 @@
 	w_class = 1
 	preposition = "in"
 	can_hold = list(/obj/item/slime_extract, /obj/item/weapon/reagent_containers/syringe, /obj/item/weapon/reagent_containers/glass/beaker, /obj/item/weapon/reagent_containers/glass/bottle, /obj/item/weapon/reagent_containers/blood, /obj/item/weapon/reagent_containers/hypospray/medipen, /obj/item/trash/deadmouse)
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE

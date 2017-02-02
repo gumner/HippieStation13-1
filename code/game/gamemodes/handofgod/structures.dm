@@ -1,8 +1,9 @@
+
 /proc/build_hog_construction_lists()
 	if(global_handofgod_traptypes.len && global_handofgod_structuretypes.len)
 		return
 
-	var/list/types = typesof(/obj/structure/divine) - /obj/structure/divine - /obj/structure/divine/trap
+	var/list/types = subtypesof(/obj/structure/divine) - /obj/structure/divine/trap
 	for(var/T in types)
 		var/obj/structure/divine/D = T
 		if(initial(D.constructable))
@@ -18,32 +19,31 @@
 	anchored = 1
 	density = 1
 	var/constructable = TRUE
-	var/trap = FALSE // for hog list purposes
+	var/trap = FALSE
 	var/metal_cost = 0
 	var/glass_cost = 0
 	var/lesser_gem_cost = 0
 	var/greater_gem_cost = 0
 	var/mob/camera/god/deity
-	var/side = "" //used for colouring structures when construction is started by a deity
+	var/side = "neutral" //"blue" or "red", also used for colouring structures when construction is started by a deity
 	var/health = 100
 	var/maxhealth = 100
-	var/overlay_icon_state // this is an icon state which will be applied on the (usually brown) structure chassis to make it clear what team is it of.
-	var/image/overlay
+	var/deactivated = 0		//Structures being hidden can't be used. Mainly to prevent invisible defense pylons.
+	var/autocolours = TRUE //do we colour to our side?
 
-/obj/structure/divine/New(location, mob/camera/god/G)
+/obj/structure/divine/New()
 	..()
-	assign_deity(G)
-	if(overlay_icon_state)
-		overlay = new(icon, overlay_icon_state)
-	update_icons()
+
+/obj/structure/divine/proc/deactivate()
+	deactivated = 1
+
+/obj/structure/divine/proc/activate()
+	deactivated = 0
 
 
 /obj/structure/divine/proc/update_icons()
-	if(overlay)
-		overlays.Cut()
-		if(side) //if it has an overlay that needs to be applied
-			overlay.color = side
-			overlays += overlay
+	if(autocolours)
+		icon_state = "[initial(icon_state)]-[side]"
 
 
 /obj/structure/divine/Destroy()
@@ -52,54 +52,67 @@
 	return ..()
 
 
-/obj/structure/divine/proc/healthcheck()
-	if(!health)
-		visible_message("<span class='danger'>\The [src] was destroyed!</span>")
-		qdel(src)
-
 
 /obj/structure/divine/attackby(obj/item/I, mob/user)
-	if(!I || (I.flags & ABSTRACT))
-		return 0
 
 	//Structure conversion/capture
 	if(istype(I, /obj/item/weapon/godstaff))
-		if(!is_in_any_team(user.mind))
+		if(!is_handofgod_cultist(user))
 			user << "<span class='notice'>You're not quite sure what the hell you're even doing.</span>"
 			return
 		var/obj/item/weapon/godstaff/G = I
 		if(G.god && deity != G.god)
 			assign_deity(G.god, alert_old_deity = TRUE)
 			visible_message("<span class='boldnotice'>\The [src] has been captured by [user]!</span>")
-		return
+	else
+		return ..()
 
+/obj/structure/divine/attacked_by(obj/item/I, mob/living/user)
+	..()
+	take_damage(I.force, I.damtype, 1)
+
+/obj/structure/divine/proc/take_damage(damage, damage_type = BRUTE, sound_effect = 1)
+	switch(damage_type)
+		if(BRUTE)
+			if(sound_effect)
+				if(damage)
+					playsound(loc, 'sound/weapons/smash.ogg', 50, 1)
+				else
+					playsound(loc, 'sound/weapons/tap.ogg', 50, 1)
+		if(BURN)
+			if(sound_effect)
+				playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+		else
+			return
+	health -= damage
+	if(!health)
+		visible_message("<span class='danger'>\The [src] was destroyed!</span>")
+		qdel(src)
+
+
+/obj/structure/divine/bullet_act(obj/item/projectile/P)
+	. = ..()
+	take_damage(P.damage, P.damage_type, 0)
+
+
+/obj/structure/divine/attack_alien(mob/living/carbon/alien/humanoid/user)
 	user.changeNext_move(CLICK_CD_MELEE)
 	user.do_attack_animation(src)
-	playsound(get_turf(src), I.hitsound, 50, 1)
-	visible_message("<span class='danger'>\The [src] has been attacked with \the [I][(user ? " by [user]" : ".")]!</span>")
-	health = max(0, health-I.force)
-	healthcheck()
+	add_hiddenprint(user)
+	visible_message("<span class='warning'>\The [user] slashes at [src]!</span>")
+	playsound(src.loc, 'sound/weapons/slash.ogg', 100, 1)
+	take_damage(20, BRUTE, 0)
 
-
-/obj/structure/divine/bullet_act(obj/item/projectile/Proj)
-	if(!Proj)
-		return 0
-
-	if(Proj.damage_type == BRUTE || Proj.damage_type == BURN)
-		health = max(0, health-Proj.damage)
-		healthcheck()
-
-
-/obj/structure/divine/attack_animal(mob/living/simple_animal/M)
-	if(!M)
-		return 0
-
-	visible_message("<span class='danger'>\The [src] has been attacked by \the [M]!</span>")
-	var/damage = rand(M.melee_damage_lower, M.melee_damage_upper)
-	if(!damage)
-		return
-	health = max(0, health-damage)
-	healthcheck()
+/obj/machinery/attack_animal(mob/living/simple_animal/M)
+	M.changeNext_move(CLICK_CD_MELEE)
+	M.do_attack_animation(src)
+	if(M.melee_damage_upper > 0 || M.obj_damage)
+		M.visible_message("<span class='danger'>[M.name] smashes against \the [src.name].</span>",\
+		"<span class='danger'>You smash against the [src.name].</span>")
+		if(M.obj_damage)
+			take_damage(M.obj_damage, M.melee_damage_type, 1)
+		else
+			take_damage(rand(M.melee_damage_lower,M.melee_damage_upper), M.melee_damage_type, 1)
 
 
 /obj/structure/divine/proc/assign_deity(mob/camera/god/new_deity, alert_old_deity = TRUE)
@@ -145,8 +158,6 @@
 		lesser_gem_cost = initial(construction_result.lesser_gem_cost)
 		greater_gem_cost = initial(construction_result.greater_gem_cost)
 		desc = "An unfinished [initial(construction_result.name)]."
-		overlay_icon_state = initial(construction_result.overlay_icon_state)
-	update_icons()
 
 
 /obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user)
@@ -201,13 +212,15 @@
 			user << "<span class='notice'>\The [src] does not require any more greater gems!"
 		return
 
-	..()
+	else
+		return ..()
 
 
 /obj/structure/divine/construction_holder/proc/check_completion()
 	if(!metal_cost && !glass_cost && !lesser_gem_cost && !greater_gem_cost)
 		visible_message("<span class='notice'>\The [initial(construction_result.name)] is complete!</span>")
-		new construction_result(get_turf(src), deity)
+		var/obj/structure/divine/D = new construction_result (get_turf(src))
+		D.assign_deity(deity)
 		qdel(src)
 
 
@@ -229,11 +242,10 @@
 /obj/structure/divine/nexus
 	name = "nexus"
 	desc = "It anchors a deity to this world. It radiates an unusual aura. Cultists protect this at all costs. It looks well protected from explosive shock."
-	icon_state = "nexus-frame"
+	icon_state = "nexus"
 	health = 500
 	maxhealth = 500
 	constructable = FALSE
-	overlay_icon_state = "nexus-overlay"
 	var/faith_regen_rate = 1
 	var/list/powerpylons = list()
 
@@ -241,11 +253,22 @@
 /obj/structure/divine/nexus/ex_act()
 	return
 
-
-/obj/structure/divine/nexus/healthcheck()
+/obj/structure/divine/nexus/take_damage(damage, damage_type = BRUTE, sound_effect = 1)
+	switch(damage_type)
+		if(BRUTE)
+			if(sound_effect)
+				if(damage)
+					playsound(loc, 'sound/weapons/smash.ogg', 50, 1)
+				else
+					playsound(loc, 'sound/weapons/tap.ogg', 50, 1)
+		if(BURN)
+			if(sound_effect)
+				playsound(src.loc, 'sound/items/Welder.ogg', 100, 1)
+		else
+			return
+	health -= damage
 	if(deity)
 		deity.update_health_hud()
-
 	if(!health)
 		if(!qdeleted(deity) && deity.nexus_required)
 			deity << "<span class='danger'>Your nexus was destroyed. You feel yourself fading...</span>"
@@ -254,35 +277,32 @@
 		qdel(src)
 
 
-/obj/structure/divine/nexus/New(location, mob/camera/god/G)
-	..()
-	SSobj.processing |= src
+/obj/structure/divine/nexus/New()
+	START_PROCESSING(SSobj, src)
 
 
 /obj/structure/divine/nexus/process()
-	healthcheck()
 	if(deity)
 		deity.update_followers()
 		deity.add_faith(faith_regen_rate + (powerpylons.len / 5) + (deity.alive_followers / 3))
 		deity.max_faith = initial(deity.max_faith) + (deity.alive_followers*10) //10 followers = 100 max faith, so disaster() at around 20 followers
 		deity.check_death()
-		deity.check_prophet()
 
 
 /obj/structure/divine/nexus/Destroy()
-	SSobj.processing -= src
+	STOP_PROCESSING(SSobj, src)
 	return ..()
 
 
 /obj/structure/divine/conduit
 	name = "conduit"
 	desc = "It allows a deity to extend their reach.  Their powers are just as potent near a conduit as a nexus."
-	icon_state = "conduit-frame"
+	icon_state = "conduit"
 	health = 150
 	maxhealth = 150
-	metal_cost = 20
+	metal_cost = 10
 	glass_cost = 5
-	overlay_icon_state = "conduit-overlay"
+
 
 /obj/structure/divine/conduit/assign_deity(mob/camera/god/new_deity, alert_old_deity = TRUE)
 	if(deity)
@@ -291,142 +311,43 @@
 	if(deity)
 		deity.conduits += src
 
+/obj/structure/divine/conduit/deactivate()
+	..()
+	if(deity)
+		deity.conduits -= src
 
+/obj/structure/divine/conduit/activate()
+	..()
+	if(deity)
+		deity.conduits += src
+
+/* //No good sprites, and not enough items to make it viable yet
 /obj/structure/divine/forge
 	name = "forge"
 	desc = "A forge fueled by divine might, it allows the creation of sacred and powerful artifacts.  It requires common materials to craft objects."
-	icon_state = "forge-frame"
+	icon_state = "forge"
 	health = 250
 	maxhealth = 250
 	density = 0
 	maxhealth = 250
 	metal_cost = 40
-	overlay_icon_state = "forge-overlay"
-	var/datum/material_container/materials
-	var/faith = 0 // faith which a god can deposit, used to make stuff
-
-/obj/structure/divine/forge/New(location, mob/camera/god/G)
-	..()
-	materials = new(src, list(MAT_METAL=1, MAT_GLASS=1), 225000)
-
-/obj/structure/divine/forge/attack_hand(mob/living/user)
-	if(is_in_any_team(user.mind) == side)
-		interact(user)
-	else
-		user << "<span class='danger'>You try to interact with the weird machine, but you burn your hand on its engraved panel!</span>"
-		user.adjustFireLoss(5)
-
-/obj/structure/divine/forge/attackby(obj/item/I, mob/user)
-	if(istype(I, /obj/item/stack))
-		var/inserted = materials.insert_item(I)
-		user << "<span class='notice'>You insert [inserted] sheet[inserted>1 ? "s" : ""] inside the forge.</span>"
-	else
-		..()
-
-/obj/structure/divine/forge/attack_god(mob/camera/god/user)
-	var/n = input("How much faith do you want to put in your forge?", "Deposit faith") as num|null
-	if(n == null)
-		return
-	n = round(n) // to avoid 0.01 faith
-	if(n <= 0)
-		return
-	if(user.faith < n)
-		user << "<span class='userdanger'>You don't have enough faith to do that!</span>"
-		return
-	user.add_faith(-n)
-	faith += n
-
-/obj/structure/divine/forge/interact(mob/user) // shamefully copied from god structure/trap proc
-	var/dat = ""
-	//Materials jettison
-	//Metal
-	var/m_amount = materials.amount(MAT_METAL)
-	dat += "* [m_amount] of Metal: "
-	if(m_amount >= MINERAL_MATERIAL_AMOUNT) dat += "<A href='?src=\ref[src];ejectsheet=metal;ejectsheet_amt=1'>Eject</A> "
-	if(m_amount >= MINERAL_MATERIAL_AMOUNT*5) dat += "<A href='?src=\ref[src];ejectsheet=metal;ejectsheet_amt=5'>5x</A> "
-	if(m_amount >= MINERAL_MATERIAL_AMOUNT) dat += "<A href='?src=\ref[src];ejectsheet=metal;ejectsheet_amt=50'>All</A>"
-	dat += "<BR>"
-	//Glass
-	var/g_amount = materials.amount(MAT_GLASS)
-	dat += "* [g_amount] of Glass: "
-	if(g_amount >= MINERAL_MATERIAL_AMOUNT) dat += "<A href='?src=\ref[src];ejectsheet=glass;ejectsheet_amt=1'>Eject</A> "
-	if(g_amount >= MINERAL_MATERIAL_AMOUNT*5) dat += "<A href='?src=\ref[src];ejectsheet=glass;ejectsheet_amt=5'>5x</A> "
-	if(g_amount >= MINERAL_MATERIAL_AMOUNT) dat += "<A href='?src=\ref[src];ejectsheet=glass;ejectsheet_amt=50'>All</A>"
-	dat += "<BR>"
-	dat += "* [faith] of Faith. <BR>"
-
-	for(var/t in global_handofgod_itemtypes)
-		var/obj/item/apath = t
-		var/apathname = initial(apath.name)
-		var/apathdesc = initial(apath.desc)
-		dat += "<center><B>[capitalize(apathname)]</B></center><BR>"
-		var/imgicon = "[initial(apath.icon)]"
-		var/imgstate = "[initial(apath.icon_state)]"
-		var/list/mats = initial(apath.materials)
-		var/icon/I = icon(imgicon,imgstate)
-		if(side) // safety check
-			I.Blend("[side]", ICON_MULTIPLY) //icon multiply otherwise it'll become fluorescent-colored ew
-		var/img_component = lowertext(apathname)
-		//I hate byond, but atleast it autocaches these so it's only 1*number_of_items worth of actual calls
-		user << browse_rsc(I,"hog_items-[img_component]-[side].png")
-		dat += "<center><img src='hog_items-[img_component]-[side].png' height=64 width=64></center>"
-		dat += "Description: [apathdesc]<BR>"
-		dat += "Cost: "
-		if(mats[MAT_METAL])
-			dat += "[mats[MAT_METAL]] metal;"
-		if(mats[MAT_GLASS])
-			dat += "[mats[MAT_GLASS]] glass;"
-		dat += "<BR>"
-		dat += "<center><a href='?src=\ref[src];create_item=[apath]'>Construct [capitalize(apathname)]</a></center><BR><BR>"
-
-	var/datum/browser/popup = new(user, "items","Construct items",350,500)
-	popup.set_content(dat)
-	popup.open()
-
-/obj/structure/divine/forge/Topic(href, href_list)
-	if(href_list["ejectsheet"])
-		var/desired_num_sheets = text2num(href_list["ejectsheet_amt"])
-		var/MAT
-		switch(href_list["ejectsheet"])
-			if("metal")
-				MAT = MAT_METAL
-			if("glass")
-				MAT = MAT_GLASS
-		materials.retrieve_sheets(desired_num_sheets, MAT)
-	else if(href_list["create_item"])
-		if(faith < 100) // you need atleast 100 faith to make any kind of item
-			visible_message("<span class='danger'>There's not enough faith to make anything!</span>")
-			return
-		var/obj/item/divinepath = text2path(href_list["create_item"]) //it's a path but we need to initial() some vars
-		if(!(divinepath in global_handofgod_itemtypes)) // to prevent href spoofing
-			message_admins("Forge href exploit attempted by [key_name(usr, usr.client)]!")
-			return
-		var/list/mats = list()
-		for(var/MAT in initial(divinepath.materials))
-			mats[MAT] = initial(divinepath.materials[MAT])
-		if(compareAllValues(materials.materials, mats)) //we got enough materials!yay
-			new divinepath(get_turf(src), side)
-			materials.use_amount(mats)
-	updateUsrDialog()
-
-/obj/structure/divine/forge/Destroy()
-	qdel(materials)
-	..()
+*/
 
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
 	desc = "An altar dedicated to a deity.  Cultists can \"forcefully teach\" their non-aligned crewmembers to join their side and take up their deity."
-	icon_state = "convertaltar-frame"
+	icon_state = "convertaltar"
 	density = 0
-	metal_cost = 15
+	metal_cost = 10
 	can_buckle = 1
-	overlay_icon_state = "convertaltar-overlay"
 
 
 /obj/structure/divine/convertaltar/attack_hand(mob/living/user)
 	..()
+	if(deactivated)
+		return
 	var/mob/living/carbon/human/H = locate() in get_turf(src)
-	if(!is_in_any_team(user.mind))
+	if(!is_handofgod_cultist(user))
 		user << "<span class='notice'>You try to use it, but unfortunately you don't know any rituals.</span>"
 		return
 	if(!H)
@@ -434,7 +355,7 @@
 	if(!H.mind)
 		user << "<span class='danger'>Only sentients may serve your deity.</span>"
 		return
-	if(is_in_any_team(user.mind) == side)
+	if((side == "red" && is_handofgod_redcultist(user) && !is_handofgod_redcultist(H)) || (side == "blue" && is_handofgod_bluecultist(user) && !is_handofgod_bluecultist(H)))
 		user << "<span class='notice'>You invoke the conversion ritual.</span>"
 		ticker.mode.add_hog_follower(H.mind, side)
 	else
@@ -445,25 +366,24 @@
 /obj/structure/divine/sacrificealtar
 	name = "sacrificial altar"
 	desc = "An altar designed to perform blood sacrifice for a deity.  The cultists performing the sacrifice will gain a powerful material to use in their forge.  Sacrificing a prophet will yield even better results."
-	icon_state = "sacrificealtar-frame"
+	icon_state = "sacrificealtar"
 	density = 0
-	metal_cost = 25
+	metal_cost = 15
 	can_buckle = 1
-	overlay_icon_state = "sacrificealtar-overlay"
 
 
 /obj/structure/divine/sacrificealtar/attack_hand(mob/living/user)
 	..()
+	if(deactivated)
+		return
 	var/mob/living/L = locate() in get_turf(src)
-	if(!is_in_any_team(user.mind))
+	if(!is_handofgod_cultist(user))
 		user << "<span class='notice'>You try to use it, but unfortunately you don't know any rituals.</span>"
 		return
 	if(!L)
 		return
-	if(!L.mind)
-		return
-	if(is_in_any_team(user.mind) == side)
-		if(is_in_any_team(L.mind) == side)
+	if((side == "red" && is_handofgod_redcultist(user))	|| (side == "blue" && is_handofgod_bluecultist(user)))
+		if((side == "red" && is_handofgod_redcultist(L)) || (side == "blue" && is_handofgod_bluecultist(L)))
 			user << "<span class='danger'>You cannot sacrifice a fellow cultist.</span>"
 			return
 		user << "<span class='notice'>You attempt to sacrifice [L] by invoking the sacrificial ritual.</span>"
@@ -486,17 +406,19 @@
 			var/mob/living/carbon/human/H = L
 
 			//Sacrifice altars can't teamkill
-			if(!H.mind || is_in_any_team(H.mind) == side)
+			if(side == "red" && is_handofgod_redcultist(H))
+				return
+			else if(side == "blue" && is_handofgod_bluecultist(H))
 				return
 
-			if(what_rank(H.mind) == "Prophet")
+			if(is_handofgod_prophet(H))
 				new /obj/item/stack/sheet/greatergem(get_turf(src))
 				if(deity)
 					deity.prophets_sacrificed_in_name++
 			else
 				new /obj/item/stack/sheet/lessergem(get_turf(src))
 
-		else if(isAI(L) || istype(L, /mob/living/carbon/alien/humanoid/royal)) // tbh praetorians are nice people too
+		else if(isAI(L) || istype(L, /mob/living/carbon/alien/humanoid/royal/queen))
 			new /obj/item/stack/sheet/greatergem(get_turf(src))
 		else
 			new /obj/item/stack/sheet/lessergem(get_turf(src))
@@ -506,10 +428,10 @@
 /obj/structure/divine/healingfountain
 	name = "healing fountain"
 	desc = "A fountain containing the waters of life... or death, depending on where your allegiances lie."
-	icon_state = "fountain-frame"
+	icon_state = "fountain"
 	metal_cost = 10
 	glass_cost = 5
-	overlay_icon_state = "fountain-overlay"
+	autocolours = FALSE
 	var/time_between_uses = 1800
 	var/last_process = 0
 	var/cult_only = TRUE
@@ -519,42 +441,44 @@
 	cult_only = FALSE
 
 /obj/structure/divine/healingfountain/attack_hand(mob/living/user)
+	if(deactivated)
+		return
 	if(last_process + time_between_uses > world.time)
 		user << "<span class='notice'>The fountain appears to be empty.</span>"
 		return
 	last_process = world.time
-	if((is_in_any_team(user.mind) != side)  && cult_only)// if it's a nonbeliever/an enemy,why the fuck could enemies heal with this?
+	if(!is_handofgod_cultist(user) && cult_only)
 		user << "<span class='danger'><B>The water burns!</b></spam>"
 		user.reagents.add_reagent("hell_water",20)
 	else
 		user << "<span class='notice'>The water feels warm and soothing as you touch it. The fountain immediately dries up shortly afterwards.</span>"
 		user.reagents.add_reagent("godblood",20)
 	update_icons()
-	spawn(time_between_uses)
-		if(src)
-			update_icons()
+	addtimer(src, "update_icons", time_between_uses)
+
 
 /obj/structure/divine/healingfountain/update_icons()
-	overlays.Cut()
-	if(last_process + time_between_uses < world.time)
-		..()
+	if(last_process + time_between_uses > world.time)
+		icon_state = "fountain"
+	else
+		icon_state = "fountain-[side]"
+
 
 /obj/structure/divine/powerpylon
 	name = "power pylon"
-	desc = "A pylon which increases the deity's rate it can influence the world, by increasing its faith."
-	icon_state = "powerpylon-frame"
+	desc = "A pylon which increases the deity's rate it can influence the world."
+	icon_state = "powerpylon"
 	density = 1
 	health = 30
 	maxhealth = 30
 	metal_cost = 5
-	glass_cost = 20
-	overlay_icon_state = "powerpylon-overlay"
+	glass_cost = 15
 
 
-/obj/structure/divine/powerpylon/New(location, mob/camera/god/G)
+/obj/structure/divine/powerpylon/New()
 	..()
 	if(deity && deity.god_nexus)
-		deity.god_nexus.powerpylons |= src
+		deity.god_nexus.powerpylons += src
 
 
 /obj/structure/divine/powerpylon/Destroy()
@@ -563,23 +487,32 @@
 	return ..()
 
 
+/obj/structure/divine/powerpylon/deactivate()
+	..()
+	if(deity)
+		deity.god_nexus.powerpylons -= src
+
+/obj/structure/divine/powerpylon/activate()
+	..()
+	if(deity)
+		deity.god_nexus.powerpylons += src
+
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
 	desc = "A pylon which is blessed to withstand many blows, and fire strong bolts at nonbelievers. A god can toggle it."
-	icon_state = "defensepylonoffline-frame"
+	icon_state = "defensepylon"
 	health = 150
 	maxhealth = 150
 	metal_cost = 25
 	glass_cost = 30
-	overlay_icon_state = "defensepylonoffline-overlay"
-	var/obj/machinery/gun_turret/defensepylon_internal_turret/pylon_gun
+	var/obj/machinery/porta_turret/defensepylon_internal_turret/pylon_gun
 
 
-/obj/structure/divine/defensepylon/New(location, mob/camera/god/G)
+/obj/structure/divine/defensepylon/New()
 	..()
-	pylon_gun = new()
-	pylon_gun.faction = side
+	pylon_gun = new(src)
 	pylon_gun.base = src
+	pylon_gun.faction = list("[side] god")
 
 
 /obj/structure/divine/defensepylon/Destroy()
@@ -591,77 +524,88 @@
         ..()
         user << "<span class='notice'>\The [src] looks [pylon_gun.on ? "on" : "off"].</span>"
 
+
+/obj/structure/divine/defensepylon/assign_deity(mob/camera/god/new_deity, alert_old_deity = TRUE)
+	if(..() && pylon_gun)
+		pylon_gun.faction = list("[side] god")
+		pylon_gun.side = side
+
 /obj/structure/divine/defensepylon/attack_god(mob/camera/god/user)
 	if(user.side == side)
+		if(deactivated)
+			user << "You need to reveal it first!"
+			return
 		pylon_gun.on = !pylon_gun.on
-		icon_state = (pylon_gun.on) ? "defensepylon-frame" : "defensepylonoffline-frame"
-		overlay_icon_state = (pylon_gun.on) ? "defensepylon-overlay" : "defensepylonoffline-overlay"
-		update_icons()
+		icon_state = (pylon_gun.on) ? "defensepylon-[side]" : "defensepylon"
 
+/obj/structure/divine/defensepylon/deactivate()
+	..()
+	pylon_gun.on = 0
+	icon_state = (pylon_gun.on) ? "defensepylon-[side]" : "defensepylon"
+
+/obj/structure/divine/defensepylon/activate()
+	..()
+	pylon_gun.on = 1
+	icon_state = (pylon_gun.on) ? "defensepylon-[side]" : "defensepylon"
 
 //This sits inside the defensepylon, to avoid copypasta
-/obj/machinery/gun_turret/defensepylon_internal_turret
+/obj/machinery/porta_turret/defensepylon_internal_turret
 	name = "defense pylon"
-	desc = "A pylon which is blessed to withstand many blows, and fire strong bolts at nonbelievers."
+	desc = "A plyon which is blessed to withstand many blows, and fire strong bolts at nonbelievers."
 	icon = 'icons/obj/hand_of_god_structures.dmi'
-	icon_state = "defensepylon"
+	installation = null
+	always_up = 1
+	use_power = 0
+	has_cover = 0
 	health = 200
+	projectile =  /obj/item/projectile/beam/pylon_bolt
+	eprojectile =  /obj/item/projectile/beam/pylon_bolt
+	shot_sound =  'sound/weapons/emitter2.ogg'
+	eshot_sound = 'sound/weapons/emitter2.ogg'
 	base_icon_state = "defensepylon"
-	scan_range = 7
-	projectile_type = /obj/item/projectile/beam/pylon_bolt
-	fire_sound = 'sound/weapons/emitter2.ogg'
-	faction = ""
-	var/on = 0
+	active_state = ""
+	off_state = ""
+	faction = null
+	emp_vunerable = 0
+	var/side = "neutral"
 
-/obj/machinery/gun_turret/defensepylon_internal_turret/process()
-	if(on)
-		..()
+/obj/machinery/porta_turret/defensepylon_internal_turret/setup()
+	return
 
-/obj/machinery/gun_turret/defensepylon_internal_turret/should_target(atom/target)
-	if(ismob(target))
-		var/mob/M = target
-		if(!M.stat && !(M.status_flags & NEARCRIT) && (!M.mind || is_in_any_team(M.mind) != faction))
-			return 1
-	else if(istype(target, /obj/mecha))
-		var/obj/mecha/M = target
-		if(M.occupant && should_target(M.occupant))
-			return 1
-	return 0
-
-/obj/machinery/gun_turret/defensepylon_internal_turret/fire(atom/target)
-	var/obj/item/projectile/beam/pylon_bolt/A = ..()
+/obj/machinery/porta_turret/defensepylon_internal_turret/shootAt(atom/movable/target)
+	var/obj/item/projectile/A = ..()
 	if(A)
-		A.color = faction
-		A.side = faction
+		A.color = side
+
+/obj/machinery/porta_turret/defensepylon_internal_turret/assess_perp(mob/living/carbon/human/perp)
+	if(perp.handcuffed) //dishonourable to kill somebody who might be converted.
+		return 0
+	var/badtarget = 0
+	switch(side)
+		if("blue")
+			badtarget = is_handofgod_bluecultist(perp)
+		if("red")
+			badtarget = is_handofgod_redcultist(perp)
+		else
+			badtarget = 1
+	if(badtarget)
+		return 0
+	return 10
+
+
 
 /obj/item/projectile/beam/pylon_bolt
 	name = "divine bolt"
-	icon_state = "darkshard"
+	icon_state = "greyscale_bolt"
 	damage = 15
-	var/side
 
-/obj/item/projectile/beam/pylon_bolt/New()
-	..()
-	icon_state = pick("darkshard", "lightshard")
-
-/obj/item/projectile/beam/pylon_bolt/Bump(atom/A, yes)
-	if(ismob(A))
-		var/mob/B = A
-		if(B.mind && (is_in_any_team(B.mind) == side))
-			return 0
-	if(istype(A, /obj/structure/divine))
-		var/obj/structure/divine/D = A
-		if(D.side == side)
-			return 0
-	..()
 
 /obj/structure/divine/shrine
 	name = "shrine"
 	desc = "A shrine dedicated to a deity."
-	icon_state = "shrine-frame"
+	icon_state = "shrine"
 	metal_cost = 15
 	glass_cost = 15
-	overlay_icon_state = "shrine-overlay"
 
 
 /obj/structure/divine/shrine/assign_deity(mob/camera/god/new_deity, alert_old_deity = TRUE)
@@ -670,42 +614,41 @@
 		desc = "A shrine dedicated to [new_deity.name]"
 
 
+
+
+//Functional, but need sprites
+/*
 /obj/structure/divine/translocator
 	name = "translocator"
 	desc = "A powerful structure, made with a greater gem.  It allows a deity to move their nexus to where this stands"
-	icon_state = "translocator-frame"
+	icon_state = "translocator"
 	health = 100
 	maxhealth = 100
 	metal_cost = 20
 	glass_cost = 20
 	greater_gem_cost = 1
-	overlay_icon_state = "translocator-overlay"
 
 
 /obj/structure/divine/lazarusaltar
 	name = "lazarus altar"
 	desc = "A very powerful altar capable of bringing life back to the recently deceased, made with a greater gem.  It can revive anyone and will heal virtually all wounds, but they are but a shell of their former self."
-	icon_state = "lazarus-frame"
+	icon_state = "lazarusaltar"
 	density = 0
 	health = 100
 	maxhealth = 100
 	metal_cost = 20
 	greater_gem_cost = 1
-	overlay_icon_state = "lazarus-overlay"
 
-/obj/structure/divine/lazarusaltar/New(location, mob/camera/god/G)
-	..()
-	overlay = new('icons/obj/hand_of_god_structures.dmi', "lazarus-overlay")
 
 /obj/structure/divine/lazarusaltar/attack_hand(mob/living/user)
 	var/mob/living/L = locate() in get_turf(src)
-	if(!is_in_any_team(user.mind))
+	if(!is_handofgod_culstist(user))
 		user << "<span class='notice'>You try to use it, but unfortunately you don't know any rituals.</span>"
 		return
 	if(!L)
 		return
 
-	if(is_in_any_team(user.mind) == side)
+	if((side == "red" && is_handofgod_redcultist(user))) || (side == "blue" && is_handofgod_bluecultist(user)))
 		user << "<span class='notice'>You attempt to revive [L] by invoking the rebirth ritual.</span>"
 		L.revive()
 		L.adjustCloneLoss(50)
@@ -713,3 +656,6 @@
 	else
 		user << "<span class='notice'>You attempt to revive [L] by invoking the rebirth ritual.</span>"
 		user << "<span class='danger'>But the altar ignores your words...</span>"
+*/
+
+

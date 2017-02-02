@@ -6,17 +6,16 @@
 	w_class = 2
 	throw_range = 4
 	throw_speed = 1
+	flags = NOBLUDGEON
 	force = 3
 	attack_verb = list("blown up", "exploded", "detonated")
 	materials = list(MAT_METAL=50, MAT_GLASS=30)
-	origin_tech = "syndicate=3;combat=2,"
+	origin_tech = "syndicate=1;combat=3;engineering=3"
 
 /obj/item/device/doorCharge/ex_act(severity, target)
 	switch(severity)
 		if(1)
 			visible_message("<span class='warning'>[src] detonates!</span>")
-			message_admins("A door charge has exploded at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> last touched by [key_name_admin(fingerprintslast)]")
-			log_game("A door charge has exploded at <A HREF='?_src_=holder;adminplayerobservecoodjump=1;X=[src.x];Y=[src.y];Z=[src.z]'>([src.x],[src.y],[src.z])</a> last touched by [key_name_admin(fingerprintslast)]")
 			explosion(src.loc,0,2,1,flame_range = 4)
 			qdel(src)
 		if(2)

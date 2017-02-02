@@ -19,12 +19,13 @@
 	icon_state = "oldcomp"
 	icon_screen = "library"
 	icon_keyboard = null
-	circuit = /obj/item/weapon/circuitboard/libraryconsole
+	circuit = /obj/item/weapon/circuitboard/computer/libraryconsole
 	var/screenstate = 0
 	var/title
 	var/category = "Any"
 	var/author
 	var/SQLquery
+	clockwork = TRUE //it'd look weird
 
 /obj/machinery/computer/libraryconsole/attack_hand(mob/user)
 	if(..())
@@ -173,7 +174,8 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 	var/list/inventory = list()
 	var/checkoutperiod = 5 // In minutes
 	var/obj/machinery/libraryscanner/scanner // Book scanner that will be used when uploading books to the Archive
-	var/libcomp_menu
+	var/list/libcomp_menu
+	var/page = 1	//current page of the external archives
 	var/bibledelay = 0 // LOL NO SPAM (1 minute delay) -- Doohl
 
 /obj/machinery/computer/libraryconsole/bookmanagement/proc/build_library_menu()
@@ -182,9 +184,15 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 	load_library_db_to_cache()
 	if(!cachedbooks)
 		return
-	libcomp_menu = ""
-	for(var/datum/cachedbook/C in cachedbooks)
-		libcomp_menu += "<tr><td>[C.author]</td><td>[C.title]</td><td>[C.category]</td><td><A href='?src=\ref[src];targetid=[C.id]'>\[Order\]</A></td></tr>\n"
+	libcomp_menu = list("")
+
+	for(var/i in 1 to cachedbooks.len)
+		var/datum/cachedbook/C = cachedbooks[i]
+		var/page = round(i/250)+1
+		if (libcomp_menu.len < page)
+			libcomp_menu.len = page
+			libcomp_menu[page] = ""
+		libcomp_menu[page] += "<tr><td>[C.author]</td><td>[C.title]</td><td>[C.category]</td><td><A href='?src=\ref[src];targetid=[C.id]'>\[Order\]</A></td></tr>\n"
 
 /obj/machinery/computer/libraryconsole/bookmanagement/New()
 	..()
@@ -257,7 +265,8 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 				dat += "<A href='?src=\ref[src];orderbyid=1'>(Order book by SS<sup>13</sup>BN)</A><BR><BR>"
 				dat += "<table>"
 				dat += "<tr><td>AUTHOR</td><td>TITLE</td><td>CATEGORY</td><td></td></tr>"
-				dat += libcomp_menu
+				dat += libcomp_menu[Clamp(page,1,libcomp_menu.len)]
+				dat += "<tr><td><A href='?src=\ref[src];page=[(max(1,page-1))]'>&lt;&lt;&lt;&lt;</A></td> <td></td> <td></td> <td><span style='text-align:right'><A href='?src=\ref[src];page=[(min(libcomp_menu.len,page+1))]'>&gt;&gt;&gt;&gt;</A></span></td></tr>"
 				dat += "</table>"
 			dat += "<BR><A href='?src=\ref[src];switchscreen=0'>(Return to main menu)</A><BR>"
 		if(5)
@@ -297,7 +306,7 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 		user << "[scanner]'s associated machine has been set to [src]."
 		audible_message("[src] lets out a low, short blip.")
 	else
-		..()
+		return ..()
 
 /obj/machinery/computer/libraryconsole/bookmanagement/emag_act(mob/user)
 	if(density && !emagged)
@@ -308,7 +317,8 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 		usr << browse(null, "window=library")
 		onclose(usr, "library")
 		return
-
+	if(href_list["page"] && screenstate == 4)
+		page = text2num(href_list["page"])
 	if(href_list["switchscreen"])
 		switch(href_list["switchscreen"])
 			if("0")
@@ -327,9 +337,11 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 				if(!bibledelay)
 
 					var/obj/item/weapon/storage/book/bible/B = new /obj/item/weapon/storage/book/bible(src.loc)
-					if(chosenicon && biblename) // global vars inside book.dm
-						B.icon_state = chosenicon
-						B.name = biblename
+					if(ticker && ( ticker.Bible_icon_state && ticker.Bible_item_state) )
+						B.icon_state = ticker.Bible_icon_state
+						B.item_state = ticker.Bible_item_state
+						B.name = ticker.Bible_name
+						B.deity_name = ticker.Bible_deity_name
 
 					bibledelay = 1
 					spawn(60)
@@ -395,7 +407,11 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 						else
 							log_game("[usr.name]/[usr.key] has uploaded the book titled [scanner.cache.name], [length(scanner.cache.dat)] signs")
 							alert("Upload Complete. Uploaded title will be unavailable for printing for a short period")
-
+	if(href_list["orderbyid"])
+		var/orderid = input("Enter your order:") as num|null
+		if(orderid)
+			if(isnum(orderid) && IsInteger(orderid))
+				href_list["targetid"] = orderid
 	if(href_list["targetid"])
 		var/sqlid = sanitizeSQL(href_list["targetid"])
 		establish_db_connection()
@@ -419,15 +435,9 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 				B.title = title
 				B.author = author
 				B.dat = content
-				B.icon_state = "book[rand(1,7)]"
+				B.icon_state = "book[rand(1,8)]"
 				src.visible_message("[src]'s printer hums as it produces a completely bound book. How did it do that?")
 				break
-	if(href_list["orderbyid"])
-		var/orderid = input("Enter your order:") as num|null
-		if(orderid)
-			if(isnum(orderid))
-				var/nhref = "src=\ref[src];targetid=[orderid]"
-				spawn() src.Topic(nhref, params2list(nhref), src)
 	src.add_fingerprint(usr)
 	src.updateUsrDialog()
 	return
@@ -448,6 +458,8 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 		if(!user.drop_item())
 			return
 		O.loc = src
+	else
+		return ..()
 
 /obj/machinery/libraryscanner/attack_hand(mob/user)
 	usr.set_machine(src)
@@ -501,22 +513,33 @@ var/global/list/datum/cachedbook/cachedbooks // List of our cached book datums
 
 /obj/machinery/bookbinder/attackby(obj/O, mob/user, params)
 	if(istype(O, /obj/item/weapon/paper))
-		if(busy)
-			user << "<span class='warning'>The book binder is busy. Please wait for completion of previous operation.</span>"
-			return
-		if(!user.drop_item())
-			return
-		O.loc = src
-		user.visible_message("[user] loads some paper into [src].", "You load some paper into [src].")
-		src.visible_message("[src] begins to hum as it warms up its printing drums.")
-		busy = 1
-		sleep(rand(200,400))
-		busy = 0
-		src.visible_message("[src] whirs as it prints and binds a new book.")
-		var/obj/item/weapon/book/b = new(src.loc)
-		b.dat = O:info
-		b.name = "Print Job #" + "[rand(100, 999)]"
-		b.icon_state = "book[rand(1,7)]"
-		qdel(O)
+		bind_book(user, O)
+	else if(default_unfasten_wrench(user, O))
+		return 1
 	else
-		..()
+		return ..()
+
+/obj/machinery/bookbinder/proc/bind_book(mob/user, obj/item/weapon/paper/P)
+	if(stat)
+		return
+	if(busy)
+		user << "<span class='warning'>The book binder is busy. Please wait for completion of previous operation.</span>"
+		return
+	if(!user.drop_item())
+		return
+	P.loc = src
+	user.visible_message("[user] loads some paper into [src].", "You load some paper into [src].")
+	audible_message("[src] begins to hum as it warms up its printing drums.")
+	busy = 1
+	sleep(rand(200,400))
+	busy = 0
+	if(P)
+		if(!stat)
+			visible_message("[src] whirs as it prints and binds a new book.")
+			var/obj/item/weapon/book/B = new(src.loc)
+			B.dat = P.info
+			B.name = "Print Job #" + "[rand(100, 999)]"
+			B.icon_state = "book[rand(1,7)]"
+			qdel(P)
+		else
+			P.loc = loc

@@ -5,7 +5,7 @@
 /mob/living/carbon/emote(act,m_type=1,message = null)
 	var/param = null
 	var/delay = 5
-	if(src.spam_flag == 1)
+	if(spam_flag == 1)
 		return
 
 	if (findtext(act, "-", 1, null))
@@ -146,13 +146,13 @@
 						else
 							if(gender == FEMALE)
 								sound = pick('sound/misc/scream_f1.ogg', 'sound/misc/scream_f2.ogg')
-				
+
 				if(isalien(src))
 					sound = pick('sound/voice/hiss6.ogg')
-				
+
 				if(alternate_screams.len > 0)
 					sound = pick(alternate_screams)
-				
+
 				playsound(src.loc, sound, 50, 1, 4, 1.2)
 				message = "<B>[src]</B> screams!"
 				src.adjustOxyLoss(5)
@@ -162,6 +162,7 @@
 				m_type = 2
 
 			delay = 15
+
 
 		if ("shake","shakes")
 			message = "<B>[src]</B> shakes \his head."
@@ -201,13 +202,6 @@
 
 		if ("wink","winks")
 			message = "<B>[src]</B> winks."
-			m_type = 1
-			
-		if ("excollapse","excollapsed")
-			if (lying)
-				message = "<B>[src]</B> groans in exhaustion."
-			else
-				message = "<B>[src]</B> collapses in exhaustion!"
 			m_type = 1
 
 		if ("yawn","yawns")

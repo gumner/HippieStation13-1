@@ -19,6 +19,7 @@
 #define	IMPRINTER	1	//For circuits. Uses glass/chemicals.
 #define PROTOLATHE	2	//New stuff. Uses glass/metal/chemicals
 #define	AUTOLATHE	4	//Uses glass/metal only.
-#define ATMOSLATHE	8	//Same as autolathe but focuses on atmos equipment such as tanks and such.
+#define CRAFTLATHE	8	//Uses fuck if I know. For use eventually.
 #define MECHFAB		16 //Remember, objects utilising this flag should have construction_time and construction_cost vars.
+#define BIOGENERATOR 32 //Uses biomass
 //Note: More then one of these can be added to a design but imprinter and lathe designs are incompatable.

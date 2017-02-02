@@ -14,7 +14,7 @@
 	w_class = 3
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	var/charges = 1
-	var/spawn_type = /obj/singularity/narsie/wizard
+	var/spawn_type = /obj/singularity/wizard
 	var/spawn_amt = 1
 	var/activate_descriptor = "reality"
 	var/rend_desc = "You should run now."
@@ -45,7 +45,7 @@
 	src.spawn_amt_left = spawn_amt
 	src.desc = desc
 	src.spawn_fast = spawn_fast
-	SSobj.processing |= src
+	START_PROCESSING(SSobj, src)
 	return
 
 /obj/effect/rend/process()
@@ -62,7 +62,8 @@
 		user.visible_message("<span class='danger'>[user] seals \the [src] with \the [I].</span>")
 		qdel(src)
 		return
-	..()
+	else
+		return ..()
 
 /obj/item/weapon/veilrender/vealrender
 	name = "veal render"
@@ -71,14 +72,6 @@
 	spawn_amt = 20
 	activate_descriptor = "hunger"
 	rend_desc = "Reverberates with the sound of ten thousand moos."
-
-/obj/item/weapon/veilrender/lesserveilrender
-	name = "lesser veil render"
-	desc = "A wicked curved blade of alien origin, recovered from the ruins of an ancient temple."
-	spawn_type = /mob/living/simple_animal/hostile/faithless
-	spawn_amt = 8
-	activate_descriptor = "reality"
-	rend_desc = "Reverberates with the sound of despair."
 
 /obj/item/weapon/veilrender/honkrender
 	name = "honk render"
@@ -89,10 +82,26 @@
 	rend_desc = "Gently wafting with the sounds of endless laughter."
 	icon_state = "clownrender"
 
-/obj/item/weapon/veilrender/honkrender/attack(mob/living/carbon/M, mob/living/carbon/user)
-	playsound(loc, 'sound/items/bikehorn.ogg', 50, 1, -1) //plays instead of tap.ogg!
-	return ..()
+////TEAR IN REALITY
 
+/obj/singularity/wizard
+	name = "tear in the fabric of reality"
+	desc = "This isn't right."
+	icon = 'icons/obj/singularity.dmi'
+	icon_state = "singularity_s1"
+	icon = 'icons/effects/224x224.dmi'
+	icon_state = "reality"
+	pixel_x = -96
+	pixel_y = -96
+	grav_pull = 6
+	consume_range = 3
+	current_size = STAGE_FOUR
+	allowed_size = STAGE_FOUR
+
+/obj/singularity/wizard/process()
+	move()
+	eat()
+	return
 /////////////////////////////////////////Scrying///////////////////
 
 /obj/item/weapon/scrying
@@ -154,22 +163,12 @@
 		return
 
 	M.set_species(/datum/species/skeleton, icon_update=0)
-	M.revive()
+	M.revive(full_heal = 1, admin_revive = 1)
 	spooky_scaries |= M
 	M << "<span class='userdanger'>You have been revived by </span><B>[user.real_name]!</B>"
 	M << "<span class='userdanger'>They are your master now, assist them even if it costs you your new life!</span>"
 
 	equip_roman_skeleton(M)
-
-	var/mob/living/carbon/human/master = user
-	var/datum/objective/protect/protect_master = new /datum/objective/protect
-	protect_master.owner = M.mind
-	protect_master.target = master.mind
-	protect_master.explanation_text = "Protect [master.real_name], your master."
-	M.mind.objectives += protect_master
-	ticker.mode.traitors += M.mind
-	M.mind.special_role = "skeleton-thrall"
-
 
 	desc = "A shard capable of resurrecting humans as skeleton thralls[unlimited ? "." : ", [spooky_scaries.len]/[maxskeles] active thralls."]"
 
@@ -190,14 +189,13 @@
 //Funny gimmick, skeletons always seem to wear roman/ancient armour
 /obj/item/device/necromantic_stone/proc/equip_roman_skeleton(mob/living/carbon/human/H)
 	for(var/obj/item/I in H)
-		if (istype(I, /obj/item/weapon/implant) || istype(I, /obj/item/organ)) continue
 		H.unEquip(I)
 
 	var/hat = pick(/obj/item/clothing/head/helmet/roman, /obj/item/clothing/head/helmet/roman/legionaire)
 	H.equip_to_slot_or_del(new hat(H), slot_head)
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/roman(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/clothing/shoes/roman(H), slot_shoes)
-	H.equip_to_slot_or_del(new /obj/item/weapon/shield/roman(H), slot_l_hand)
+	H.equip_to_slot_or_del(new /obj/item/weapon/shield/riot/roman(H), slot_l_hand)
 	H.equip_to_slot_or_del(new /obj/item/weapon/claymore(H), slot_r_hand)
 	H.equip_to_slot_or_del(new /obj/item/weapon/twohanded/spear(H), slot_back)
 
@@ -210,16 +208,15 @@ var/global/list/multiverse = list()
 	name = "multiverse sword"
 	desc = "A weapon capable of conquering the universe and beyond. Activate it to summon copies of yourself from others dimensions to fight by your side."
 	icon = 'icons/obj/weapons.dmi'
-	icon_state = "energy_katana"
-	item_state = "energy_katana"
-	hitsound = 'sound/weapons/bladeslice2.ogg'
+	icon_state = "multiverse"
+	item_state = "multiverse"
+	hitsound = 'sound/weapons/bladeslice.ogg'
 	flags = CONDUCT
 	slot_flags = SLOT_BELT
 	force = 20
 	throwforce = 10
 	w_class = 2
 	attack_verb = list("attacked", "slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut")
-	sharpness = IS_SHARP_ACCURATE
 	var/faction = list("unassigned")
 	var/cooldown = 0
 	var/assigned = "unassigned"
@@ -298,7 +295,7 @@ var/global/list/multiverse = list()
 	M.faction = list("[usr.real_name]")
 	if(prob(50))
 		var/list/all_species = list()
-		for(var/speciestype in typesof(/datum/species) - /datum/species)
+		for(var/speciestype in subtypesof(/datum/species))
 			var/datum/species/S = new speciestype()
 			if(!S.dangerous_existence)
 				all_species += speciestype
@@ -351,7 +348,7 @@ var/global/list/multiverse = list()
 			M.equip_to_slot_or_del(new hat(M), slot_head)
 			M.equip_to_slot_or_del(new /obj/item/clothing/under/roman(M), slot_w_uniform)
 			M.equip_to_slot_or_del(new /obj/item/clothing/shoes/roman(M), slot_shoes)
-			M.equip_to_slot_or_del(new /obj/item/weapon/shield/roman(M), slot_l_hand)
+			M.equip_to_slot_or_del(new /obj/item/weapon/shield/riot/roman(M), slot_l_hand)
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 
 		if("wizard")
@@ -362,8 +359,9 @@ var/global/list/multiverse = list()
 			M.equip_to_slot_or_del(new /obj/item/clothing/head/wizard/red(M), slot_head)
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 		if("cyborg")
-			for(var/obj/item/organ/limb/affecting in M.organs)
-				affecting.change_organ(ORGAN_ROBOTIC)
+			for(var/X in M.bodyparts)
+				var/obj/item/bodypart/affecting = X
+				affecting.change_bodypart_status(ORGAN_ROBOTIC)
 			M.equip_to_slot_or_del(new /obj/item/clothing/glasses/thermal/eyepatch(M), slot_glasses)
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 
@@ -425,7 +423,7 @@ var/global/list/multiverse = list()
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 			for(var/obj/item/carried_item in M.contents)
 				if(!istype(carried_item, /obj/item/weapon/implant))
-					carried_item.add_blood(M)
+					carried_item.add_mob_blood(M)
 
 		if("pirate")
 			M.equip_to_slot_or_del(new /obj/item/clothing/under/pirate(M), slot_w_uniform)
@@ -436,11 +434,11 @@ var/global/list/multiverse = list()
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 
 		if("soviet")
-			M.equip_to_slot_or_del(new /obj/item/clothing/head/hgpiratecap(M), slot_head)
+			M.equip_to_slot_or_del(new /obj/item/clothing/head/pirate/captain(M), slot_head)
 			M.equip_to_slot_or_del(new /obj/item/clothing/shoes/combat(M), slot_shoes)
 			M.equip_to_slot_or_del(new /obj/item/clothing/gloves/combat(M), slot_gloves)
 			M.equip_to_slot_or_del(new /obj/item/device/radio/headset(M), slot_ears)
-			M.equip_to_slot_or_del(new /obj/item/clothing/suit/hgpirate(M), slot_wear_suit)
+			M.equip_to_slot_or_del(new /obj/item/clothing/suit/pirate/captain(M), slot_wear_suit)
 			M.equip_to_slot_or_del(new /obj/item/clothing/under/soviet(M), slot_w_uniform)
 			M.equip_to_slot_or_del(sword, slot_r_hand)
 
@@ -467,6 +465,7 @@ var/global/list/multiverse = list()
 			return
 
 	M.update_icons()
+	M.update_body_parts()
 
 	var/obj/item/weapon/card/id/W = new /obj/item/weapon/card/id
 	W.icon_state = "centcom"
@@ -489,7 +488,7 @@ var/global/list/multiverse = list()
 	var/cooldown_time = 30 //3s
 	var/cooldown = 0
 	burntime = 0
-	burn_state = 0
+	burn_state = FLAMMABLE
 
 /obj/item/voodoo/attackby(obj/item/I, mob/user, params)
 	if(target && cooldown < world.time)
@@ -498,7 +497,7 @@ var/global/list/multiverse = list()
 			target.bodytemperature += 50
 			GiveHint(target)
 		else if(is_pointed(I))
-			target << "<span class='userdanger'>You feel a stabbing pain in [parse_zone(user.zone_sel.selecting)]!</span>"
+			target << "<span class='userdanger'>You feel a stabbing pain in [parse_zone(user.zone_selected)]!</span>"
 			target.Weaken(2)
 			GiveHint(target)
 		else if(istype(I,/obj/item/weapon/bikehorn))
@@ -516,17 +515,18 @@ var/global/list/multiverse = list()
 			link = I
 			user << "You attach [I] to the doll."
 			update_targets()
-	..()
 
 /obj/item/voodoo/check_eye(mob/user)
-	return src.loc == user
+	if(loc != user)
+		user.reset_perspective(null)
+		user.unset_machine()
 
 /obj/item/voodoo/attack_self(mob/user)
 	if(!target && possible.len)
 		target = input(user, "Select your victim!", "Voodoo") as null|anything in possible
 		return
 
-	if(user.zone_sel.selecting == "chest")
+	if(user.zone_selected == "chest")
 		if(link)
 			target = null
 			link.loc = get_turf(src)
@@ -536,18 +536,16 @@ var/global/list/multiverse = list()
 			return
 
 	if(target && cooldown < world.time)
-		switch(user.zone_sel.selecting)
+		switch(user.zone_selected)
 			if("mouth")
 				var/wgw =  sanitize(input(user, "What would you like the victim to say", "Voodoo", null)  as text)
 				target.say(wgw)
 				log_game("[user][user.key] made [target][target.key] say [wgw] with a voodoo doll.")
 			if("eyes")
 				user.set_machine(src)
-				if(user.client)
-					user.client.eye = target
-					user.client.perspective = EYE_PERSPECTIVE
+				user.reset_perspective(target)
 				spawn(100)
-					user.reset_view()
+					user.reset_perspective(null)
 					user.unset_machine()
 			if("r_leg","l_leg")
 				user << "<span class='notice'>You move the doll's legs around.</span>"
@@ -556,7 +554,7 @@ var/global/list/multiverse = list()
 			if("r_arm","l_arm")
 				//use active hand on random nearby mob
 				var/list/nearby_mobs = list()
-				for(var/mob/living/L in range(1,target))
+				for(var/mob/living/L in range(1, target))
 					if(L!=target)
 						nearby_mobs |= L
 				if(nearby_mobs.len)
@@ -594,35 +592,11 @@ var/global/list/multiverse = list()
 		GiveHint(target,1)
 	return ..()
 
-// Syndicate Voodoo Item box
-/obj/item/weapon/paper/voodoo
-	name = "Voodoo Guide"
-	icon_state = "alienpaper_words"
-	info = {"Greetings muggle! The Wizard Federation likes to congratulate you on your purchase! Note that the Wizard Federation does not accept refunds of any sorts and that all purchases are final.<br>
- <br>
- <b>How to use</b><br>
- <br>
- First, you need to acquire an item touched by the person you want to control. Their fingerprints need to be on it, meaning that glove-wearers are likely to not leave any fingerprints at all. In addition, the item needs to be classified as a tiny or small item, otherwise you cannot attach it to the doll.<br>
- When you do get your hands onto an item with their fingerprints however, simply attach the item to the doll then activate it within your hand. Select the name of the person you want to manipulate and you'll bind their soul to the voodoo doll. The linked item can be removed by simply targetting the chest and activating it in your hand.
- <br><br>
- <b>Torture 101</b><br>
- <br>
- You can torment your victim in various way, but note that some of the more aggresive methods will notify the target of your general direction (and even the room you are currently in if they are lucky). Make sure that if you are being aggresive that you are always on the move or he may track you down.<br>
- <br>
- One of the most common ways of tormenting the victim is by simply using your empty hand. By selecting any body part besides the chest you will trigger various effects. By targetting the mouth you can force people to say things whatever you please, by targetting the eyes you can see the world trough your victims eyes and by targetting the legs you can move them in a random direction. All of these do not give a warning.<br>
- By selecting the head you can make your victim dizzy for a while, as well as giving them a small message notifying them of the pain they are going trough. In addition, selecting the arms makes them use the item they are currently holding on the target (with the selected intent). These 2 actions do reveal your directions.<br>
- Alternatively, you can use various items on them. Stabbing them with a pointy object weakens them for a period of time, using a "hot" item (typically lighters) on the doll increases his body temprature and using a bike horn (or air horn) causes a very loud horn to honk in their ears, damaging their ears as well as being incredibly annoying. All 3 of these actions reveal your direction.<br>
- If you feel like you will have no more purpose for the voodoo doll, you can set it ablaze, setting your target on fire as well. It will be incredibly hard extinguishing the doll before it burns up, so it is generally best to save this for last
-"}
 
-/obj/item/weapon/paper/voodoo/update_icon()
-	return
+//Provides a decent heal, need to pump every 6 seconds
+/obj/item/organ/heart/cursed/wizard
+	pump_delay = 60
+	heal_brute = 25
+	heal_burn = 25
+	heal_oxy = 25
 
-/obj/item/weapon/storage/box/syndie_kit/voodoo
-	name = "voodoo kit"
-
-/obj/item/weapon/storage/box/syndie_kit/voodoo/New()
-	..()
-	new /obj/item/voodoo(src)
-	new /obj/item/weapon/paper/voodoo(src)
-	return

@@ -15,7 +15,7 @@
 		return 0
 
 	var/shrines = 0
-	if(what_rank(owner) == 3)
+	if(is_handofgod_god(owner.current))
 		var/mob/camera/god/G = owner.current
 		for(var/obj/structure/divine/shrine/S in G.structures)
 			S++
@@ -36,25 +36,25 @@
 
 
 /datum/objective/deicide/find_target()
-	if(!owner || !owner.current || target)
+	if(!owner || !owner.current)
 		return
 
-	if(what_rank(owner) == 3)
+	if(is_handofgod_god(owner.current))
 		var/mob/camera/god/G = owner.current
-		var/list/possibletargets = list()
-		var/list/badgods = get_gods()
-		for(var/mob/camera/god/badgod in badgods)
-			if(badgod.side != G.side)
-				possibletargets += badgod.mind // this is default code for only 1 deity as target. If you're gonna add more than one deicide, do what revs does aka forge objectives by making a deicide objective with target set manually
-		if(possibletargets.len)
-			target = pick(possibletargets)
-
+		if(G.side == "red")
+			if(ticker.mode.blue_deities.len)
+				target = ticker.mode.blue_deities[1]
+		if(G.side == "blue")
+			if(ticker.mode.red_deities.len)
+				target = ticker.mode.red_deities[1]
+		if(!target)
+			return 0
 	update_explanation_text()
 
 /datum/objective/deicide/update_explanation_text()
 	..()
 	if(target && target.current)
-		explanation_text = "Phase [target.name], the false god, out of this plane of existence."
+		explanation_text = "Phase [target.name], the false god, out of this plane of existence.."
 	else
 		explanation_text = "Free Objective"
 
@@ -66,16 +66,24 @@
 	martyr_compatible = 1
 
 /datum/objective/follower_block/check_completion()
-	var/side = is_in_any_team(owner)
-	if(!side)
+	var/side = "ABORT"
+	if(is_handofgod_redcultist(owner.current))
+		side = "red"
+	else if(is_handofgod_bluecultist(owner.current))
+		side = "blue"
+	if(side == "ABORT")
 		return 0
 
 	var/area/A = SSshuttle.emergency.areaInstance
 
 	for(var/mob/living/player in player_list)
 		if(player.mind && player.stat != DEAD && get_area(player) == A)
-			if(is_in_any_team(player) != side)
-				return 0
+			if(side == "red")
+				if(is_handofgod_bluecultist(player))
+					return 0
+			else if(side == "blue")
+				if(is_handofgod_redcultist(player))
+					return 0
 	return 1
 
 
@@ -92,14 +100,19 @@
 
 /datum/objective/escape_followers/check_completion()
 	var/escaped = 0
-	var/list/followers = list()
-	if(what_rank(owner) == "God")
+	if(is_handofgod_god(owner.current))
 		var/mob/camera/god/G = owner.current
-		followers = G.get_my_followers()
-		for(var/mob/F in followers)
-			if(F && F.stat != DEAD)
-				if(F.onCentcom())
-					escaped++
+		if(G.side == "red")
+			for(var/datum/mind/follower_mind in ticker.mode.red_deity_followers)
+				if(follower_mind.current && follower_mind.current.stat != DEAD)
+					if(follower_mind.current.onCentcom())
+						escaped++
+
+		if(G.side == "blue")
+			for(var/datum/mind/follower_mind in ticker.mode.blue_deity_followers)
+				if(follower_mind.current && follower_mind.current.stat != DEAD)
+					if(follower_mind.current.onCentcom())
+						escaped++
 
 	return (escaped >= target_amount)
 

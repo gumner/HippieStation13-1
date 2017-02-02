@@ -1,14 +1,14 @@
 // Plant analyzer
-/obj/item/device/analyzer/plant_analyzer
+/obj/item/device/plant_analyzer
 	name = "plant analyzer"
 	desc = "A scanner used to evaluate a plant's various areas of growth."
 	icon = 'icons/obj/device.dmi'
 	icon_state = "hydro"
 	item_state = "analyzer"
-	origin_tech = "magnets=1;biotech=1"
-
-/obj/item/device/analyzer/plant_analyzer/attack_self(mob/user)
-	return 0
+	w_class = 1
+	slot_flags = SLOT_BELT
+	origin_tech = "magnets=2;biotech=2"
+	materials = list(MAT_METAL=30, MAT_GLASS=20)
 
 // *************************************
 // Hydroponics Tools
@@ -41,7 +41,7 @@
 	icon = 'icons/obj/hydroponics/equipment.dmi'
 	name = "pest spray"
 	icon_state = "pestspray"
-	item_state = "spray"
+	item_state = "plantbgone"
 	volume = 100
 	flags = OPENCONTAINER
 	slot_flags = SLOT_BELT
@@ -58,39 +58,13 @@
 	viewers(user) << "<span class='suicide'>[user] is huffing the [src.name]! It looks like \he's trying to commit suicide.</span>"
 	return (TOXLOSS)
 
-/obj/item/weapon/reagent_containers/spray/safetypestspray
-	desc = "It's some pest eliminator spray! <I>Do not inhale!</I>"
-	icon = 'icons/obj/hydroponics/equipment.dmi'
-	name = "pest spray"
-	icon_state = "pestspray"
-	item_state = "spray"
-	volume = 100
-	flags = OPENCONTAINER
-	slot_flags = SLOT_BELT
-	throwforce = 0
-	w_class = 2
-	throw_speed = 3
-	throw_range = 10
-	amount_per_transfer_from_this = 5
-	possible_transfer_amounts = list(5)
-
-/obj/item/weapon/reagent_containers/spray/safetypestspray/New()
-	..()
-	reagents.add_reagent("pestkiller", 100)
-
-/obj/item/weapon/reagent_containers/spray/safetypestspray/attack_self(mob/user)
-	user << "<span class='notice'>The nozzle seems to be unremovable.</span>"
-
-/obj/item/weapon/reagent_containers/spray/safetypestspray/suicide_act(mob/user)
-	viewers(user) << "<span class='suicide'>[user] is huffing the [src.name]! It looks like \he's trying to commit suicide.</span>"
-	return (TOXLOSS)
-
 /obj/item/weapon/cultivator
 	name = "cultivator"
 	desc = "It's used for removing weeds or scratching your back."
 	icon = 'icons/obj/weapons.dmi'
 	icon_state = "cultivator"
 	item_state = "cultivator"
+	origin_tech = "engineering=2;biotech=2"
 	flags = CONDUCT
 	force = 5
 	throwforce = 7
@@ -110,8 +84,8 @@
 	throwforce = 15
 	throw_speed = 3
 	throw_range = 4
-	materials = list(MAT_METAL=15000)
-	origin_tech = "materials=2;combat=1"
+	materials = list(MAT_METAL = 15000)
+	origin_tech = "materials=2;combat=2"
 	attack_verb = list("chopped", "torn", "cut")
 	hitsound = 'sound/weapons/bladeslice.ogg'
 	sharpness = IS_SHARP
@@ -130,9 +104,10 @@
 	throw_speed = 2
 	throw_range = 3
 	w_class = 4
-	flags = CONDUCT | NOSHIELD
+	flags = CONDUCT
+	armour_penetration = 20
 	slot_flags = SLOT_BACK
-	origin_tech = "materials=2;combat=2"
+	origin_tech = "materials=3;combat=2"
 	attack_verb = list("chopped", "sliced", "cut", "reaped")
 	hitsound = 'sound/weapons/bladeslice.ogg'
 
@@ -163,6 +138,7 @@
 
 /obj/item/weapon/reagent_containers/glass/bottle/nutrient/ez
 	name = "bottle of E-Z-Nutrient"
+	desc = "Contains a fertilizer that causes mild mutations with each harvest."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle16"
 
@@ -172,6 +148,7 @@
 
 /obj/item/weapon/reagent_containers/glass/bottle/nutrient/l4z
 	name = "bottle of Left 4 Zed"
+	desc = "Contains a fertilizer that limits plant yields to no more than one and causes significant mutations in plants."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle18"
 
@@ -181,6 +158,7 @@
 
 /obj/item/weapon/reagent_containers/glass/bottle/nutrient/rh
 	name = "bottle of Robust Harvest"
+	desc = "Contains a fertilizer that doubles the yield of a plant while causing no mutations."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle15"
 
@@ -188,20 +166,36 @@
 	..()
 	reagents.add_reagent("robustharvestnutriment", 50)
 
-/obj/item/weapon/reagent_containers/glass/bottle/weedkiller
+/obj/item/weapon/reagent_containers/glass/bottle/nutrient/empty
+	name = "bottle"
+	icon = 'icons/obj/chemical.dmi'
+	icon_state = "bottle16"
+
+/obj/item/weapon/reagent_containers/glass/bottle/killer
+	name = "bottle"
+	icon = 'icons/obj/chemical.dmi'
+	icon_state = "bottle16"
+	volume = 50
+	w_class = 1
+	amount_per_transfer_from_this = 10
+	possible_transfer_amounts = list(1,2,5,10,15,25,50)
+
+/obj/item/weapon/reagent_containers/glass/bottle/killer/weedkiller
 	name = "bottle of weed killer"
+	desc = "Contains a herbicide."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle19"
 
-/obj/item/weapon/reagent_containers/glass/bottle/weedkiller/New()
+/obj/item/weapon/reagent_containers/glass/bottle/killer/weedkiller/New()
 	..()
 	reagents.add_reagent("weedkiller", 50)
 
-/obj/item/weapon/reagent_containers/glass/bottle/pestkiller
+/obj/item/weapon/reagent_containers/glass/bottle/killer/pestkiller
 	name = "bottle of pest spray"
+	desc = "Contains a pesticide."
 	icon = 'icons/obj/chemical.dmi'
 	icon_state = "bottle20"
 
-/obj/item/weapon/reagent_containers/glass/bottle/pestkiller/New()
+/obj/item/weapon/reagent_containers/glass/bottle/killer/pestkiller/New()
 	..()
 	reagents.add_reagent("pestkiller", 50)

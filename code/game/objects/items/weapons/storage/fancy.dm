@@ -17,7 +17,7 @@
 	icon = 'icons/obj/food/containers.dmi'
 	icon_state = "donutbox6"
 	name = "donut box"
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 	var/icon_type = "donut"
 	var/spawn_type = null
 
@@ -77,7 +77,6 @@
 	item_state = "candlebox5"
 	storage_slots = 5
 	throwforce = 2
-	burn_state = -1 //Bad idea to keep stuff with the sole purpose of burning inside a flammable box.
 	slot_flags = SLOT_BELT
 	spawn_type = /obj/item/candle
 
@@ -85,7 +84,7 @@
 //CIG PACK//
 ////////////
 /obj/item/weapon/storage/fancy/cigarettes
-	name = "\improper Space Cigarettes packet"
+	name = "Space Cigarettes"
 	desc = "The most popular brand of cigarettes, sponsors of the Space Olympics."
 	icon = 'icons/obj/cigarettes.dmi'
 	icon_state = "cig"
@@ -94,25 +93,27 @@
 	throwforce = 0
 	slot_flags = SLOT_BELT
 	storage_slots = 6
-	burn_state = -1 //Bad idea to keep stuff with the sole purpose of burning inside a flammable box.
 	can_hold = list(/obj/item/clothing/mask/cigarette, /obj/item/weapon/lighter)
 	icon_type = "cigarette"
 	spawn_type = /obj/item/clothing/mask/cigarette
 
 /obj/item/weapon/storage/fancy/cigarettes/New()
 	..()
-	flags |= NOREACT
 	create_reagents(15 * storage_slots)//so people can inject cigarettes without opening a packet, now with being able to inject the whole one
+	reagents.set_reacting(FALSE)
+	for(var/obj/item/clothing/mask/cigarette/cig in src)
+		cig.desc = "\An [name] brand [cig.name]."
+	name = "\improper [name] packet"
 
 /obj/item/weapon/storage/fancy/cigarettes/update_icon()
-	overlays.Cut()
+	cut_overlays()
 	icon_state = initial(icon_state)
 	if(!contents.len)
 		icon_state += "_empty"
 	else
-		overlays += "[icon_state]_open"
+		add_overlay("[icon_state]_open")
 		for(var/c = contents.len, c >= 1, c--)
-			overlays += image(icon = src.icon, icon_state = "cigarette", pixel_x = 1 * (c -1))
+			add_overlay(image(icon = src.icon, icon_state = "cigarette", pixel_x = 1 * (c -1)))
 	return
 
 /obj/item/weapon/storage/fancy/cigarettes/remove_from_storage(obj/item/W, atom/new_location)
@@ -138,22 +139,22 @@
 		user << "<span class='notice'>There are no [icon_type]s left in the pack.</span>"
 
 /obj/item/weapon/storage/fancy/cigarettes/dromedaryco
-	name = "\improper DromedaryCo packet"
+	name = "DromedaryCo"
 	desc = "A packet of six imported DromedaryCo cancer sticks. A label on the packaging reads, \"Wouldn't a slow death make a change?\""
 	icon_state = "dromedary"
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_uplift
-	name = "\improper Uplift Smooth packet"
+	name = "Uplift Smooth"
 	desc = "Your favorite brand, now menthol flavored."
 	icon_state = "uplift"
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_robust
-	name = "\improper Robust packet"
+	name = "Robust"
 	desc = "Smoked by the robust."
 	icon_state = "robust"
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_robustgold
-	name = "\improper Robust Gold packet"
+	name = "Robust Gold"
 	desc = "Smoked by the truly robust."
 	icon_state = "robustg"
 
@@ -163,12 +164,12 @@
 		reagents.add_reagent("gold",1)
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_carp
-	name = "\improper Carp Classic packet"
+	name = "Carp Classic"
 	desc = "Since 2313."
 	icon_state = "carp"
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_syndicate
-	name = "cigarette packet"
+	name = "unknown"
 	desc = "An obscure brand of cigarettes."
 	icon_state = "syndie"
 
@@ -176,15 +177,17 @@
 	..()
 	for(var/i = 1 to storage_slots)
 		reagents.add_reagent("omnizine",15)
+	name = "cigarette packet"
 
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_midori
-	name = "\improper Midori Tabako packet"
+	name = "Midori Tabako"
 	desc = "You can't understand the runes, but the packet smells funny."
 	icon_state = "midori"
+	spawn_type = /obj/item/clothing/mask/cigarette/rollie
 
 /obj/item/weapon/storage/fancy/cigarettes/cigpack_shadyjims
-	name ="\improper Shady Jim's Super Slims"
+	name ="Shady Jim's Super Slims"
 	desc = "Is your weight slowing you down? Having trouble running away from gravitational singularities? Can't stop stuffing your mouth? Smoke Shady Jim's Super Slims and watch all that fat burn away. Guaranteed results!"
 	icon_state = "shadyjim"
 
@@ -208,9 +211,9 @@
 	spawn_type = /obj/item/weapon/rollingpaper
 
 /obj/item/weapon/storage/fancy/rollingpapers/update_icon()
-	overlays.Cut()
+	cut_overlays()
 	if(!contents.len)
-		overlays += "[icon_state]_empty"
+		add_overlay("[icon_state]_empty")
 	return
 
 /////////////
@@ -229,10 +232,10 @@
 	spawn_type = /obj/item/clothing/mask/cigarette/cigar
 
 /obj/item/weapon/storage/fancy/cigarettes/cigars/update_icon()
-	overlays.Cut()
-	overlays += "[icon_state]_open"
+	cut_overlays()
+	add_overlay("[icon_state]_open")
 	for(var/c = contents.len, c >= 1, c--)
-		overlays += image(icon = src.icon, icon_state = icon_type, pixel_x = 4 * (c -1))
+		add_overlay(image(icon = src.icon, icon_state = icon_type, pixel_x = 4 * (c -1)))
 	return
 
 /obj/item/weapon/storage/fancy/cigarettes/cigars/cohiba

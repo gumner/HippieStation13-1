@@ -12,6 +12,7 @@
 	name = "sturdy ladder"
 	desc = "An extremely sturdy metal ladder."
 
+
 /obj/structure/ladder/New()
 	spawn(8)
 		for(var/obj/structure/ladder/L in world)
@@ -91,5 +92,8 @@
 /obj/structure/ladder/proc/can_use(mob/user)
 	return 1
 
-/obj/structure/ladder/unbreakable/Destroy()
-	return QDEL_HINT_LETMELIVE
+/obj/structure/ladder/unbreakable/Destroy(force)
+	if(force)
+		. = ..()
+	else
+		return QDEL_HINT_LETMELIVE

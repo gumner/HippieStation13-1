@@ -27,7 +27,7 @@
 #define BIOHAZARD	"BIOHAZARD THREAT!"
 
 
-var/list/diseases = typesof(/datum/disease) - /datum/disease
+var/list/diseases = subtypesof(/datum/disease)
 
 
 /datum/disease
@@ -61,8 +61,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	var/permeability_mod = 1
 	var/severity =	NONTHREAT
 	var/list/required_organs = list()
-	var/undead = 0 //Whether or not this disease can act without requiring the user to be alive
-
+	var/needs_all_cures = TRUE
 	var/list/strain_data = list() //dna_spread special bullshit
 
 
@@ -91,12 +90,12 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	if(!(disease_flags & CURABLE))
 		return 0
 
-	. = 1
+	. = cures.len
 	for(var/C_id in cures)
 		if(!affected_mob.reagents.has_reagent(C_id))
 			.--
-			break //One missing cure is enough to fail
-
+	if(!. || (needs_all_cures && . < cures.len))
+		return 0
 
 /datum/disease/proc/spread(atom/source, force_spread = 0)
 	if((spread_flags & SPECIAL || spread_flags & NON_CONTAGIOUS || spread_flags & BLOOD) && !force_spread)
@@ -123,7 +122,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	if(isturf(source.loc))
 		for(var/mob/living/carbon/C in oview(spread_range, source))
 			if(isturf(C.loc))
-				if(AStar(source.loc, C.loc, null, /turf/proc/Distance, spread_range))
+				if(AStar(source, C.loc,/turf/proc/Distance, spread_range, adjacent = (spread_flags & AIRBORNE) ? /turf/proc/reachableAdjacentAtmosTurfs : /turf/proc/reachableAdjacentTurfs))
 					C.ContractDisease(src)
 
 
@@ -142,7 +141,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 					qdel(D)
 
 		if(holder == affected_mob)
-			if(affected_mob.stat != DEAD || undead)
+			if(affected_mob.stat != DEAD)
 				stage_act()
 
 	if(!affected_mob)
@@ -156,7 +155,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 		if(disease_flags & CAN_RESIST)
 			if(!(type in affected_mob.resistances))
 				affected_mob.resistances += type
-				remove_virus()
+		remove_virus()
 	qdel(src)
 
 
@@ -165,7 +164,7 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 		if(ishuman(affected_mob))
 			var/mob/living/carbon/human/H = affected_mob
 			for(var/obj/item/organ/O in required_organs)
-				if(!locate(O) in H.organs)
+				if(!locate(O) in H.bodyparts)
 					if(!locate(O) in H.internal_organs)
 						cure()
 						return
@@ -189,9 +188,9 @@ var/list/diseases = typesof(/datum/disease) - /datum/disease
 	return type
 
 
-/datum/disease/Del()
+/datum/disease/Destroy()
 	SSdisease.processing.Remove(src)
-	..()
+	return ..()
 
 
 /datum/disease/proc/IsSpreadByTouch()

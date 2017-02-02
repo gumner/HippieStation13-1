@@ -2,141 +2,128 @@
 
 /obj/item/weapon/storage/box/syndicate/New()
 	..()
-	if(istype(ticker.mode,/datum/game_mode/traitor/king_disk))
-		for(var/i = 0, i < 14, i++)
-			new /obj/item/weapon/pinpointer(src)
-	else
-		switch (pickweight(list("spy" = 1, "boom" = 1, "snake" = 1, "screwed" = 1, "guns" = 1, "implant" = 1, "hacker" = 1, "ninja" = 1, "darklord" = 1)))
-			if("spy")
-				new /obj/item/weapon/pen/edagger(src)
-				new /obj/item/weapon/reagent_containers/syringe/mulligan(src)
-				new /obj/item/weapon/reagent_containers/syringe/mulligan(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				new /obj/item/device/encryptionkey/syndicate(src)
-				new /obj/item/weapon/reagent_containers/syringe/mulligan(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				new /obj/item/device/encryptionkey/syndicate(src)
-				new /obj/item/weapon/reagent_containers/syringe/mulligan(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				new /obj/item/device/encryptionkey/syndicate(src)
-				new /obj/item/weapon/storage/backpack/dufflebag/syndie/surgery(src)
-				new /obj/item/weapon/storage/box/syndie_kit/imp_gmindslave(src)
-				new /obj/item/weapon/storage/box/syndie_kit/imp_gmindslave(src)
-				return
+	switch (pickweight(list("bloodyspai" = 3, "stealth" = 2, "bond" = 2, "screwed" = 2, "sabotage" = 3, "guns" = 2, "murder" = 2, "implant" = 1, "hacker" = 3, "lordsingulo" = 1, "darklord" = 1, "Sniper" = 1)))
+		if("bloodyspai") // 27 tc now this is more right
+			new /obj/item/clothing/under/chameleon(src) // 2 tc since it's not the full set
+			new /obj/item/clothing/mask/chameleon(src) // Goes with above
+			new /obj/item/weapon/card/id/syndicate(src) // 2 tc
+			new /obj/item/clothing/shoes/chameleon(src) // 2 tc
+			new /obj/item/device/camera_bug(src) // 1 tc
+			new /obj/item/device/multitool/ai_detect(src) // 1 tc
+			new /obj/item/device/encryptionkey/syndicate(src) // 2 tc
+			new /obj/item/weapon/reagent_containers/syringe/mulligan(src) // 4 tc
+			new /obj/item/weapon/switchblade(src) //I'll count this as 2 tc
+			new /obj/item/weapon/storage/fancy/cigarettes/cigpack_syndicate (src) // 2 tc this shit heals
+			new /obj/item/device/flashlight/emp(src) // 2 tc
+			new /obj/item/device/chameleon(src) // 7 tc
+			return
 
-			if("snake")
-				new /obj/item/weapon/melee/combatknife(src)
-				new /obj/item/weapon/gun/projectile/automatic/pistol(src)
-				new /obj/item/weapon/suppressor(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/weapon/gun/syringe/syndicate(src)
-				new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-				new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-				new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-				new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-				new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/weapon/storage/fancy/cigarettes/cigpack_syndicate(src)
-				new /obj/item/clothing/gloves/cqc(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				return
+		if("stealth") // 31 tc
+			new /obj/item/weapon/gun/energy/kinetic_accelerator/crossbow(src)
+			new /obj/item/weapon/pen/sleepy(src)
+			new /obj/item/device/healthanalyzer/rad_laser(src)
+			new /obj/item/device/chameleon(src)
+			new /obj/item/weapon/soap/syndie(src)
+			new /obj/item/clothing/glasses/thermal/syndi(src)
+			return
 
-			if("screwed")
-				new /obj/item/device/sbeacondrop/bomb(src)
-				new /obj/item/device/sbeacondrop/powersink(src)
-				new /obj/item/device/sbeacondrop(src)
-				new /obj/item/weapon/grenade/syndieminibomb(src)
-				new /obj/item/weapon/cartridge/syndicate(src)
-				new /obj/item/clothing/suit/space/hardsuit/syndi(src)
-				new /obj/item/device/encryptionkey/syndicate(src)
-				new /obj/item/weapon/gun/projectile/automatic/pistol(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				return
+		if("bond") // 29 tc
+			new /obj/item/weapon/gun/projectile/automatic/pistol(src)
+			new /obj/item/weapon/suppressor(src)
+			new /obj/item/ammo_box/magazine/m10mm(src)
+			new /obj/item/ammo_box/magazine/m10mm(src)
+			new /obj/item/clothing/under/chameleon(src)
+			new /obj/item/weapon/card/id/syndicate(src)
+			new /obj/item/weapon/reagent_containers/syringe/stimulants(src)
 
-			if("guns")
-				new /obj/item/weapon/gun/projectile/revolver(src)
-				new /obj/item/ammo_box/a357(src)
-				new /obj/item/weapon/gun/projectile/automatic/pistol(src)
-				new /obj/item/weapon/gun/projectile/automatic/pistol(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/ammo_box/magazine/m10mm(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/clothing/under/suit_jacket/really_black(src)
-				new /obj/item/clothing/suit/jacket/leather/overcoat(src)
-				new /obj/item/clothing/glasses/sunglasses(src)
-				return
+			return
 
-			if("implant")
-				new /obj/item/weapon/implanter/freedom(src)
-				new /obj/item/weapon/implanter/emp(src)
-				/*new /obj/item/weapon/implanter/adrenalin(src)*/
-				new /obj/item/weapon/storage/box/syndie_kit/imp_macrobomb(src)
-				new /obj/item/weapon/implanter/storage(src)
-				new /obj/item/weapon/storage/box/syndie_kit/imp_mindslave(src)
-				return
+		if("screwed") // 29 tc
+			new /obj/item/device/sbeacondrop/bomb(src)
+			new /obj/item/weapon/grenade/syndieminibomb(src)
+			new /obj/item/device/sbeacondrop/powersink(src)
+			new /obj/item/clothing/suit/space/syndicate/black/red(src)
+			new /obj/item/clothing/head/helmet/space/syndicate/black/red(src)
+			new /obj/item/device/encryptionkey/syndicate(src)
+			return
 
-			if("hacker")
-				new /obj/item/weapon/aiModule/syndicate(src)
-				new /obj/item/weapon/c4(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				new /obj/item/clothing/suit/labcoat/chameleon(src)
-				new /obj/item/clothing/under/chameleon(src)
-				new /obj/item/weapon/card/emag(src)
-				new /obj/item/device/encryptionkey/binary(src)
-				new /obj/item/device/camera_bug(src)
-				new /obj/item/device/encryptionkey/syndicate(src)
-				new /obj/item/weapon/aiModule/toyAI(src)
-				new /obj/item/device/multitool/ai_detect(src)
-				return
+		if("guns") // 28 tc now
+			new /obj/item/weapon/gun/projectile/revolver(src)
+			new /obj/item/ammo_box/a357(src)
+			new /obj/item/ammo_box/a357(src)
+			new /obj/item/weapon/card/emag(src)
+			new /obj/item/weapon/grenade/plastic/c4(src)
+			new /obj/item/clothing/gloves/color/latex/nitrile(src)
+			new /obj/item/clothing/mask/gas/clown_hat(src)
+			new /obj/item/clothing/under/suit_jacket/really_black(src)
+			return
 
-			if("darklord")
-				new /obj/item/weapon/melee/energy/sword/saber(src)
-				new /obj/item/weapon/melee/energy/sword/saber(src)
-				/*new /obj/item/weapon/implanter/adrenalin(src)*/
-				new /obj/item/weapon/dnainjector/telemut/darkbundle(src)
-				new /obj/item/clothing/suit/hooded/chaplain_hoodie(src)
-				new /obj/item/weapon/storage/box/syndie_kit/imp_mindslave(src)
-				new /obj/item/weapon/card/id/syndicate(src)
-				new /obj/item/weapon/spellbook/oneuse/summonitem(src)
-				return
+		if("murder") // 28 tc now
+			new /obj/item/weapon/melee/energy/sword/saber(src)
+			new /obj/item/clothing/glasses/thermal/syndi(src)
+			new /obj/item/weapon/card/emag(src)
+			new /obj/item/clothing/shoes/chameleon(src)
+			new /obj/item/device/encryptionkey/syndicate(src)
+			new /obj/item/weapon/grenade/syndieminibomb(src)
+			return
 
-			if("ninja")
-				new /obj/item/weapon/melee/energy/sword/saber(src)
-				new /obj/item/weapon/storage/belt/ninja/full(src)
-				new /obj/item/weapon/storage/box/throwing_stars(src)
-				new /obj/item/weapon/storage/box/throwing_stars(src)
-				new /obj/item/clothing/gloves/pickpocket(src)
-				new /obj/item/clothing/mask/balaclava(src)
-				new /obj/item/weapon/dnainjector/stealthmut/ninjabundle(src)
-				new /obj/item/weapon/spellbook/oneuse/smoke(src)
-				new /obj/item/device/doorCharge(src)
-				new /obj/item/device/doorCharge(src)
-				new /obj/item/weapon/storage/box/caltrop(src)
-				return
+		if("implant") // 55+ tc holy shit what the fuck this is a lottery disguised as fun boxes isn't it?
+			new /obj/item/weapon/implanter/freedom(src)
+			new /obj/item/weapon/implanter/uplink(src)
+			new /obj/item/weapon/implanter/emp(src)
+			new /obj/item/weapon/implanter/adrenalin(src)
+			new /obj/item/weapon/implanter/explosive(src)
+			new /obj/item/weapon/implanter/storage(src)
+			return
 
-			if("boom")
-				for(var/i = 0, i < 20, i++)
-					new /obj/item/weapon/c4(src)
-				for(var/i = 0, i < 4, i++)
-					new /obj/item/weapon/grenade/syndieminibomb(src)
-				for(var/i = 0, i < 1, i++)
-					new /obj/item/device/sbeacondrop/bomb(src)
-				return
+		if("hacker") // 26 tc
+			new /obj/item/weapon/aiModule/syndicate(src)
+			new /obj/item/weapon/card/emag(src)
+			new /obj/item/device/encryptionkey/binary(src)
+			new /obj/item/weapon/aiModule/toyAI(src)
+			new /obj/item/device/multitool/ai_detect(src)
+			return
+
+		if("lordsingulo") // 24 tc
+			new /obj/item/device/sbeacondrop(src)
+			new /obj/item/clothing/suit/space/syndicate/black/red(src)
+			new /obj/item/clothing/head/helmet/space/syndicate/black/red(src)
+			new /obj/item/weapon/card/emag(src)
+			return
+
+		if("sabotage") // 26 tc now
+			new /obj/item/weapon/grenade/plastic/c4 (src)
+			new /obj/item/weapon/grenade/plastic/c4 (src)
+			new /obj/item/device/doorCharge(src)
+			new /obj/item/device/doorCharge(src)
+			new /obj/item/device/camera_bug(src)
+			new /obj/item/device/sbeacondrop/powersink(src)
+			new /obj/item/weapon/cartridge/syndicate(src)
+			new /obj/item/weapon/storage/toolbox/syndicate(src) //To actually get to those places
+			new /obj/item/pizzabox/bomb
+
+		if("darklord") //20 tc + tk + summon item close enough for now
+			new /obj/item/weapon/melee/energy/sword/saber(src)
+			new /obj/item/weapon/melee/energy/sword/saber(src)
+			new /obj/item/weapon/dnainjector/telemut/darkbundle(src)
+			new /obj/item/clothing/suit/hooded/chaplain_hoodie(src)
+			new /obj/item/weapon/card/id/syndicate(src)
+			new /obj/item/clothing/shoes/chameleon(src) //because slipping while being a dark lord sucks
+			new /obj/item/weapon/spellbook/oneuse/summonitem(src)
+			return
+
+		if("Sniper") //This shit is unique so can't really balance it around tc, also no silencer because getting killed without ANY indicator on what killed you sucks
+			new /obj/item/weapon/gun/projectile/automatic/sniper_rifle(src)
+			new /obj/item/ammo_box/magazine/sniper_rounds/penetrator(src)
+			new /obj/item/clothing/glasses/thermal/syndi(src)
+			new /obj/item/clothing/gloves/color/latex/nitrile(src)
+			new /obj/item/clothing/mask/gas/clown_hat(src)
+			new /obj/item/clothing/under/suit_jacket/really_black(src)
+			return
 
 /obj/item/weapon/storage/box/syndie_kit
 	name = "box"
-	desc = "A sleek, sturdy box"
+	desc = "A sleek, sturdy box."
 	icon_state = "box_of_doom"
 
 /obj/item/weapon/storage/box/syndie_kit/imp_freedom
@@ -188,55 +175,15 @@
 	O.update_icon()
 	return
 
-
-/obj/item/weapon/storage/box/syndie_kit/imp_mindslave
-	name = "Mindslave Implant (with injector)"
-
-/obj/item/weapon/storage/box/syndie_kit/imp_mindslave/New()
-	..()
-	var/obj/item/weapon/implanter/O = new(src)
-	O.imp = new /obj/item/weapon/implant/mindslave(O)
-	O.update_icon()
-	return
-
-/obj/item/weapon/storage/box/syndie_kit/imp_gmindslave
-	name = "Greater Mindslave Implant (with injector)"
-
-/obj/item/weapon/storage/box/syndie_kit/imp_gmindslave/New()
-	..()
-	var/obj/item/weapon/implanter/O = new(src)
-	O.imp = new /obj/item/weapon/implant/gmindslave(O)
-	O.update_icon()
-	return
-
-
-/obj/item/weapon/storage/box/syndie_kit/caneshotgun
-
-/obj/item/weapon/storage/box/syndie_kit/caneshotgun/New()
-	..()
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/ammo_casing/shotgun/dart/assassination(src)
-	new /obj/item/weapon/gun/projectile/revolver/doublebarrel/improvised/cane(src)
-
 /obj/item/weapon/storage/box/syndie_kit/bioterror
 	name = "bioterror syringe box"
 
 /obj/item/weapon/storage/box/syndie_kit/bioterror/New()
 	..()
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
-	new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
+	for(var/i in 1 to 7)
+		new /obj/item/weapon/reagent_containers/syringe/bioterror(src)
 	return
 
-/*
 /obj/item/weapon/storage/box/syndie_kit/imp_adrenal
 	name = "boxed adrenal implant (with injector)"
 
@@ -246,8 +193,6 @@
 	O.imp = new /obj/item/weapon/implant/adrenalin(O)
 	O.update_icon()
 	return
-*/
-
 
 /obj/item/weapon/storage/box/syndie_kit/imp_storage
 	name = "boxed storage implant (with injector)"
@@ -256,7 +201,6 @@
 	..()
 	new /obj/item/weapon/implanter/storage(src)
 	return
-
 
 /obj/item/weapon/storage/box/syndie_kit/space
 	name = "boxed space suit and helmet"
@@ -269,7 +213,6 @@
 	new /obj/item/clothing/head/helmet/space/syndicate/black/red(src)
 	return
 
-
 /obj/item/weapon/storage/box/syndie_kit/emp
 	name = "boxed EMP kit"
 
@@ -277,9 +220,10 @@
 	..()
 	new /obj/item/weapon/grenade/empgrenade(src)
 	new /obj/item/weapon/grenade/empgrenade(src)
+	new /obj/item/weapon/grenade/empgrenade(src)
+	new /obj/item/weapon/grenade/empgrenade(src)
+	new /obj/item/weapon/grenade/empgrenade(src)
 	new /obj/item/weapon/implanter/emp(src)
-	new /obj/item/device/flashlight/emp(src)
-	return
 
 /obj/item/weapon/storage/box/syndie_kit/chemical
 	name = "boxed chemical kit"
@@ -289,7 +233,8 @@
 	..()
 	new /obj/item/weapon/reagent_containers/glass/bottle/polonium(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/venom(src)
-	new /obj/item/weapon/reagent_containers/glass/bottle/wasting(src)
+	new /obj/item/weapon/reagent_containers/glass/bottle/neurotoxin2(src)
+	new /obj/item/weapon/reagent_containers/glass/bottle/formaldehyde(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/cyanide(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/histamine(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/initropidril(src)
@@ -297,7 +242,6 @@
 	new /obj/item/weapon/reagent_containers/glass/bottle/sodium_thiopental(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/coniine(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/curare(src)
-	new /obj/item/weapon/reagent_containers/food/drinks/beer/sleepy(src)
 	new /obj/item/weapon/reagent_containers/glass/bottle/amanitin(src)
 	new /obj/item/weapon/reagent_containers/syringe(src)
 	return
@@ -311,25 +255,57 @@
 	new /obj/item/nuke_core_container(src)
 	new /obj/item/weapon/paper/nuke_instructions(src)
 
-obj/item/weapon/storage/box/syndie_kit/shotguntender
-	name = "shotgun ammo kit"
+/obj/item/weapon/storage/box/syndie_kit/tuberculosisgrenade
+	name = "boxed virus grenade kit"
 
-/obj/item/weapon/storage/box/syndie_kit/shotguntender/New()
+/obj/item/weapon/storage/box/syndie_kit/tuberculosisgrenade/New()
 	..()
-	new /obj/item/ammo_casing/shotgun/buckshot(src)
-	new /obj/item/ammo_casing/shotgun/buckshot(src)
-	new /obj/item/ammo_casing/shotgun/stunslug(src)
-	new /obj/item/ammo_casing/shotgun/incendiary/dragonsbreath(src)
-	new /obj/item/ammo_casing/shotgun/incendiary/dragonsbreath(src)
-	new /obj/item/ammo_casing/shotgun/dart/bioterror(src)
-	return
+	new /obj/item/weapon/grenade/chem_grenade/tuberculosis(src)
+	for(var/i in 1 to 5)
+		new /obj/item/weapon/reagent_containers/hypospray/medipen/tuberculosiscure(src)
+	new /obj/item/weapon/reagent_containers/syringe(src)
+	new /obj/item/weapon/reagent_containers/glass/bottle/tuberculosiscure(src)
 
-/obj/item/weapon/storage/box/syndie_kit/hockeyset/New()
+/obj/item/weapon/storage/box/syndie_kit/chameleon
+	name = "chameleon kit"
+
+/obj/item/weapon/storage/box/syndie_kit/chameleon/New()
 	..()
-	new /obj/item/weapon/hockeypack(src)
-	new /obj/item/clothing/head/helmet/hockey(src)
-	new /obj/item/clothing/shoes/rollerskates/hockey(src)
-	new /obj/item/clothing/suit/armor/hockey(src)
-	new /obj/item/clothing/mask/gas/hockey(src)
-	new /obj/item/weapon/storage/belt/hockey(src)
-	return
+	new /obj/item/clothing/under/chameleon(src)
+	new /obj/item/clothing/suit/chameleon(src)
+	new /obj/item/clothing/gloves/chameleon(src)
+	new /obj/item/clothing/shoes/chameleon(src)
+	new /obj/item/clothing/glasses/chameleon(src)
+	new /obj/item/clothing/head/chameleon(src)
+	new /obj/item/clothing/mask/chameleon(src)
+	new /obj/item/weapon/storage/backpack/chameleon(src)
+	new /obj/item/device/radio/headset/chameleon(src)
+	new /obj/item/weapon/stamp/chameleon(src)
+	new /obj/item/device/pda/chameleon(src)
+	new /obj/item/weapon/gun/energy/laser/chameleon(src)
+
+//5*(2*4) = 5*8 = 45, 45 damage if you hit one person with all 5 stars.
+//Not counting the damage it will do while embedded (2*4 = 8, at 15% chance)
+/obj/item/weapon/storage/box/syndie_kit/throwing_weapons/New()
+	..()
+	contents = list()
+	new /obj/item/weapon/throwing_star(src)
+	new /obj/item/weapon/throwing_star(src)
+	new /obj/item/weapon/throwing_star(src)
+	new /obj/item/weapon/throwing_star(src)
+	new /obj/item/weapon/throwing_star(src)
+	new /obj/item/weapon/restraints/legcuffs/bola/tactical(src)
+	new /obj/item/weapon/restraints/legcuffs/bola/tactical(src)
+
+/obj/item/weapon/storage/box/syndie_kit/cutouts/New()
+	..()
+	for(var/i in 1 to 3)
+		new/obj/item/cardboard_cutout/adaptive(src)
+	new/obj/item/toy/crayon/rainbow(src)
+
+/obj/item/weapon/storage/box/syndie_kit/voodoo
+	name = "voodo kit"
+
+/obj/item/weapon/storage/box/syndie_kit/voodoo/New()
+	..()
+	new /obj/item/voodoo(src)

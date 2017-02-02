@@ -1,7 +1,7 @@
 /* HUD DATUMS */
 
 //GLOBAL HUD LIST
-var/list/datum/atom_hud/huds = list( \
+var/datum/atom_hud/huds = list( \
 	DATA_HUD_SECURITY_BASIC = new/datum/atom_hud/data/human/security/basic(), \
 	DATA_HUD_SECURITY_ADVANCED = new/datum/atom_hud/data/human/security/advanced(), \
 	DATA_HUD_MEDICAL_BASIC = new/datum/atom_hud/data/human/medical/basic(), \
@@ -12,8 +12,16 @@ var/list/datum/atom_hud/huds = list( \
 	ANTAG_HUD_OPS = new/datum/atom_hud/antag(), \
 	ANTAG_HUD_WIZ = new/datum/atom_hud/antag(), \
 	ANTAG_HUD_SHADOW = new/datum/atom_hud/antag(), \
-	ANTAG_HUD_ZOMBIE = new/datum/atom_hud/antag(), \
-	ANTAG_HUD_ADMIN = new/datum/atom_hud/data/admin(), \
+	ANTAG_HUD_HOG_BLUE = new/datum/atom_hud/antag(),\
+	ANTAG_HUD_HOG_RED = new/datum/atom_hud/antag(),\
+	ANTAG_HUD_TRAITOR = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_NINJA = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_CHANGELING = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_ABDUCTOR = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_DEVIL = new/datum/atom_hud/antag(),\
+	ANTAG_HUD_SINTOUCHED = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_SOULLESS = new/datum/atom_hud/antag/hidden(),\
+	ANTAG_HUD_CLOCKWORK = new/datum/atom_hud/antag(),\
 	)
 
 /datum/atom_hud
@@ -74,3 +82,12 @@ var/list/datum/atom_hud/huds = list( \
 	for(var/datum/atom_hud/hud in (huds|gang_huds))
 		if(src in hud.hudusers)
 			hud.add_hud_to(src)
+
+/mob/new_player/reload_huds()
+	return
+
+/mob/proc/add_click_catcher()
+	client.screen += client.void
+
+/mob/new_player/add_click_catcher()
+	return

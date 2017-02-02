@@ -16,17 +16,14 @@
 	if(imp)
 		icon_state = "implantcase-[imp.item_color]"
 		origin_tech = imp.origin_tech
-		flags = imp.flags
 		reagents = imp.reagents
 	else
 		icon_state = "implantcase-0"
 		origin_tech = initial(origin_tech)
-		flags = initial(flags)
 		reagents = null
 
 
 /obj/item/weapon/implantcase/attackby(obj/item/weapon/W, mob/user, params)
-	..()
 	if(istype(W, /obj/item/weapon/pen))
 		var/t = stripped_input(user, "What would you like the label to be?", name, null)
 		if(user.get_active_hand() != W)
@@ -57,10 +54,8 @@
 				update_icon()
 			I.update_icon()
 
-	/*else if(istype(W, /obj/item/ammo_casing/shotgun/implanter))
-		var/obj/item/ammo_casing/shotgun/implanter/I = W
-		if(I.implanter)
-			src.attackby(I.implanter, user, params) */ // COMING SOON -- c0
+	else
+		return ..()
 
 /obj/item/weapon/implantcase/New()
 	..()
@@ -84,7 +79,6 @@
 	imp = new /obj/item/weapon/implant/weapons_auth(src)
 	..()
 
-/*
 /obj/item/weapon/implantcase/adrenaline
 	name = "implant case - 'Adrenaline'"
 	desc = "A glass case containing an adrenaline implant."
@@ -92,4 +86,3 @@
 /obj/item/weapon/implantcase/adrenaline/New()
 	imp = new /obj/item/weapon/implant/adrenalin(src)
 	..()
-*/

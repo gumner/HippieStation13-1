@@ -1,9 +1,9 @@
 /obj/item/device/assembly/infra
 	name = "infrared emitter"
-	desc = "Emits a visible or invisible beam and is triggered when the beam is interrupted.</span>"
+	desc = "Emits a visible or invisible beam and is triggered when the beam is interrupted.\n<span class='notice'>Alt-click to rotate it clockwise.</span>"
 	icon_state = "infrared"
 	materials = list(MAT_METAL=1000, MAT_GLASS=500)
-	origin_tech = "magnets=2"
+	origin_tech = "magnets=2;materials=2"
 
 	var/on = 0
 	var/visible = 0
@@ -13,7 +13,7 @@
 
 /obj/item/device/assembly/infra/New()
 	..()
-	SSobj.processing |= src
+	START_PROCESSING(SSobj, src)
 
 /obj/item/device/assembly/infra/Destroy()
 	if(first)
@@ -24,7 +24,8 @@
 	return "The infrared trigger is [on?"on":"off"]."
 
 /obj/item/device/assembly/infra/activate()
-	if(!..())	return 0//Cooldown check
+	if(!..())
+		return 0//Cooldown check
 	on = !on
 	update_icon()
 	return 1
@@ -32,20 +33,20 @@
 /obj/item/device/assembly/infra/toggle_secure()
 	secured = !secured
 	if(secured)
-		SSobj.processing |= src
+		START_PROCESSING(SSobj, src)
 	else
 		on = 0
 		if(first)
 			qdel(first)
-		SSobj.processing.Remove(src)
+		STOP_PROCESSING(SSobj, src)
 	update_icon()
 	return secured
 
 /obj/item/device/assembly/infra/update_icon()
-	overlays.Cut()
+	cut_overlays()
 	attached_overlays = list()
 	if(on)
-		overlays += "infrared_on"
+		add_overlay("infrared_on")
 		attached_overlays += "infrared_on"
 
 	if(holder)
@@ -59,8 +60,6 @@
 		return
 	if(!secured)
 		return
-	if(ismob(loc)) //Probably still in-hand
-		return
 	if(first && last)
 		last.process()
 		return
@@ -69,7 +68,7 @@
 		var/obj/effect/beam/i_beam/I = new /obj/effect/beam/i_beam(T)
 		I.master = src
 		I.density = 1
-		I.dir = dir
+		I.setDir(dir)
 		first = I
 		step(I, I.dir)
 		if(first)
@@ -86,32 +85,29 @@
 /obj/item/device/assembly/infra/Move()
 	var/t = dir
 	..()
-	dir = t
+	setDir(t)
 	qdel(first)
 	return
 
 /obj/item/device/assembly/infra/holder_movement()
-	if(!holder)	return 0
-//	dir = holder.dir
+	if(!holder)
+		return 0
+//	setDir(holder.dir)
 	qdel(first)
 	return 1
 
 /obj/item/device/assembly/infra/proc/trigger_beam()
-	if(!secured || !on || cooldown > 0)
+	if((!secured)||(!on)||(cooldown > 0))
 		return 0
 	pulse(0)
 	audible_message("\icon[src] *beep* *beep*", null, 3)
 	cooldown = 2
-	spawn(10)
-		process_cooldown()
-	return
+	addtimer(src, "process_cooldown", 10)
 
 /obj/item/device/assembly/infra/interact(mob/user)//TODO: change this this to the wire control panel
 	if(is_secured(user))
 		user.set_machine(src)
-		var/dat = "<TT><B>Infrared Laser</B>\n<B>Status</B>: [on ? "<A href='?src=\ref[src];state=0'>On</A>" : "<A href='?src=\ref[src];state=1'>Off</A>"]<BR>\
-					\n<B>Visibility</B>: [visible ? "<A href='?src=\ref[src];visible=0'>Visible</A>" : "<A href='?src=\ref[src];visible=1'>Invisible</A>"]<BR>\
-					\n<B>Direction</B>: <A href='?src=\ref[src];turn=1'>[dir2text(dir)]</A></TT>"
+		var/dat = "<TT><B>Infrared Laser</B>\n<B>Status</B>: [on ? "<A href='?src=\ref[src];state=0'>On</A>" : "<A href='?src=\ref[src];state=1'>Off</A>"]<BR>\n<B>Visibility</B>: [visible ? "<A href='?src=\ref[src];visible=0'>Visible</A>" : "<A href='?src=\ref[src];visible=1'>Invisible</A>"]<BR>\n</TT>"
 		dat += "<BR><BR><A href='?src=\ref[src];refresh=1'>Refresh</A>"
 		dat += "<BR><BR><A href='?src=\ref[src];close=1'>Close</A>"
 		user << browse(dat, "window=infra")
@@ -131,29 +127,39 @@
 		visible = !(visible)
 		if(first)
 			first.vis_spread(visible)
-	if(href_list["turn"])
-		var/setdir = input("Select the infrared laser direction:") as null|anything in list("north","east","south","west")
-		switch(setdir)
-			if("north")
-				dir = NORTH
-			if("south")
-				dir = SOUTH
-			if("east")
-				dir = EAST
-			if("west")
-				dir = WEST
-		qdel(first)
 	if(href_list["close"])
 		usr << browse(null, "window=infra")
 		return
 	if(usr)
 		attack_self(usr)
 
+/obj/item/device/assembly/infra/verb/rotate()//This could likely be better
+	set name = "Rotate Infrared Laser"
+	set category = "Object"
+	set src in usr
+
+	if(usr.incapacitated())
+		return
+
+	setDir(turn(dir, 90))
+	return
+
+/obj/item/device/assembly/infra/AltClick(mob/user)
+	..()
+	if(user.incapacitated())
+		user << "<span class='warning'>You can't do that right now!</span>"
+		return
+	if(!in_range(src, user))
+		return
+	else
+		rotate()
+
+
 
 /***************************IBeam*********************************/
 
 /obj/effect/beam/i_beam
-	name = "i beam"
+	name = "infrared beam"
 	icon = 'icons/obj/projectiles.dmi'
 	icon_state = "ibeam"
 	var/obj/effect/beam/i_beam/next = null
@@ -161,6 +167,7 @@
 	var/obj/item/device/assembly/infra/master = null
 	var/limit = null
 	var/visible = 0
+	var/left = null
 	anchored = 1
 
 
@@ -177,12 +184,16 @@
 
 
 /obj/effect/beam/i_beam/process()
-	if(loc.density || !master)
+	if((loc.density || !(master)))
 		qdel(src)
 		return
-
-	if(!visible)
-		invisibility = 101
+	if(left > 0)
+		left--
+	if(left < 1)
+		if(!(visible))
+			invisibility = INVISIBILITY_ABSTRACT
+		else
+			invisibility = 0
 	else
 		invisibility = 0
 
@@ -190,7 +201,7 @@
 		var/obj/effect/beam/i_beam/I = new /obj/effect/beam/i_beam(loc)
 		I.master = master
 		I.density = 1
-		I.dir = dir
+		I.setDir(dir)
 		I.previous = src
 		next = I
 		step(I, I.dir)

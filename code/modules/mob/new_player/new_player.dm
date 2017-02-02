@@ -6,10 +6,10 @@
 
 	flags = NONE
 
-	invisibility = 101
+	invisibility = INVISIBILITY_ABSTRACT
 
 	density = 0
-	stat = 2
+	stat = DEAD
 	canmove = 0
 
 	anchored = 1	//  don't get pushed around
@@ -17,6 +17,11 @@
 /mob/new_player/New()
 	tag = "mob_[next_mob_id++]"
 	mob_list += src
+
+	if(length(newplayer_start))
+		loc = pick(newplayer_start)
+	else
+		loc = locate(1,1,1)
 
 /mob/new_player/proc/new_player_panel()
 
@@ -67,6 +72,7 @@
 
 	if(statpanel("Lobby"))
 		stat("Game Mode:", (ticker.hide_mode) ? "Secret" : "[master_mode]")
+		stat("Map:", MAP_NAME)
 
 		if(ticker.current_state == GAME_STATE_PREGAME)
 			stat("Time To Start:", (ticker.timeLeft >= 0) ? "[round(ticker.timeLeft / 10)]s" : "DELAYED")
@@ -80,7 +86,8 @@
 	if(src != usr)
 		return 0
 
-	if(!client)	return 0
+	if(!client)
+		return 0
 
 	//Determines Relevent Population Cap
 	var/relevant_cap
@@ -90,19 +97,10 @@
 		relevant_cap = max(config.hard_popcap, config.extreme_popcap)
 
 	if(href_list["show_preferences"])
-		if(usr.client.cid_check == 0)
-			src << "<span class='warning'>You are not authorized yet. Please rejoin the game once.</span>"
-			return
-
-
 		client.prefs.ShowChoices(src)
 		return 1
 
 	if(href_list["ready"])
-		if(usr.client.cid_check == 0)
-			src << "<span class='warning'>You are not authorized yet. Please rejoin the game once.</span>"
-			return
-
 		if(!ticker || ticker.current_state <= GAME_STATE_PREGAME) // Make sure we don't ready up after the round has started
 			ready = text2num(href_list["ready"])
 		else
@@ -114,12 +112,9 @@
 
 	if(href_list["observe"])
 
-		if(usr.client.cid_check == 0)
-			src << "<span class='warning'>You are not authorized yet. Please rejoin the game once.</span>"
-			return
-
 		if(alert(src,"Are you sure you wish to observe? You will not be able to play this round!","Player Setup","Yes","No") == "Yes")
-			if(!client)	return 1
+			if(!client)
+				return 1
 			var/mob/dead/observer/observer = new()
 
 			spawning = 1
@@ -128,14 +123,17 @@
 			close_spawn_windows()
 			var/obj/O = locate("landmark*Observer-Start")
 			src << "<span class='notice'>Now teleporting.</span>"
-			observer.loc = O.loc
-			if(client.prefs.be_random_name)
-				client.prefs.real_name = random_unique_name(gender)
-			if(client.prefs.be_random_body)
-				client.prefs.random_character(gender)
-			observer.real_name = client.prefs.real_name
-			observer.name = observer.real_name
+			if (O)
+				observer.loc = O.loc
+			else
+				src << "<span class='notice'>Teleporting failed. You should be able to use ghost verbs to teleport somewhere useful</span>"
 			observer.key = key
+			observer.client = client
+			observer.set_ghost_appearance()
+			if(observer.client && observer.client.prefs)
+				observer.real_name = observer.client.prefs.real_name
+				observer.name = observer.real_name
+			observer.update_icon()
 			observer.stopLobbySound()
 			qdel(mind)
 
@@ -143,10 +141,6 @@
 			return 1
 
 	if(href_list["late_join"])
-		if(usr.client.cid_check == 0)
-			src << "<span class='warning'>You are not authorized yet. Please rejoin the game once.</span>"
-			return
-
 		if(!ticker || ticker.current_state != GAME_STATE_PLAYING)
 			usr << "<span class='danger'>The round is either not ready, or has already finished...</span>"
 			return
@@ -193,10 +187,6 @@
 		new_player_panel()
 
 	if(href_list["showpoll"])
-		if(usr.client.cid_check == 0)
-			src << "<span class='warning'>You are not authorized yet. Please rejoin the game once.</span>"
-			return
-
 		handle_player_polling()
 		return
 
@@ -204,25 +194,34 @@
 		var/pollid = href_list["pollid"]
 		if(istext(pollid))
 			pollid = text2num(pollid)
-		if(isnum(pollid))
+		if(isnum(pollid) && IsInteger(pollid))
 			src.poll_player(pollid)
 		return
 
 	if(href_list["votepollid"] && href_list["votetype"])
 		var/pollid = text2num(href_list["votepollid"])
 		var/votetype = href_list["votetype"]
+		//lets take data from the user to decide what kind of poll this is, without validating it
+		//what could go wrong
 		switch(votetype)
-			if("OPTION")
+			if(POLLTYPE_OPTION)
 				var/optionid = text2num(href_list["voteoptionid"])
-				vote_on_poll(pollid, optionid)
-			if("TEXT")
+				if(vote_on_poll(pollid, optionid))
+					usr << "<span class='notice'>Vote successful.</span>"
+				else
+					usr << "<span class='danger'>Vote failed, please try again or contact an administrator.</span>"
+			if(POLLTYPE_TEXT)
 				var/replytext = href_list["replytext"]
-				log_text_poll_reply(pollid, replytext)
-			if("NUMVAL")
+				if(log_text_poll_reply(pollid, replytext))
+					usr << "<span class='notice'>Feedback logging successful.</span>"
+				else
+					usr << "<span class='danger'>Feedback logging failed, please try again or contact an administrator.</span>"
+			if(POLLTYPE_RATING)
 				var/id_min = text2num(href_list["minid"])
 				var/id_max = text2num(href_list["maxid"])
 
 				if( (id_max - id_min) > 100 )	//Basic exploit prevention
+					                            //(protip, this stops no exploits)
 					usr << "The option ID difference is too big. Please contact administration or the database admin."
 					return
 
@@ -233,11 +232,14 @@
 							rating = null
 						else
 							rating = text2num(href_list["o[optionid]"])
-							if(!isnum(rating))
+							if(!isnum(rating) || !IsInteger(rating))
 								return
 
-						vote_on_numval_poll(pollid, optionid, rating)
-			if("MULTICHOICE")
+						if(!vote_on_numval_poll(pollid, optionid, rating))
+							usr << "<span class='danger'>Vote failed, please try again or contact an administrator.</span>"
+							return
+				usr << "<span class='notice'>Vote successful.</span>"
+			if(POLLTYPE_MULTI)
 				var/id_min = text2num(href_list["minoptionid"])
 				var/id_max = text2num(href_list["maxoptionid"])
 
@@ -247,7 +249,25 @@
 
 				for(var/optionid = id_min; optionid <= id_max; optionid++)
 					if(!isnull(href_list["option_[optionid]"]))	//Test if this optionid was selected
-						vote_on_poll(pollid, optionid, 1)
+						var/i = vote_on_multi_poll(pollid, optionid)
+						switch(i)
+							if(0)
+								continue
+							if(1)
+								usr << "<span class='danger'>Vote failed, please try again or contact an administrator.</span>"
+								return
+							if(2)
+								usr << "<span class='danger'>Maximum replies reached.</span>"
+								break
+				usr << "<span class='notice'>Vote successful.</span>"
+			if(POLLTYPE_IRV)
+				if (!href_list["IRVdata"])
+					src << "<span class='danger'>No ordering data found. Please try again or contact an administrator.</span>"
+				var/list/votelist = splittext(href_list["IRVdata"], ",")
+				if (!vote_on_irv_poll(pollid, votelist))
+					src << "<span class='danger'>Vote failed, please try again or contact an administrator.</span>"
+					return
+				src << "<span class='notice'>Vote successful.</span>"
 
 /mob/new_player/proc/IsJobAvailable(rank)
 	var/datum/job/job = SSjob.GetJob(rank)
@@ -272,12 +292,6 @@
 
 
 /mob/new_player/proc/AttemptLateSpawn(rank)
-	if(jobban_isbanned(src, "catban"))
-		rank = "Assistant"
-
-	if(jobban_isbanned(src, "cluwneban"))
-		rank = "Assistant"
-
 	if(!IsJobAvailable(rank))
 		src << alert("[rank] is not available. Please try another.")
 		return 0
@@ -305,38 +319,50 @@
 					continue
 
 	character.loc = D
-	character.lastarea = get_area(loc)
 
 	if(character.mind.assigned_role != "Cyborg")
 		data_core.manifest_inject(character)
 		ticker.minds += character.mind//Cyborgs and AIs handle this in the transform proc.	//TODO!!!!! ~Carn
 		AnnounceArrival(character, rank)
+		AddEmploymentContract(character)
 	else
 		character.Robotize()
 
 	joined_player_list += character.ckey
 
-	var/antag = FALSE
 	if(config.allow_latejoin_antagonists)
 		switch(SSshuttle.emergency.mode)
 			if(SHUTTLE_RECALL, SHUTTLE_IDLE)
-				if(ticker.mode.make_antag_chance(character))
-					antag = TRUE
+				ticker.mode.make_antag_chance(character)
 			if(SHUTTLE_CALL)
 				if(SSshuttle.emergency.timeLeft(1) > initial(SSshuttle.emergencyCallTime)*0.5)
-					if(ticker.mode.make_antag_chance(character))
-						antag = TRUE
-	if(!antag && character.mind)
-		SSjob.forge_job_objectives(character.mind, rank)
+					ticker.mode.make_antag_chance(character)
 	qdel(src)
 
 /mob/new_player/proc/AnnounceArrival(var/mob/living/carbon/human/character, var/rank)
-	if (ticker.current_state == GAME_STATE_PLAYING)
-		if(announcement_systems.len)
-			if(character.mind)
-				if((character.mind.assigned_role != "Cyborg") && (character.mind.assigned_role != character.mind.special_role))
-					var/obj/machinery/announcement_system/announcer = pick(announcement_systems)
-					announcer.announce("ARRIVAL", character.real_name, rank, list()) //make the list empty to make it announce it in common
+	if(ticker.current_state != GAME_STATE_PLAYING)
+		return
+	var/area/A = get_area(character)
+	var/message = "<span class='game deadsay'><span class='name'>\
+		[character.real_name]</span> ([rank]) has arrived at the station at \
+		<span class='name'>[A.name]</span>.</span>"
+	deadchat_broadcast(message, follow_target = character, message_type=DEADCHAT_ARRIVALRATTLE)
+	if((!announcement_systems.len) || (!character.mind))
+		return
+	if((character.mind.assigned_role == "Cyborg") || (character.mind.assigned_role == character.mind.special_role))
+		return
+
+	var/obj/machinery/announcement_system/announcer = pick(announcement_systems)
+	announcer.announce("ARRIVAL", character.real_name, rank, list()) //make the list empty to make it announce it in common
+
+/mob/new_player/proc/AddEmploymentContract(mob/living/carbon/human/employee)
+	//TODO:  figure out a way to exclude wizards/nukeops/demons from this.
+	sleep(30)
+	for(var/C in employmentCabinets)
+		var/obj/structure/filingcabinet/employment/employmentCabinet = C
+		if(!employmentCabinet.virgin)
+			employmentCabinet.addFile(employee)
+
 
 /mob/new_player/proc/LateChoices()
 	var/mills = world.time // 1/10 of a second, not real milliseconds but whatever
@@ -392,9 +418,8 @@
 	close_spawn_windows()
 
 	var/mob/living/carbon/human/new_character = new(loc)
-	new_character.lastarea = get_area(loc)
 
-	if(config.force_random_names || appearance_isbanned(src))
+	if(config.force_random_names || jobban_isbanned(src, "appearance"))
 		client.prefs.random_character()
 		client.prefs.real_name = client.prefs.pref_species.random_name(gender,1)
 	client.prefs.copy_to(new_character)

@@ -21,7 +21,16 @@
 
 /proc/log_mentor(text)
 	mentor_log.Add(text)
-	diary << "\[[time_stamp()]]MENTOR: [text]"
+	if (config.log_mentor)
+		diary << "\[[time_stamp()]]MENTOR: [text]"
+
+/proc/log_adminsay(text)
+	if (config.log_adminchat)
+		log_admin("ASAY: [text]")
+
+/proc/log_dsay(text)
+	if (config.log_adminchat)
+		log_admin("DSAY: [text]")
 
 /proc/log_game(text)
 	if (config.log_game)
@@ -63,20 +72,15 @@
 	if (config.log_attack)
 		diaryofmeanpeople << "\[[time_stamp()]]ATTACK: [text]"
 
-/proc/log_adminsay(text)
-	if (config.log_adminchat)
-		diary << "\[[time_stamp()]]ADMINSAY: [text]"
-
 /proc/log_pda(text)
 	if (config.log_pda)
 		diary << "\[[time_stamp()]]PDA: [text]"
-
-/proc/log_chat(text)
-	if (config.log_pda) //reusing this for now, can change if needed
-		diary << "\[[time_stamp()]]CHAT: [text]"
 
 /proc/log_comment(text)
 	if (config.log_pda)
 		//reusing the PDA option because I really don't think news comments are worth a config option
 		diary << "\[[time_stamp()]]COMMENT: [text]"
 
+/proc/log_chat(text)
+	if (config.log_pda)
+		diary << "\[[time_stamp()]]CHAT: [text]"

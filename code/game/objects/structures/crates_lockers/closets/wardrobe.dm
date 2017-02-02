@@ -5,27 +5,10 @@
 
 /obj/structure/closet/wardrobe/New()
 	..()
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
-	return
-
-/obj/structure/closet/wardrobe/blue
-	name = "wardrobe"
-	desc = "It's a storage unit for standard-issue Nanotrasen attire."
-	icon_door = "blue"
-
-/obj/structure/closet/wardrobe/blue/New()
-	..()
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/under/color/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
-	new /obj/item/clothing/shoes/sneakers/blue(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/blue(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/brown(src)
 	return
 
 /obj/structure/closet/wardrobe/pink
@@ -35,12 +18,10 @@
 /obj/structure/closet/wardrobe/pink/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/pink(src)
-	new /obj/item/clothing/under/color/pink(src)
-	new /obj/item/clothing/under/color/pink(src)
-	new /obj/item/clothing/shoes/sneakers/brown(src)
-	new /obj/item/clothing/shoes/sneakers/brown(src)
-	new /obj/item/clothing/shoes/sneakers/brown(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/pink(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/brown(src)
 	return
 
 /obj/structure/closet/wardrobe/black
@@ -50,22 +31,18 @@
 /obj/structure/closet/wardrobe/black/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/black(src)
-	new /obj/item/clothing/under/color/black(src)
-	new /obj/item/clothing/under/color/black(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/black(src)
 	if(prob(25))
 		new /obj/item/clothing/suit/jacket/leather(src)
 	if(prob(20))
 		new /obj/item/clothing/suit/jacket/leather/overcoat(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/head/that(src)
-	new /obj/item/clothing/head/that(src)
-	new /obj/item/clothing/head/that(src)
-	new /obj/item/clothing/head/soft/black(src)
-	new /obj/item/clothing/head/soft/black(src)
-	new /obj/item/clothing/head/soft/black(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/black(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/head/that(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/head/soft/black(src)
 	new /obj/item/clothing/mask/bandana/black(src)
 	new /obj/item/clothing/mask/bandana/black(src)
 	if(prob(40))
@@ -80,12 +57,10 @@
 /obj/structure/closet/wardrobe/green/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/green(src)
-	new /obj/item/clothing/under/color/green(src)
-	new /obj/item/clothing/under/color/green(src)
-	new /obj/item/clothing/shoes/sneakers/green(src)
-	new /obj/item/clothing/shoes/sneakers/green(src)
-	new /obj/item/clothing/shoes/sneakers/green(src)
+	for(var/i in 1 to 3)		
+		new /obj/item/clothing/under/color/green(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/black(src)
 	new /obj/item/clothing/mask/bandana/green(src)
 	new /obj/item/clothing/mask/bandana/green(src)
 	return
@@ -99,31 +74,11 @@
 /obj/structure/closet/wardrobe/orange/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/rank/prisoner(src)
-	new /obj/item/clothing/under/rank/prisoner(src)
-	new /obj/item/clothing/under/rank/prisoner(src)
-	new /obj/item/clothing/shoes/sneakers/orange(src)
-	new /obj/item/clothing/shoes/sneakers/orange(src)
-	new /obj/item/clothing/shoes/sneakers/orange(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/rank/prisoner(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/orange(src)
 	return
-
-obj/structure/closet/wardrobe/red
-	name = "red wardrobe"
-	icon_door = "red"
-
-/obj/structure/closet/wardrobe/red/New()
-	..()
-	contents = list()
-	new /obj/item/clothing/shoes/sneakers/red(src)
-	new /obj/item/clothing/shoes/sneakers/red(src)
-	new /obj/item/clothing/shoes/sneakers/red(src)
-	new /obj/item/clothing/mask/bandana/red(src)
-	new /obj/item/clothing/mask/bandana/red(src)
-	new /obj/item/clothing/under/color/lightred(src)
-	new /obj/item/clothing/under/color/lightred(src)
-	new /obj/item/clothing/under/color/lightred(src)
-	return
-
 
 
 /obj/structure/closet/wardrobe/yellow
@@ -133,12 +88,10 @@ obj/structure/closet/wardrobe/red
 /obj/structure/closet/wardrobe/yellow/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/yellow(src)
-	new /obj/item/clothing/under/color/yellow(src)
-	new /obj/item/clothing/under/color/yellow(src)
-	new /obj/item/clothing/shoes/sneakers/yellow(src)
-	new /obj/item/clothing/shoes/sneakers/yellow(src)
-	new /obj/item/clothing/shoes/sneakers/yellow(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/yellow(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/orange(src)
 	new /obj/item/clothing/mask/bandana/gold(src)
 	new /obj/item/clothing/mask/bandana/gold(src)
 	return
@@ -151,15 +104,12 @@ obj/structure/closet/wardrobe/red
 /obj/structure/closet/wardrobe/white/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/white(src)
-	new /obj/item/clothing/under/color/white(src)
-	new /obj/item/clothing/under/color/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/head/soft/mime(src)
-	new /obj/item/clothing/head/soft/mime(src)
-	new /obj/item/clothing/head/soft/mime(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/white(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/white(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/head/soft/mime(src)
 	return
 
 /obj/structure/closet/wardrobe/pjs
@@ -173,10 +123,8 @@ obj/structure/closet/wardrobe/red
 	new /obj/item/clothing/under/pj/red(src)
 	new /obj/item/clothing/under/pj/blue(src)
 	new /obj/item/clothing/under/pj/blue(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
-	new /obj/item/clothing/shoes/sneakers/white(src)
+	for(var/i in 1 to 4)
+		new /obj/item/clothing/shoes/sneakers/white(src)
 	return
 
 
@@ -187,15 +135,12 @@ obj/structure/closet/wardrobe/red
 /obj/structure/closet/wardrobe/grey/New()
 	..()
 	contents = list()
-	new /obj/item/clothing/under/color/grey(src)
-	new /obj/item/clothing/under/color/grey(src)
-	new /obj/item/clothing/under/color/grey(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/shoes/sneakers/black(src)
-	new /obj/item/clothing/head/soft/grey(src)
-	new /obj/item/clothing/head/soft/grey(src)
-	new /obj/item/clothing/head/soft/grey(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/under/color/grey(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/shoes/sneakers/black(src)
+	for(var/i in 1 to 3)
+		new /obj/item/clothing/head/soft/grey(src)
 	if(prob(50))
 		new /obj/item/weapon/storage/backpack/dufflebag(src)
 	if(prob(40))

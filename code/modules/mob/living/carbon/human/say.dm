@@ -31,8 +31,8 @@
 	return ..() | dna.mutations_get_spans() | dna.species_get_spans()
 
 /mob/living/carbon/human/GetVoice()
-	if(istype(wear_mask, /obj/item/clothing/mask/gas/voice))
-		var/obj/item/clothing/mask/gas/voice/V = wear_mask
+	if(istype(wear_mask, /obj/item/clothing/mask/chameleon))
+		var/obj/item/clothing/mask/chameleon/V = wear_mask
 		if(V.vchange && wear_id)
 			var/obj/item/weapon/card/id/idcard = wear_id.GetID()
 			if(istype(idcard))
@@ -48,6 +48,11 @@
 	return real_name
 
 /mob/living/carbon/human/IsVocal()
+	CHECK_DNA_AND_SPECIES(src)
+
+	// how do species that don't breathe talk? magic, that's what.
+	if(!(NOBREATH in dna.species.specflags) && !getorganslot("lungs"))
+		return 0
 	if(mind)
 		return !mind.miming
 	return 1
@@ -79,11 +84,6 @@
 		if(MODE_HEADSET)
 			if (ears)
 				ears.talk_into(src, message, , spans)
-			return ITALICS | REDUCE_RANGE
-
-		if(MODE_SECURE_HEADSET)
-			if (ears)
-				ears.talk_into(src, message, 1, spans)
 			return ITALICS | REDUCE_RANGE
 
 		if(MODE_DEPARTMENT)

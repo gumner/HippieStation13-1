@@ -1,7 +1,7 @@
 /datum/game_mode/traitor/king_disk
 	name = "king of the disk"
 	config_tag = "king_disk"
-	required_players = 35 // We aren't even hitting 45 players unfortunately.
+	required_players = 40
 	required_enemies = 8
 	recommended_enemies = 10
 	reroll_friendly = 0
@@ -21,7 +21,7 @@
 	..()
 	var/obj/item/device/uplink/U = traitor_mob.mind.find_syndicate_uplink()
 	if(U)
-		U.uses = 10
+		U.telecrystals = 10
 
 /datum/game_mode/traitor/king_disk/forge_traitor_objectives(datum/mind/traitor)
 	// Steal the disk
@@ -46,13 +46,13 @@
 					if(N.king_timer >= 60)
 						N.king_timer = 0
 						var/mob/H = M
-						if(traitor.special_role == "Mindslave")
+						/*if(traitor.special_role == "Mindslave") //TG has no mindslaves, uncomment this when it needs to be ported back
 							for(var/datum/objective/protect/P in traitor.objectives)
 								if(P.target && P.target.current)
 									all_items = P.target.current.GetAllContents()
-									H = P.target.current
+									H = P.target.current*/
 						for(var/obj/item/device/uplink/U in all_items)
-							U.uses += 1
+							U.telecrystals += 1
 							H << "<span class='notice'>Your PDA vibrates softly. The Syndicate have rewarded you with an additional telecrystal for your possession of the disk.</span>"
 							if(U.active)
 								U.interact(H)

@@ -3,6 +3,10 @@
 	config_tag = "raginmages"
 	required_players = 20
 	use_huds = 1
+	announce_span = "userdanger"
+	announce_text = "There are many, many wizards attacking the station!\n\
+	<span class='danger'>Wizards</span>: Accomplish your objectives and cause utter catastrophe!\n\
+	<span class='notice'>Crew</span>: Try not to die..."
 	var/max_mages = 0
 	var/making_mage = 0
 	var/mages_made = 1
@@ -11,10 +15,6 @@
 	var/time_check = 1500
 	var/spawn_delay_min = 500
 	var/spawn_delay_max = 700
-
-/datum/game_mode/wizard/announce()
-	world << "<B>The current game mode is - Ragin' Mages!</B>"
-	world << "<B>The <span class='warning'>Space Wizard Federation</span> is pissed, help defeat all the space wizards!</B>"
 
 /datum/game_mode/wizard/raginmages/post_setup()
 	..()
@@ -54,7 +54,7 @@
 		if(wizard.current.stat==UNCONSCIOUS)
 			if(wizard.current.health < 0)
 				wizard.current << "<font size='4'>The Space Wizard Federation is upset with your performance and have terminated your employment.</font>"
-				wizard.current.stat = 2
+				wizard.current.death()
 			continue
 		wizards_alive++
 	if(!time_checked)
@@ -99,7 +99,7 @@
 			message_admins("No applicable ghosts for the next ragin' mage, asking ghosts instead.")
 			var/time_passed = world.time
 			for(var/mob/dead/observer/G in player_list)
-				if(!jobban_isbanned(G, ROLE_WIZARD) && !jobban_isbanned(G, "Syndicate"))
+				if(!jobban_isbanned(G, "wizard") && !jobban_isbanned(G, "Syndicate"))
 					if(age_check(G.client))
 						spawn(0)
 							switch(alert(G, "Do you wish to be considered for the position of Space Wizard Foundation 'diplomat'?","Please answer in 30 seconds!","Yes","No"))
@@ -137,7 +137,8 @@
 	..(1)
 
 /datum/game_mode/wizard/raginmages/proc/makeBody(mob/dead/observer/G_found) // Uses stripped down and bastardized code from respawn character
-	if(!G_found || !G_found.key)	return
+	if(!G_found || !G_found.key)
+		return
 
 	//First we spawn a dude.
 	var/mob/living/carbon/human/new_character = new(pick(latejoin))//The mob being spawned.
@@ -157,3 +158,5 @@
 	time_check = 250
 	spawn_delay_min = 50
 	spawn_delay_max = 150
+	announce_text = "<span class='userdanger'>CRAAAWLING IIIN MY SKIIIN\n\
+	THESE WOOOUNDS THEY WIIIL NOT HEEEAL</span>"

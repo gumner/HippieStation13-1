@@ -44,10 +44,25 @@
 	icon_state = "pen"
 	colour = "white"
 
+/obj/item/weapon/pen/fourcolor
+	desc = "It's a fancy four-color ink pen, set to black."
+	name = "four-color pen"
+	colour = "black"
+
+/obj/item/weapon/pen/fourcolor/attack_self(mob/living/carbon/user)
+	switch(colour)
+		if("black")
+			colour = "red"
+		if("red")
+			colour = "green"
+		if("green")
+			colour = "blue"
+		else
+			colour = "black"
+	user << "<span class='notice'>\The [src] will now write in [colour].</span>"
+	desc = "It's a fancy four-color ink pen, set to [colour]."
 
 /obj/item/weapon/pen/attack(mob/living/M, mob/user,stealth)
-	if(user.zone_sel.selecting =="groin" && user.a_intent == "grab")
-		..()
 	if(!istype(M))
 		return
 
@@ -67,11 +82,13 @@
  * Sleepypens
  */
 /obj/item/weapon/pen/sleepy
-	origin_tech = "materials=2;syndicate=5"
+	origin_tech = "engineering=4;syndicate=2"
+	flags = OPENCONTAINER
 
 
 /obj/item/weapon/pen/sleepy/attack(mob/living/M, mob/user)
-	if(!istype(M))	return
+	if(!istype(M))
+		return
 
 	if(..())
 		if(reagents.total_volume)
@@ -81,7 +98,7 @@
 
 /obj/item/weapon/pen/sleepy/New()
 	create_reagents(45)
-	reagents.add_reagent("sleeptoxin", 20)
+	reagents.add_reagent("morphine", 20)
 	reagents.add_reagent("mutetoxin", 15)
 	reagents.add_reagent("tirizene", 10)
 	..()
@@ -90,7 +107,7 @@
  * (Alan) Edaggers
  */
 /obj/item/weapon/pen/edagger
-	origin_tech = "combat=3;syndicate=5"
+	origin_tech = "combat=3;syndicate=1"
 	attack_verb = list("slashed", "stabbed", "sliced", "torn", "ripped", "diced", "cut") //these wont show up if the pen is off
 	var/on = 0
 

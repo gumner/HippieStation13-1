@@ -1,12 +1,9 @@
 /mob/living/silicon/emote(act,m_type=1,message = null)
 	var/param = null
-	var/delay = 5
-	if(src.spam_flag == 1)	return
 	if (findtext(act, "-", 1, null))
 		var/t1 = findtext(act, "-", 1, null)
 		param = copytext(act, t1 + 1, length(act) + 1)
 		act = copytext(act, 1, t1)
-
 
 	switch(act)//01000001011011000111000001101000011000010110001001100101011101000110100101111010011001010110010000100001 (Seriously please keep it that way.)
 		if ("aflap")
@@ -68,6 +65,10 @@
 		if ("buzz2")
 			message = "<B>[src]</B> buzzes twice."
 			playsound(loc, 'sound/machines/buzz-two.ogg', 50, 0)
+			m_type = 2
+
+		if ("boop","boops")
+			message = "<B>[src]</B> boops."
 			m_type = 2
 
 		if ("chime","chimes") //You have mail!
@@ -229,24 +230,27 @@
 			playsound(loc, 'sound/machines/warning-buzzer.ogg', 50, 0)
 			m_type = 2
 
-		if ("scream")
-			playsound(src.loc, pick('sound/voice/screamsilicon.ogg'), 50, 0, 10, 1.2)
-			message = "<B>[src]</B> screams!"
-			m_type = 2
-			delay = 15
-
 		if ("help")
 			src << "Help for cyborg emotes. You can use these emotes with say \"*emote\":\n\naflap, beep-(none)/mob, bow-(none)/mob, buzz-(none)/mob,buzz2,chime, clap, custom, deathgasp, flap, glare-(none)/mob, honk, look-(none)/mob, me, nod, ping-(none)/mob, sad, \nsalute-(none)/mob, twitch, twitch_s, warn,"
 
 		else
 			src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
+
 	if (message && src.stat == CONSCIOUS)
 		log_emote("[name]/[key] : [message]")
-		src.spam_flag = 1
-		spawn(delay)
-			src.spam_flag = 0
 		if (m_type & 1)
 			visible_message(message)
 		else
 			audible_message(message)
 	return
+
+/mob/living/silicon/robot/verb/powerwarn()
+	set category = "Robot Commands"
+	set name = "Power Warning"
+
+	if(!cell || !cell.charge)
+		visible_message("The power warning light on <span class='name'>[src]</span> flashes urgently.",\
+						 "You announce you are operating in low power mode.")
+		playsound(loc, 'sound/machines/buzz-two.ogg', 50, 0)
+	else
+		src << "<span class='warning'>You can only use this emote when you're out of charge.</span>"

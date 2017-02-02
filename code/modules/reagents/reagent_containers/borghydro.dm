@@ -24,8 +24,7 @@ Borg Hypospray
 	var/bypass_protection = 0 //If the hypospray can go through armor or thick material
 
 	var/list/datum/reagents/reagent_list = list()
-	var/list/reagent_ids = list("tricordrazine", "epinephrine", "spaceacillin")
-	//var/list/reagent_ids = list("salbutamol", "salglu_solution", "salglu_solution", "charcoal", "ephedrine", "spaceacillin")
+	var/list/reagent_ids = list("dexalin", "kelotane", "bicaridine", "antitoxin", "epinephrine", "spaceacillin")
 	var/list/modes = list() //Basically the inverse of reagent_ids. Instead of having numbers as "keys" and strings as values it has strings as keys and numbers as values.
 								//Used as list for input() in shakers.
 
@@ -39,11 +38,11 @@ Borg Hypospray
 		modes[R] = iteration
 		iteration++
 
-	SSobj.processing |= src
+	START_PROCESSING(SSobj, src)
 
 
 /obj/item/weapon/reagent_containers/borghypo/Destroy()
-	SSobj.processing.Remove(src)
+	STOP_PROCESSING(SSobj, src)
 	return ..()
 
 
@@ -78,10 +77,11 @@ Borg Hypospray
 	if(isrobot(src.loc))
 		var/mob/living/silicon/robot/R = src.loc
 		if(R && R.cell)
-			var/datum/reagents/RG = reagent_list[mode]
-			if(RG.total_volume < RG.maximum_volume) 	//Don't recharge reagents and drain power if the storage is full.
-				R.cell.use(charge_cost) 					//Take power from borg...
-				RG.add_reagent(reagent_ids[mode], 5)		//And fill hypo with reagent.
+			for(var/i in 1 to reagent_ids.len)
+				var/datum/reagents/RG = reagent_list[i]
+				if(RG.total_volume < RG.maximum_volume) 	//Don't recharge reagents and drain power if the storage is full.
+					R.cell.use(charge_cost) 					//Take power from borg...
+					RG.add_reagent(reagent_ids[i], 5)		//And fill hypo with reagent.
 
 /obj/item/weapon/reagent_containers/borghypo/attack(mob/living/carbon/M, mob/user)
 	var/datum/reagents/R = reagent_list[mode]
@@ -99,12 +99,17 @@ Borg Hypospray
 			var/trans = R.trans_to(M, amount_per_transfer_from_this)
 			user << "<span class='notice'>[trans] unit\s injected.  [R.total_volume] unit\s remaining.</span>"
 
-/obj/item/weapon/reagent_containers/borghypo/attack_self(mob/user)
-	mode++
-	if(mode > reagent_list.len)
-		mode = 1
-	playsound(loc, 'sound/effects/pop.ogg', 50, 0)
+	var/list/injected = list()
+	for(var/datum/reagent/RG in R.reagent_list)
+		injected += RG.name
+	add_logs(user, M, "injected", src, "(CHEMICALS: [english_list(injected)])")
 
+/obj/item/weapon/reagent_containers/borghypo/attack_self(mob/user)
+	var/chosen_reagent = modes[input(user, "What reagent do you want to dispense?") as null|anything in reagent_ids]
+	if(!chosen_reagent)
+		return
+	mode = chosen_reagent
+	playsound(loc, 'sound/effects/pop.ogg', 50, 0)
 	var/datum/reagent/R = chemical_reagents_list[reagent_ids[mode]]
 	user << "<span class='notice'>[src] is now dispensing '[R.name]'.</span>"
 	return
@@ -125,6 +130,10 @@ Borg Hypospray
 
 	if(empty)
 		usr << "<span class='warning'>It is currently empty! Allow some time for the internal syntheszier to produce more.</span>"
+
+/obj/item/weapon/reagent_containers/borghypo/hacked
+	icon_state = "borghypo_s"
+	reagent_ids = list ("facid", "mutetoxin", "cyanide", "sodium_thiopental", "heparin", "lexorin")
 
 /obj/item/weapon/reagent_containers/borghypo/syndicate
 	name = "syndicate cyborg hypospray"
@@ -202,3 +211,18 @@ Borg Shaker
 	recharge_time = 3
 
 	reagent_ids = list("beer2")
+
+/obj/item/weapon/reagent_containers/borghypo/peace
+	name = "Peace Hypospray"
+
+	reagent_ids = list("dizzysolution","tiresolution")
+
+/obj/item/weapon/reagent_containers/borghypo/peace/hacked
+	desc = "Everything's peaceful in death!"
+	icon_state = "borghypo_s"
+	reagent_ids = list("dizzysolution","tiresolution","tirizene","sulfonal","sodium_thiopental","cyanide","neurotoxin2")
+
+/obj/item/weapon/reagent_containers/borghypo/epi
+	name = "epinephrine injector"
+	desc = "An advanced chemical synthesizer and injection system, designed to stabilize patients.."
+	reagent_ids = list("epinephrine")

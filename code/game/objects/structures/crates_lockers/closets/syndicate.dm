@@ -23,43 +23,12 @@
 /obj/structure/closet/syndicate/nuclear/New()
 	..()
 	contents = list()
-	new /obj/item/ammo_box/magazine/m10mm(src)
-	new /obj/item/ammo_box/magazine/m10mm(src)
-	new /obj/item/ammo_box/magazine/m10mm(src)
-	new /obj/item/ammo_box/magazine/m10mm(src)
-	new /obj/item/ammo_box/magazine/m10mm(src)
+	for(var/i in 1 to 5)
+		new /obj/item/ammo_box/magazine/m10mm(src)
 	new /obj/item/weapon/storage/box/flashbangs(src)
 	new /obj/item/weapon/storage/box/teargas(src)
 	new /obj/item/weapon/storage/backpack/dufflebag/syndie/med(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
 	new /obj/item/device/pda/syndicate(src)
-	return
-
-
-/obj/structure/closet/syndicate/blastco
-	desc = "A dented locker that holds special equipment for a Blast Co boarding party."
-
-/obj/structure/closet/syndicate/blastco/New()
-	..()
-	contents = list()
-	new /obj/item/weapon/gun/projectile/revolver/grenadelauncher/mgl(src)
-	new /obj/item/weapon/storage/box/syndie_kit/imp_macrobomb(src)
-	new /obj/item/ammo_box/a40mm(src)
-	new /obj/item/clothing/shoes/rollerskates(src)
-	new /obj/item/device/sbeacondrop/bomb(src)
-	new /obj/item/weapon/grenade/syndieminibomb(src)
-	new /obj/item/weapon/grenade/syndieminibomb(src)
-	new /obj/item/weapon/c4(src)
-	new /obj/item/weapon/c4(src)
-	new /obj/item/weapon/c4(src)
-	new /obj/item/weapon/grenade/chem_grenade/incendiary(src)
-	new /obj/item/weapon/pinpointer/nukeop(src)
 	return
 
 /obj/structure/closet/syndicate/resources
@@ -109,6 +78,14 @@
 	if(pickednum >= 40)
 		new /obj/item/stack/sheet/mineral/uranium(src, rand(rare_min, rare_max))
 
+	//Titanium (rare ore)
+	if(pickednum >= 40)
+		new /obj/item/stack/sheet/mineral/titanium(src, rand(rare_min, rare_max))
+
+	//Plastitanium (rare ore)
+	if(pickednum >= 40)
+		new /obj/item/stack/sheet/mineral/plastitanium(src, rand(rare_min, rare_max))
+
 	//Diamond (rare HONK)
 	if(pickednum >= 45)
 		new /obj/item/stack/sheet/mineral/diamond(src, rand(rare_min, rare_max))
@@ -135,6 +112,8 @@
 	/obj/item/stack/sheet/mineral/diamond,
 	/obj/item/stack/sheet/mineral/bananium,
 	/obj/item/stack/sheet/plasteel,
+	/obj/item/stack/sheet/mineral/titanium,
+	/obj/item/stack/sheet/mineral/plastitanium,
 	/obj/item/stack/rods
 	)
 

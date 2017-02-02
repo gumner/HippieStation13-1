@@ -1,24 +1,21 @@
-/obj/item/ammo_casing/proc/fire(atom/target as mob|obj|turf, mob/living/user as mob|obj, params, distro, quiet, zone_override = "", spr)
+/obj/item/ammo_casing/proc/fire(atom/target as mob|obj|turf, mob/living/user as mob|obj, params, distro, quiet, zone_override = "",spread)
 	distro += variance
-	for (var/i=1 to pellets)
-		var/spread = 0
-		// var/curloc = user.loc
+	for (var/i = max(1, pellets), i > 0, i--)
 		var/targloc = get_turf(target)
 		ready_proj(target, user, quiet, zone_override)
-		// if(distro) //legacy bullet spread not supported. It never worked correctly anyway.
-		// 	targloc = spread(targloc, curloc, distro)
-		if(spr)
-			spread = spr
 		if(distro) //We have to spread a pixel-precision bullet. throw_proj was called before so angles should exist by now...
 			if(randomspread)
-				spread += round((rand() - 0.5) * distro)
+				spread = round((rand() - 0.5) * distro)
 			else //Smart spread
-				spread += round((i / pellets - 0.5) * distro)
+				spread = round((i / pellets - 0.5) * distro)
 		if(!throw_proj(target, targloc, user, params, spread))
 			return 0
-		if(i < pellets)
+		if(i > 1)
 			newshot()
-	user.changeNext_move(CLICK_CD_RANGE)
+	if(click_cooldown_override)
+		user.changeNext_move(click_cooldown_override)
+	else
+		user.changeNext_move(CLICK_CD_RANGE)
 	user.newtonian_move(get_dir(target, user))
 	update_icon()
 	return 1
@@ -27,11 +24,11 @@
 	if (!BB)
 		return
 	BB.original = target
-	if(!BB.firer) BB.firer = user
+	BB.firer = user
 	if (zone_override)
 		BB.def_zone = zone_override
 	else
-		BB.def_zone = user.zone_sel.selecting
+		BB.def_zone = user.zone_selected
 	BB.suppressed = quiet
 
 	if(reagents && BB.reagents)
@@ -39,29 +36,30 @@
 		qdel(reagents)
 
 /obj/item/ammo_casing/proc/throw_proj(atom/target, turf/targloc, mob/living/user, params, spread)
-	var/turf/curloc = user.loc
+	var/turf/curloc = get_turf(user)
 	if (!istype(targloc) || !istype(curloc) || !BB)
 		return 0
+	BB.ammo_casing = src
 	if(targloc == curloc)
 		if(target) //if the target is right on our location we go straight to bullet_act()
 			target.bullet_act(BB, BB.def_zone)
 		qdel(BB)
 		BB = null
 		return 1
-	BB.preparePixelProjectile(targloc, user, params, spread)
+
+	BB.preparePixelProjectile(target, targloc, user, params, spread)
 	if(BB)
 		BB.fire()
 	BB = null
 	return 1
 
-/obj/item/ammo_casing/proc/spread(var/turf/target, var/turf/current, var/distro)
+/obj/item/ammo_casing/proc/spread(turf/target, turf/current, distro)
 	var/dx = abs(target.x - current.x)
 	var/dy = abs(target.y - current.y)
 	return locate(target.x + round(gaussian(0, distro) * (dy+2)/8, 1), target.y + round(gaussian(0, distro) * (dx+2)/8, 1), target.z)
 
-//This exists to simplify pixel calculations for mechas and other things.
-/obj/item/projectile/proc/preparePixelProjectile(var/turf/targloc, mob/living/user as mob|obj, params, spread)
-	var/turf/curloc = user.loc
+/obj/item/projectile/proc/preparePixelProjectile(atom/target, var/turf/targloc, mob/living/user, params, spread)
+	var/turf/curloc = get_turf(user)
 	src.loc = get_turf(user)
 	src.starting = get_turf(user)
 	src.current = curloc

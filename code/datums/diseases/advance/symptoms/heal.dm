@@ -34,10 +34,48 @@ Bonus
 	return
 
 /datum/symptom/heal/proc/Heal(mob/living/M, datum/disease/advance/A)
-
-	var/get_damage = rand(8, 14)
+	var/get_damage = (sqrt(20+A.totalStageSpeed())*(1+rand()))
 	M.adjustToxLoss(-get_damage)
 	return 1
+
+/*
+//////////////////////////////////////
+
+Apoptosis
+
+	Lowers resistance.
+	Decreases stage speed.
+	Decreases transmittablity.
+
+Bonus
+	Heals toxins in the affected mob's blood stream faster.
+
+//////////////////////////////////////
+*/
+
+/datum/symptom/aptx
+
+	name = "Apoptoxin filter"
+	stealth = 0
+	resistance = -2
+	stage_speed = -2
+	transmittable = -2
+	level = 8
+
+/datum/symptom/aptx/Activate(datum/disease/advance/A)
+	..()
+	if(prob(SYMPTOM_ACTIVATION_PROB * 10))
+		var/mob/living/M = A.affected_mob
+		switch(A.stage)
+			if(4, 5)
+				Apoptosis(M, A)
+	return
+
+/datum/symptom/aptx/proc/Apoptosis(mob/living/M, datum/disease/advance/A)
+	var/get_damage = (sqrt(20+A.totalStageSpeed())*(2+rand()))
+	M.adjustToxLoss(-get_damage)
+	return 1
+
 
 /*
 //////////////////////////////////////
@@ -84,42 +122,8 @@ Bonus
 			for(var/res in M.resistances)
 				if(res in cured_diseases)
 					M.resistances -= res
-		M << "<span class='notice'>You feel weaker.</span>"
+		M << "<span class='warning'>You feel weaker.</span>"
 
-/*
-//////////////////////////////////////
-
-Longevity
-
-	Medium hidden boost.
-	Large resistance boost.
-	Large stage speed boost.
-	Large transmittablity boost.
-	High Level.
-
-Bonus
-	After a certain amount of time the symptom will cure itself.
-
-//////////////////////////////////////
-*/
-
-/datum/symptom/heal/longevity
-
-	name = "Longevity"
-	stealth = 3
-	resistance = 4
-	stage_speed = 4
-	transmittable = 4
-	level = 3
-	var/longevity = 30
-
-/datum/symptom/heal/longevity/Heal(mob/living/M, datum/disease/advance/A)
-	longevity -= 1
-	if(!longevity)
-		A.cure()
-
-/datum/symptom/heal/longevity/Start(datum/disease/advance/A)
-	longevity = rand(initial(longevity) - 5, initial(longevity) + 5)
 
 /*
 //////////////////////////////////////
@@ -148,8 +152,9 @@ Bonus
 	level = 5
 
 /datum/symptom/heal/dna/Heal(mob/living/carbon/M, datum/disease/advance/A)
-
-	var/amt_healed = rand(5, 10)
+	var/stage_speed = max( 20 + A.totalStageSpeed(), 0)
+	var/stealth_amount = max( 16 + A.totalStealth(), 0)
+	var/amt_healed = (sqrt(stage_speed*(3+rand())))-(sqrt(stealth_amount*rand()))
 	M.adjustBrainLoss(-amt_healed)
 	//Non-power mutations, excluding race, so the virus does not force monkey -> human transformations.
 	var/list/unclean_mutations = (not_good_mutations|bad_mutations) - mutations_list[RACEMUT]

@@ -1,29 +1,17 @@
-var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set to - the list is added to in buttons.dm
-
 /obj/item/device/assembly/control
 	name = "blast door controller"
 	desc = "A small electronic device able to control a blast door remotely."
 	icon_state = "control"
 	origin_tech = "magnets=1;programming=2"
 	attachable = 1
-	var/id = "generic"
+	var/id = null
 	var/can_change_id = 0
 
 /obj/item/device/assembly/control/examine(mob/user)
 	..()
 	if(id)
-		user << "It's channel ID is '[id]'."
+		user << "<span class='notice'>Its channel ID is '[id]'.</span>"
 
-/obj/item/device/assembly/control/interact(mob/user)
-	if(is_secured(user) && can_change_id)
-		var/new_id = stripped_input(user,"Please input a new ID for this assembly.","Set ID", max_length = MAX_NAME_LEN) as null|text
-		if(!new_id)
-			return
-		for(var/t in restricted_ids)
-			if(id == t)
-				user << "<span class='warning'>WARNING: Selected ID is restricted!</span>"
-				return
-		id = new_id
 
 /obj/item/device/assembly/control/activate()
 	cooldown = 1
@@ -34,8 +22,10 @@ var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set 
 				openclose = M.density
 			spawn(0)
 				if(M)
-					if(openclose)	M.open()
-					else			M.close()
+					if(openclose)
+						M.open()
+					else
+						M.close()
 				return
 	sleep(10)
 	cooldown = 0
@@ -44,7 +34,7 @@ var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set 
 /obj/item/device/assembly/control/airlock
 	name = "airlock controller"
 	desc = "A small electronic device able to control an airlock remotely."
-	id = "generic" // Set it to null for MEGAFUN.
+	id = "badmin" // Set it to null for MEGAFUN.
 	var/specialfunctions = OPEN
 	/*
 	Bitflag, 	1= open (OPEN)
@@ -59,19 +49,23 @@ var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set 
 	for(var/obj/machinery/door/airlock/D in airlocks)
 		if(D.id_tag == src.id)
 			if(specialfunctions & OPEN)
-				spawn(0)
-					if(D)
-						if(D.density)	D.open()
-						else			D.close()
-					return
+				if(D.density)
+					D.open()
+				else
+					D.close()
 			if(specialfunctions & IDSCAN)
 				D.aiDisabledIdScanner = !D.aiDisabledIdScanner
 			if(specialfunctions & BOLTS)
-				if(!D.isWireCut(4) && D.hasPower())
+				if(!D.wires.is_cut(WIRE_BOLTS) && D.hasPower())
 					D.locked = !D.locked
 					D.update_icon()
 			if(specialfunctions & SHOCK)
-				D.secondsElectrified = D.secondsElectrified ? 0 : -1
+				if(D.secondsElectrified)
+					D.secondsElectrified = -1
+					D.shockedby += "\[[time_stamp()]\][usr](ckey:[usr.ckey])"
+					add_logs(usr, D, "electrified")
+				else
+					D.secondsElectrified = 0
 			if(specialfunctions & SAFE)
 				D.safe = !D.safe
 	sleep(10)
@@ -88,7 +82,6 @@ var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set 
 		if (M.id == src.id)
 			spawn( 0 )
 				M.open()
-				return
 
 	sleep(10)
 
@@ -102,7 +95,6 @@ var/global/list/restricted_ids = list() //List of IDs that cannot be custom-set 
 		if (M.id == src.id)
 			spawn( 0 )
 				M.close()
-				return
 
 	sleep(10)
 	cooldown = 0

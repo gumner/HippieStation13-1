@@ -1,7 +1,7 @@
 //copy pasta of the space piano, don't hurt me -Pete
 /obj/item/device/instrument
 	name = "generic instrument"
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 	burntime = 20
 	var/datum/song/handheld/song
 	var/instrumentId = "generic"
@@ -47,7 +47,6 @@
 	icon_state = "violin"
 	item_state = "violin"
 	force = 10
-	stamina_percentage = 0.3
 	hitsound = "swing_hit"
 	instrumentId = "violin"
 
@@ -58,7 +57,17 @@
 	icon_state = "guitar"
 	item_state = "guitar"
 	force = 10
-	stamina_percentage = 0.4
 	attack_verb = list("played metal on", "serenaded", "crashed", "smashed")
 	hitsound = 'sound/weapons/stringsmash.ogg'
 	instrumentId = "guitar"
+
+/obj/item/device/instrument/eguitar
+	name = "electric guitar"
+	desc = "Makes all your shredding needs possible."
+	icon = 'icons/obj/musician.dmi'
+	icon_state = "eguitar"
+	item_state = "eguitar"
+	force = 12
+	attack_verb = list("played metal on", "shredded", "crashed", "smashed")
+	hitsound = 'sound/weapons/stringsmash.ogg'
+	instrumentId = "eguitar"

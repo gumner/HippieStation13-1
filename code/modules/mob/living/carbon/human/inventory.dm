@@ -1,77 +1,6 @@
-/mob/living/carbon/human/can_equip(obj/item/I, slot, disable_warning = 0, return_equipped = 0)
-	return dna.species.can_equip(I, slot, disable_warning, return_equipped, src)
+/mob/living/carbon/human/can_equip(obj/item/I, slot, disable_warning = 0)
+	return dna.species.can_equip(I, slot, disable_warning, src)
 
-/mob/living/carbon/human/verb/quick_equip()
-	set name = "quick-equip"
-	set hidden = 1
-
-	var/obj/item/I = get_active_hand()
-	var/obj/item/weapon/storage/S = get_inactive_hand()
-	if(!I)
-		src << "<span class='warning'>You are not holding anything to equip!</span>"
-		return
-	if(equip_to_appropriate_slot(I))
-		if(hand)
-			update_inv_l_hand()
-		else
-			update_inv_r_hand()
-	else if(s_active && s_active.can_be_inserted(I,1))	//if storage active insert there
-		s_active.handle_item_insertion(I)
-	else if(istype(S) && S.can_be_inserted(I,1))	//see if we have box in other hand
-		S.handle_item_insertion(I)
-	else
-		S = get_item_by_slot(slot_belt)
-		if(istype(S) && S.can_be_inserted(I,1))		//else we put in belt
-			S.handle_item_insertion(I)
-		else
-			S = get_item_by_slot(slot_back)	//else we put in backpack
-			if(istype(S) && S.can_be_inserted(I,1))
-				S.handle_item_insertion(I)
-				playsound(loc, "rustle", 50, 1, -5)
-			else
-				src << "<span class='warning'>You are unable to equip that!</span>"
-
-//Goon-like hotswap for worn clothing
-/mob/living/carbon/human/verb/inventory_hotswap()
-	set name = "clothes-hotswap"
-	set hidden = 1
-
-	var/obj/item/I = get_active_hand()
-	if(!I)
-		return 0
-
-
-	var/pass = 1 //To check if no drop
-	var/mob/living/carbon/human/H = usr
-	for(var/obj/C in H.contents)
-		if((C.flags & NODROP) == NODROP)
-			pass = 0
-			H << "You can't seem to swap that!"
-	if(pass == 1)
-		//List below doesn't include pockets or backpacks because of some complications I can't be assed to figure out.
-		// Example: take box out of the backpack, put something in your pocket, use hotswap. Suddenly the box is swapped with whatever item you put in your backpack...???
-		var/list/search = list(slot_w_uniform, slot_belt, slot_wear_id, slot_wear_suit, slot_wear_mask, slot_head, slot_shoes, slot_gloves, slot_ears, slot_glasses)
-		for(var/slot in search)
-			var/check = I.mob_can_equip(src, slot, 1, 1) //disable_warning = 0; return_equipped = 0
-			if(check)
-				//This is so the items are dropped properly. Comment this snippet out if you want hotswapping to not drop the ID/belt/pockets/etc.
-				if(I == r_hand)
-					r_hand = null
-				else if(I == l_hand)
-					l_hand = null
-				//snippet end
-				if(istype(check, /obj/item))
-					var/obj/item/U = check
-					unEquip(U)
-					if(!put_in_active_hand(U))
-						U.forceMove(get_turf(src))
-				equip_to_slot(I, slot, 1) //we do equip_to_slot AFTER unEquipping existing clothing so that id's, pockets, etc. are properly emptied out
-				if(hand)
-					update_inv_l_hand()
-				else
-					update_inv_r_hand()
-				return 1
-		return 0
 
 /mob/living/carbon/human/proc/equip_in_one_of_slots(obj/item/I, list/slots, qdel_on_fail = 1)
 	for(var/slot in slots)
@@ -80,6 +9,7 @@
 	if(qdel_on_fail)
 		qdel(I)
 	return null
+
 
 // Return the item currently in the slot ID
 /mob/living/carbon/human/get_item_by_slot(slot_id)
@@ -122,10 +52,13 @@
 			return s_store
 	return null
 
+
 //This is an UNSAFE proc. Use mob_can_equip() before calling this one! Or rather use equip_to_slot_if_possible() or advanced_equip_to_slot_if_possible()
 /mob/living/carbon/human/equip_to_slot(obj/item/I, slot)
 	if(!..()) //a check failed or the item has already found its slot
 		return
+
+	var/not_handled = FALSE //Added in case we make this type path deeper one day
 	switch(slot)
 		if(slot_belt)
 			belt = I
@@ -139,6 +72,13 @@
 			update_inv_ears()
 		if(slot_glasses)
 			glasses = I
+			var/obj/item/clothing/glasses/G = I
+			if(G.tint)
+				update_tint()
+			if(G.vision_correction)
+				clear_fullscreen("nearsighted")
+			if(G.vision_flags || G.darkness_view || G.invis_override || G.invis_view)
+				update_sight()
 			update_inv_glasses()
 		if(slot_gloves)
 			gloves = I
@@ -150,6 +90,9 @@
 			wear_suit = I
 			if(I.flags_inv & HIDEJUMPSUIT)
 				update_inv_w_uniform()
+			if(wear_suit.breakouttime) //when equipping a straightjacket
+				stop_pulling() //can't pull if restrained
+				update_action_buttons_icon() //certain action buttons will no longer be usable.
 			update_inv_wear_suit()
 		if(slot_w_uniform)
 			w_uniform = I
@@ -167,6 +110,11 @@
 		else
 			src << "<span class='danger'>You are trying to equip this item to an unsupported inventory slot. Report this to a coder!</span>"
 
+	//Item is handled and in slot, valid to call callback, for this proc should always be true
+	if(!not_handled)
+		I.equipped(src, slot)
+	
+	return not_handled //For future deeper overrides
 
 /mob/living/carbon/human/unEquip(obj/item/I)
 	. = ..() //See mob.dm for an explanation on this and some rage about people copypasting instead of calling ..() like they should.
@@ -176,6 +124,8 @@
 	if(I == wear_suit)
 		if(s_store)
 			unEquip(s_store, 1) //It makes no sense for your suit storage to stay on you if you drop your suit.
+		if(wear_suit.breakouttime) //when unequipping a straightjacket
+			update_action_buttons_icon() //certain action buttons may be usable again.
 		wear_suit = null
 		if(I.flags_inv & HIDEJUMPSUIT)
 			update_inv_w_uniform()
@@ -197,6 +147,14 @@
 		update_inv_gloves()
 	else if(I == glasses)
 		glasses = null
+		var/obj/item/clothing/glasses/G = I
+		if(G.tint)
+			update_tint()
+		if(G.vision_correction)
+			if(disabilities & NEARSIGHT)
+				overlay_fullscreen("nearsighted", /obj/screen/fullscreen/impaired, 1)
+		if(G.vision_flags || G.darkness_view || G.invis_override || G.invis_view)
+			update_sight()
 		update_inv_glasses()
 	else if(I == ears)
 		ears = null
@@ -209,6 +167,7 @@
 		update_inv_belt()
 	else if(I == wear_id)
 		wear_id = null
+		sec_hud_set_ID()
 		update_inv_wear_id()
 	else if(I == r_store)
 		r_store = null
@@ -220,25 +179,29 @@
 		s_store = null
 		update_inv_s_store()
 
-/mob/living/carbon/human/wear_mask_update(obj/item/I, unequip = 1)
-	if(I.flags & BLOCKHAIR)
+/mob/living/carbon/human/wear_mask_update(obj/item/clothing/C, toggle_off = 1)
+	if((C.flags_inv & (HIDEHAIR|HIDEFACIALHAIR)) || (initial(C.flags_inv) & (HIDEHAIR|HIDEFACIALHAIR)))
 		update_hair()
-	if(unequip && internal)
-		if(internals)
-			internals.icon_state = "internal0"
+	if(toggle_off && internal && !getorganslot("breathing_tube"))
+		update_internals_hud_icon(0)
 		internal = null
+	if(C.flags_inv & HIDEEYES)
+		update_inv_glasses()
 	sec_hud_set_security_status()
 	..()
 
-/mob/living/carbon/human/head_update(obj/item/I)
-	if(I.flags & BLOCKHAIR)
+/mob/living/carbon/human/head_update(obj/item/I, forced)
+	if((I.flags_inv & (HIDEHAIR|HIDEFACIALHAIR)) || forced)
 		update_hair()
-	if(I.flags_inv & HIDEEYES)
+	if(I.flags_inv & HIDEEYES || forced)
 		update_inv_glasses()
-	if(I.flags_inv & HIDEEARS)
+	if(I.flags_inv & HIDEEARS || forced)
 		update_body()
 	sec_hud_set_security_status()
 	..()
+
+
+
 
 //Cycles through all clothing slots and tests them for destruction
 /mob/living/carbon/human/proc/shred_clothing(bomb,shock)
@@ -312,6 +275,7 @@
 			Human.unEquip(src)
 
 		if(bomb)
+			empty_object_contents()
 			spawn(1) //so the shreds aren't instantly deleted by the explosion
 				var/obj/effect/decal/cleanable/shreds/Shreds = new(loc)
 				Shreds.desc = "The sad remains of what used to be [src.name]."
@@ -334,43 +298,3 @@
 		return 0
 
 	return O.equip(src, visualsOnly)
-
-/mob/living/carbon/human/proc/handle_inventory()
-	var/missing_hands = 0
-
-	if(!get_organ("l_arm"))
-		drop_l_hand(1)
-		missing_hands = missing_hands + 1
-
-	if(!get_organ("r_arm"))
-		drop_r_hand(1)
-		missing_hands = missing_hands + 1
-
-	if(missing_hands)
-		unEquip(gloves)
-
-		if(handcuffed)
-			handcuffed.loc = loc
-			handcuffed.dropped(src)
-			handcuffed = null
-
-			if(buckled)
-				if(buckled.buckle_requires_restraints)
-					buckled.unbuckle_mob()
-
-			update_inv_handcuffed()
-
-	if(!get_organ("head"))
-		for(var/obj/item/I in list(glasses, ears, wear_mask, head))
-			unEquip(I)
-
-	if(!get_organ("l_leg") || !get_organ("r_arm"))
-		unEquip(shoes)
-
-		if(legcuffed)
-			legcuffed.loc = loc
-			legcuffed.dropped()
-			legcuffed = null
-			update_inv_legcuffed()
-
-	return 1

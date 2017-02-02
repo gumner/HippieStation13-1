@@ -53,7 +53,7 @@
 //////////////////////////////
 //Spookoween trapped closets//
 //////////////////////////////
-/*
+
 #define SPOOKY_SKELETON 1
 #define ANGRY_FAITHLESS 2
 #define SCARY_BATS 		3
@@ -106,7 +106,7 @@
 		trapped = 0
 		spawn(90)
 			if(trapped_mob && trapped_mob.loc)
-				var/datum/effect_system/harmless_smoke_spread/smoke = new()
+				var/datum/effect/effect/system/harmless_smoke_spread/smoke = new()
 				smoke.set_up(1, 0, trapped_mob.loc, 0)
 				smoke.start()
 				qdel(trapped_mob)
@@ -135,7 +135,7 @@
 		trapped = 0
 		spawn(120)
 			if(F && F.loc)
-				var/datum/effect_system/harmless_smoke_spread/smoke = new
+				var/datum/effect/effect/system/harmless_smoke_spread/smoke = new
 				smoke.set_up(1,0, F.loc, 0)
 				smoke.start()
 				qdel(F)
@@ -153,6 +153,7 @@
 
 /obj/structure/closet/crate/set_spooky_trap()
 	return
+
 
 ////////////////////
 //Spookoween Ghost//
@@ -190,7 +191,7 @@
 
 /mob/living/simple_animal/shade/howling_ghost/proc/EtherealMove(direction)
 	loc = get_step(src, direction)
-	dir = direction
+	setDir(direction)
 
 /mob/living/simple_animal/shade/howling_ghost/proc/roam()
 	if(prob(80))
@@ -211,8 +212,8 @@
 			step(I,direction)
 		return
 
-/mob/living/simple_animal/shade/howling_ghost/adjustBruteLoss()
-	return
+/mob/living/simple_animal/shade/howling_ghost/adjustHealth()
+	. = 0
 
 /mob/living/simple_animal/shade/howling_ghost/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
 	return 1
@@ -271,7 +272,8 @@
 /mob/living/simple_animal/hostile/retaliate/clown/insane/AttackTarget()
 	return
 
-/mob/living/simple_animal/hostile/retaliate/clown/insane/adjustBruteLoss()
+/mob/living/simple_animal/hostile/retaliate/clown/insane/adjustHealth()
+	. = 0
 	if(prob(5))
 		playsound(loc, 'sound/spookoween/insane_low_laugh.ogg', 300, 1)
 
@@ -288,5 +290,3 @@
 
 /mob/living/simple_animal/hostile/retaliate/clown/insane/handle_temperature_damage()
 	return
-
-*/

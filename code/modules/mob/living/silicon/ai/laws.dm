@@ -23,3 +23,4 @@
 				R.lawsync()
 				R.show_laws()
 				R.law_change_counter++
+

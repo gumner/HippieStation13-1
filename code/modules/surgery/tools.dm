@@ -32,20 +32,6 @@
 	origin_tech = "materials=1;biotech=1"
 	attack_verb = list("burnt")
 
-/obj/item/weapon/cautery/attack(mob/living/carbon/human/H, mob/user)
-	if(!istype(H))
-		return ..()
-
-	var/obj/item/organ/limb/affecting = H.get_organ(check_zone(user.zone_sel.selecting))
-
-	if(user.a_intent != "harm" && affecting.status == ORGAN_ORGANIC && affecting.bloodloss > 0)
-		user.visible_message("<span class='notice'>[user] starts to close up wounds on [H]'s [affecting].</span>", "<span class='notice'>You start closing up wounds on [H]'s [affecting].</span>")
-		if(!do_mob(user, H, 30)) return
-		user.visible_message("<span class='notice'>[user] has closed up wounds [H]'s [affecting].</span>", "<span class='notice'>You closed up wounds on [H]'s [affecting].</span>")
-		affecting.heal_damage(bleed=affecting.bloodloss)
-		affecting.take_damage(burn=5) //Compared to welding the wounds this is nothing
-		return
-	return ..()
 
 /obj/item/weapon/surgicaldrill
 	name = "surgical drill"
@@ -98,25 +84,7 @@
 	throw_speed = 2
 	throw_range = 5
 	materials = list(MAT_METAL=10000, MAT_GLASS=6000)
-	origin_tech = "materials=1;biotech=1"
-	attack_verb = list("attacked", "slashed", "sawed", "cut")
-	sharpness = IS_SHARP
-	
-/obj/item/weapon/circular_saw/bonesaw
-	name = "bonesaw"
-	desc = "Not as cool as the circular one, but will work in a pinch."
-	icon = 'icons/obj/surgery.dmi'
-	icon_state = "bonesaw"
-	hitsound = 'sound/weapons/bladeslice.ogg'
-	throwhitsound =  'sound/weapons/bladeslice.ogg'
-	flags = CONDUCT
-	force = 7
-	w_class = 2
-	throwforce = 5
-	throw_speed = 2
-	throw_range = 5
-	materials = list(MAT_METAL=5000)
-	origin_tech = "materials=1;biotech=1"
+	origin_tech = "biotech=1;combat=1"
 	attack_verb = list("attacked", "slashed", "sawed", "cut")
 	sharpness = IS_SHARP
 

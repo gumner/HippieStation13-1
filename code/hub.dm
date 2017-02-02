@@ -1,8 +1,12 @@
 /world
 
 	hub = "Exadv1.spacestation13"
+#ifdef PUTONHUB
 	hub_password = "kMZy3U5jJHSiBQjr"
-	name = "Hippie Station 13"
+#else
+	hub_password = "SORRYNOPASSWORD"
+#endif
+	name = "/tg/ Station 13"
 
 /*
 This is for any host that would like their server to appear on the main SS13 hub.

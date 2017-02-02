@@ -5,10 +5,10 @@
 	item_state = "labcoat"
 	blood_overlay_type = "coat"
 	body_parts_covered = CHEST|ARMS
-	allowed = list(/obj/item/device/analyzer,/obj/item/stack/medical,/obj/item/weapon/dnainjector,/obj/item/weapon/reagent_containers/dropper,/obj/item/weapon/reagent_containers/syringe,/obj/item/weapon/reagent_containers/hypospray,/obj/item/device/healthanalyzer,/obj/item/device/flashlight/pen,/obj/item/weapon/reagent_containers/glass/bottle,/obj/item/weapon/reagent_containers/glass/beaker,/obj/item/weapon/reagent_containers/pill,/obj/item/weapon/storage/pill_bottle,/obj/item/weapon/paper,/obj/item/weapon/melee/classic_baton/telescopic)
+	allowed = list(/obj/item/device/analyzer,/obj/item/stack/medical,/obj/item/weapon/dnainjector,/obj/item/weapon/reagent_containers/dropper,/obj/item/weapon/reagent_containers/syringe,/obj/item/weapon/reagent_containers/hypospray,/obj/item/device/healthanalyzer,/obj/item/device/flashlight/pen,/obj/item/weapon/reagent_containers/glass/bottle,/obj/item/weapon/reagent_containers/glass/beaker,/obj/item/weapon/reagent_containers/pill,/obj/item/weapon/storage/pill_bottle,/obj/item/weapon/paper,/obj/item/weapon/melee/classic_baton/telescopic,/obj/item/weapon/soap,/obj/item/device/sensor_device,/obj/item/weapon/tank/internals/emergency_oxygen)
 	armor = list(melee = 0, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 50, rad = 0)
-	permeability_coefficient = 0.40
 	togglename = "buttons"
+	pockets = /obj/item/weapon/storage/internal/pocket
 
 /obj/item/clothing/suit/toggle/labcoat/cmo
 	name = "chief medical officer's labcoat"
@@ -53,35 +53,9 @@
 	icon_state = "labcoat"
 	item_state = "labcoat"
 	desc = "A reinforced labcoat that protects against much more than a minor chemical spill. Has a small dial inside it."
-	action_button_name = "Change"
+	actions_types = "Change"
 	origin_tech = "syndicate=2"
 	armor = list(melee = 35, bullet = 15, laser = 15, energy = 0, bomb = 0, bio = 50, rad = 0) //real armor is still better
 	var/list/clothing_choices = list()
 	permeability_coefficient = 0.01 //Defends against viruses perfectly, when combined with white shoes, latex gloves, and a medical mask.
 	burn_state = -1 //Won't burn in fires
-
-/obj/item/clothing/suit/labcoat/chameleon/New()
-	..()
-	for(var/U in typesof(/obj/item/clothing/suit/toggle/labcoat)-(/obj/item/clothing/suit/toggle/labcoat))
-		var/obj/item/clothing/suit/toggle/V = new U
-		src.clothing_choices += V
-	return
-
-/obj/item/clothing/suit/labcoat/chameleon/attack_self()
-	set src in usr
-
-	var/obj/item/clothing/suit/toggle/labcoat/A
-	A = input("Select Design to change it to", "BOOYEA", A) in clothing_choices
-	if(!A)
-		return
-
-	if(usr.stat != CONSCIOUS)
-		return
-
-	desc = null
-
-	desc = A.desc
-	name = A.name
-	icon_state = A.icon_state
-	item_state = A.item_state
-	usr.update_inv_wear_suit()	//so our overlays update.

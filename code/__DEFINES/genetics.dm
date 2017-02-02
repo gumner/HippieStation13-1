@@ -10,21 +10,23 @@
 #define COUGH		"Cough"
 #define DWARFISM	"Dwarfism"
 #define CLOWNMUT	"Clumsiness"
-#define CLUWNEMUT	"Cluwne"
 #define TOURETTES	"Tourettes Syndrome"
 #define DEAFMUT		"Deafness"
 #define BLINDMUT	"Blindness"
 #define RACEMUT		"Monkified"
 #define BADSIGHT	"Near Sightness"
 #define LASEREYES	"Laser Eyes"
-#define STEALTH		"Cloak Of Darkness"
 #define CHAMELEON	"Chameleon"
 #define WACKY		"Wacky"
 #define MUT_MUTE	"Mute"
-#define CLWUNESCAPE		"Clwunescape"
 #define SMILE		"Smile"
 #define UNINTELLIGABLE		"Unintelligable"
 #define SWEDISH		"Swedish"
+#define CHAV		"Chav"
+#define ELVIS		"Elvis"
+
+#define UI_CHANGED "ui changed"
+#define UE_CHANGED "ue changed"
 
 #define CHAMELEON_MUTATION_DEFAULT_TRANSPARENCY 204
 
@@ -64,7 +66,7 @@
 #define DNA_FACIAL_HAIR_STYLE_BLOCK	6
 #define DNA_HAIR_STYLE_BLOCK		7
 
-#define DNA_STRUC_ENZYMES_BLOCKS	23
+#define DNA_STRUC_ENZYMES_BLOCKS	19
 #define DNA_UNIQUE_ENZYMES_LEN		32
 
 //Transformation proc stuff
@@ -78,12 +80,9 @@
 #define TR_KEEPSRC		128
 #define TR_KEEPORGANS	256
 
-//Organ stuff, It's here because "Genetics" is the most relevant file for organs
+//Organ stuff, It's here because "Genetics" is the most relevant file for organs and bodyparts
 #define ORGAN_ORGANIC   1
 #define ORGAN_ROBOTIC   2
-
-#define ORGAN_FINE			1 //Attatched
-#define ORGAN_AUGMENTABLE	2 //Attatched + Augmentable 
 
 //Nutrition levels for humans. No idea where else to put it
 #define NUTRITION_LEVEL_FAT 600
@@ -92,3 +91,15 @@
 #define NUTRITION_LEVEL_FED 350
 #define NUTRITION_LEVEL_HUNGRY 250
 #define NUTRITION_LEVEL_STARVING 150
+
+#define CLONER_FRESH_CLONE "fresh"
+#define CLONER_MATURE_CLONE "mature"
+
+//Blood levels
+#define BLOOD_VOLUME_MAXIMUM		2000
+#define BLOOD_VOLUME_SLIME_SPLIT	1120
+#define BLOOD_VOLUME_NORMAL			560
+#define BLOOD_VOLUME_SAFE			501
+#define BLOOD_VOLUME_OKAY			336
+#define BLOOD_VOLUME_BAD			224
+#define BLOOD_VOLUME_SURVIVE		122

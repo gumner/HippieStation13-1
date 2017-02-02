@@ -9,7 +9,7 @@
 	opacity = 0
 	var/case_type = null
 	var/gun_category = /obj/item/weapon/gun
-	var/open = 0 // why would you make it start opened?like, why? there's literally zero reason, are you for real wtf
+	var/open = 1
 	var/capacity = 4
 
 /obj/structure/guncase/New()
@@ -26,20 +26,13 @@
 	update_icon()
 
 /obj/structure/guncase/update_icon()
-	overlays.Cut()
-	var/n = 4 //first line of guns overlay
-	var/m = 0 //second line of guns overlay
-	if(contents.len <= 4) n = contents.len
-	else m = contents.len-n
-	for(var/i in 1 to n)
-		overlays += image(icon = src.icon, icon_state = "[case_type]", pixel_x = 3 * (i-1) )
-	if(m)
-		for(var/i in 1 to m)
-			overlays += image(icon = src.icon, icon_state = "[case_type]", pixel_x = 3 * (i-1), pixel_y = 6)
+	cut_overlays()
+	for(var/i = contents.len, i >= 1, i--)
+		add_overlay(image(icon = src.icon, icon_state = "[case_type]", pixel_x = 4 * (i -1) ))
 	if(open)
-		overlays += "[icon_state]_open"
+		add_overlay("[icon_state]_open")
 	else
-		overlays += "[icon_state]_door"
+		add_overlay("[icon_state]_door")
 
 /obj/structure/guncase/attackby(obj/item/I, mob/user, params)
 	if(isrobot(user) || isalien(user))
@@ -51,21 +44,24 @@
 			contents += I
 			user << "<span class='notice'>You place [I] in [src].</span>"
 			update_icon()
-			interact(usr)
 			return
 
-	open = !open
-	update_icon()
+	else if(user.a_intent != "harm")
+		open = !open
+		update_icon()
+	else
+		return ..()
 
 /obj/structure/guncase/attack_hand(mob/user)
 	if(isrobot(user) || isalien(user))
 		return
-	if(!open)
-		open = 1
+	if(contents.len && open)
+		ShowWindow(user)
+	else
+		open = !open
 		update_icon()
-	else interact(user)
 
-/obj/structure/guncase/interact(mob/user)
+/obj/structure/guncase/proc/ShowWindow(mob/user)
 	var/dat = {"<div class='block'>
 				<h3>Stored Guns</h3>
 				<table align='center'>"}
@@ -81,19 +77,14 @@
 /obj/structure/guncase/Topic(href, href_list)
 	if(href_list["retrieve"])
 		var/obj/item/O = locate(href_list["retrieve"])
-		if(O.loc != src)
-			interact(usr)
-			return //safety check so you can't teleport guns
 		if(!usr.canUseTopic(src))
 			return
-		if(!open) return //safety check,don't just teleport junk out of a guncase if it's closed
 		if(ishuman(usr))
 			if(!usr.get_active_hand())
 				usr.put_in_hands(O)
 			else
 				O.loc = get_turf(src)
 			update_icon()
-			interact(usr)
 
 /obj/structure/guncase/shotgun
 	name = "shotgun locker"
@@ -106,5 +97,4 @@
 	desc = "A locker that holds energy guns."
 	icon_state = "ecase"
 	case_type = "egun"
-	gun_category = /obj/item/weapon/gun/energy
-	capacity = 7
+	gun_category = /obj/item/weapon/gun/energy/gun

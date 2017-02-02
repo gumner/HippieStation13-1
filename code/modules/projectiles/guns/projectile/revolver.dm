@@ -3,11 +3,7 @@
 	desc = "A suspicious revolver. Uses .357 ammo." //usually used by syndicates
 	icon_state = "revolver"
 	mag_type = /obj/item/ammo_box/magazine/internal/cylinder
-	mag_load_sound = null
-	mag_unload_sound = null		//Revolvers already have their own sfx for this kind of stuff
-	chamber_sound = null
-	fire_sound = 'sound/weapons/revolver_shoot.ogg'
-	pin = /obj/item/device/firing_pin/area/syndicate
+	origin_tech = "combat=3;materials=2"
 
 /obj/item/weapon/gun/projectile/revolver/New()
 	..()
@@ -29,14 +25,13 @@
 	return ..(0, 1)
 
 /obj/item/weapon/gun/projectile/revolver/attackby(obj/item/A, mob/user, params)
+	. = ..()
+	if(.)
+		return
 	var/num_loaded = magazine.attackby(A, user, params, 1)
 	if(num_loaded)
 		user << "<span class='notice'>You load [num_loaded] shell\s into \the [src].</span>"
 		A.update_icon()
-		if(istype(A, /obj/item/ammo_casing))
-			playsound(user.loc, pick('sound/effects/wep_misc/bullet_insert.ogg', 'sound/effects/wep_misc/bullet_insert2.ogg'), 30, 1, -2)
-		else
-			playsound(user.loc, 'sound/effects/wep_misc/reload1.ogg', 30, 1, -2)
 		update_icon()
 		chamber_round(0)
 
@@ -55,7 +50,6 @@
 			CB.SpinAnimation(10, 1)
 			CB.update_icon()
 			num_unloaded++
-		playsound(CB.loc, pick('sound/effects/wep_misc/ShellCasing1.ogg', 'sound/effects/wep_misc/ShellCasing2.ogg', 'sound/effects/wep_misc/ShellCasing3.ogg'), 15, 1, -1)
 	if (num_unloaded)
 		user << "<span class='notice'>You unload [num_unloaded] shell\s from [src].</span>"
 	else
@@ -99,11 +93,9 @@
 	name = "\improper .38 Mars Special"
 	desc = "A cheap Martian knock-off of a classic law enforcement firearm. Uses .38-special rounds."
 	icon_state = "detective"
-	origin_tech = "combat=2;materials=2"
 	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/rev38
 	unique_rename = 1
 	unique_reskin = 1
-	pin = /obj/item/device/firing_pin/generic
 
 /obj/item/weapon/gun/projectile/revolver/detective/New()
 	..()
@@ -112,7 +104,6 @@
 	options["Black Panther"] = "detective_panther"
 	options["Gold Trim"] = "detective_gold"
 	options["The Peacemaker"] = "detective_peacemaker"
-	options["Blue Sliver"] = "detective_bluesilver"
 	options["Cancel"] = null
 
 /obj/item/weapon/gun/projectile/revolver/detective/process_fire(atom/target as mob|obj|turf, mob/living/user as mob|obj, message = 1, params, zone_override = "")
@@ -160,16 +151,23 @@
 	name = "\improper Unica 6 auto-revolver"
 	desc = "A retro high-powered autorevolver typically used by officers of the New Russia military. Uses .357 ammo."
 	icon_state = "mateba"
-	origin_tech = "combat=2;materials=2"
-	fire_sound = 'sound/weapons/revolver_big.ogg'
-	pin = /obj/item/device/firing_pin/generic
+
+/obj/item/weapon/gun/projectile/revolver/golden
+	name = "\improper Golden revolver"
+	desc = "This ain't no game, ain't never been no show, And I'll gladly gun down the oldest lady you know. Uses .357 ammo."
+	icon_state = "goldrevolver"
+	fire_sound = 'sound/weapons/resonator_blast.ogg'
+	recoil = 8
+	pin = /obj/item/device/firing_pin
 
 /obj/item/weapon/gun/projectile/revolver/nagant
-	name = "\improper Nagant M1895"
-	desc = "A very, very old revolver. It's been modified to shoot .357 ammo."
+	name = "nagant revolver"
+	desc = "An old model of revolver that originated in Russia. Able to be suppressed. Uses 7.62x38mmR ammo."
 	icon_state = "nagant"
-	origin_tech = "combat=2;materials=2"
-	pin = /obj/item/device/firing_pin/generic
+	origin_tech = "combat=3"
+	can_suppress = 1
+	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/rev762
+
 
 // A gun to play Russian Roulette!
 // You can spin the chamber to randomize the position of the bullet.
@@ -180,7 +178,6 @@
 	origin_tech = "combat=2;materials=2"
 	mag_type = /obj/item/ammo_box/magazine/internal/rus357
 	var/spun = 0
-	pin = /obj/item/device/firing_pin/generic
 
 /obj/item/weapon/gun/projectile/revolver/russian/New()
 	..()
@@ -250,27 +247,130 @@
 			var/obj/item/ammo_casing/AC = chambered
 			if(AC.fire(user, user))
 				playsound(user, fire_sound, 50, 1)
-				var/zone = check_zone(user.zone_sel.selecting)
-				var/obj/item/organ/limb/affecting = H.get_organ(zone)
+				var/zone = check_zone(user.zone_selected)
+				var/obj/item/bodypart/affecting = H.get_bodypart(zone)
 				if(zone == "head" || zone == "eyes" || zone == "mouth")
-					user.apply_damage(300, BRUTE, affecting)
-					user.visible_message("<span class='danger'>[user.name] fires [src] at \his head!</span>", "<span class='userdanger'>You fire [src] at your head!</span>", "<span class='italics'>You hear a gunshot!</span>")
+					shoot_self(user, affecting)
 				else
-					user.visible_message("<span class='danger'>[user.name] cowardly fires [src] at \his [affecting]!</span>", "<span class='userdanger'>You cowardly fire [src] at your [affecting]!</span>", "<span class='italics'>You hear a gunshot!</span>")
+					user.visible_message("<span class='danger'>[user.name] cowardly fires [src] at \his [affecting.name]!</span>", "<span class='userdanger'>You cowardly fire [src] at your [affecting.name]!</span>", "<span class='italics'>You hear a gunshot!</span>")
 				return
 
 		user.visible_message("<span class='danger'>*click*</span>")
 		playsound(user, 'sound/weapons/empty.ogg', 100, 1)
 
+/obj/item/weapon/gun/projectile/revolver/russian/proc/shoot_self(mob/living/carbon/human/user, affecting = "head")
+	user.apply_damage(300, BRUTE, affecting)
+	user.visible_message("<span class='danger'>[user.name] fires [src] at \his head!</span>", "<span class='userdanger'>You fire [src] at your head!</span>", "<span class='italics'>You hear a gunshot!</span>")
 
-/obj/item/weapon/gun/projectile/revolver/rigatoni
-	name = "italian revolver"
-	desc = "A black snubnosed .38 revolver. Very italian."
-	icon_state = "rigavolver"
-	item_state = "rigavolver"
-	origin_tech = "combat=2;materials=2"
-	mag_type = /obj/item/ammo_box/magazine/internal/cylinder/rev38
-	pin = /obj/item/device/firing_pin/generic
+/obj/item/weapon/gun/projectile/revolver/russian/soul
+	name = "cursed russian revolver"
+	desc = "To play with this revolver requires wagering your very soul."
+
+/obj/item/weapon/gun/projectile/revolver/russian/soul/shoot_self(mob/living/user)
+	..()
+	var/obj/item/device/soulstone/anybody/SS = new /obj/item/device/soulstone/anybody(get_turf(src))
+	if(!SS.transfer_soul("FORCE", user)) //Something went wrong
+		qdel(SS)
+		return
+	user.visible_message("<span class='danger'>[user.name]'s soul is captured by \the [src]!</span>", "<span class='userdanger'>You've lost the gamble! Your soul is forfiet!</span>")
+
+
+
+/////////////////////////////
+// DOUBLE BARRELED SHOTGUN //
+/////////////////////////////
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel
+	name = "double-barreled shotgun"
+	desc = "A true classic."
+	icon_state = "dshotgun"
+	item_state = "shotgun"
+	w_class = 4
+	force = 10
+	flags = CONDUCT
+	slot_flags = SLOT_BACK
+	mag_type = /obj/item/ammo_box/magazine/internal/shot/dual
+	sawn_desc = "Omar's coming!"
+	unique_rename = 1
+	unique_reskin = 1
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/New()
+	..()
+	options["Default"] = "dshotgun"
+	options["Dark Red Finish"] = "dshotgun-d"
+	options["Ash"] = "dshotgun-f"
+	options["Faded Grey"] = "dshotgun-g"
+	options["Maple"] = "dshotgun-l"
+	options["Rosewood"] = "dshotgun-p"
+	options["Cancel"] = null
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/attackby(obj/item/A, mob/user, params)
+	..()
+	if(istype(A, /obj/item/ammo_box) || istype(A, /obj/item/ammo_casing))
+		chamber_round()
+	if(istype(A, /obj/item/weapon/melee/energy))
+		var/obj/item/weapon/melee/energy/W = A
+		if(W.active)
+			sawoff(user)
+	if(istype(A, /obj/item/weapon/circular_saw) || istype(A, /obj/item/weapon/gun/energy/plasmacutter))
+		sawoff(user)
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/attack_self(mob/living/user)
+	var/num_unloaded = 0
+	while (get_ammo() > 0)
+		var/obj/item/ammo_casing/CB
+		CB = magazine.get_round(0)
+		chambered = null
+		CB.loc = get_turf(src.loc)
+		CB.update_icon()
+		num_unloaded++
+	if (num_unloaded)
+		user << "<span class='notice'>You break open \the [src] and unload [num_unloaded] shell\s.</span>"
+	else
+		user << "<span class='warning'>[src] is empty!</span>"
+
+
+
+
+// IMPROVISED SHOTGUN //
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/improvised
+	name = "improvised shotgun"
+	desc = "Essentially a tube that aims shotgun shells."
+	icon_state = "ishotgun"
+	item_state = "shotgun"
+	w_class = 4
+	force = 10
+	slot_flags = null
+	mag_type = /obj/item/ammo_box/magazine/internal/shot/improvised
+	sawn_desc = "I'm just here for the gasoline."
+	unique_rename = 0
+	unique_reskin = 0
+	var/slung = 0
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/improvised/attackby(obj/item/A, mob/user, params)
+	..()
+	if(istype(A, /obj/item/stack/cable_coil) && !sawn_state)
+		var/obj/item/stack/cable_coil/C = A
+		if(C.use(10))
+			slot_flags = SLOT_BACK
+			user << "<span class='notice'>You tie the lengths of cable to the shotgun, making a sling.</span>"
+			slung = 1
+			update_icon()
+		else
+			user << "<span class='warning'>You need at least ten lengths of cable if you want to make a sling!</span>"
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/improvised/update_icon()
+	..()
+	if(slung)
+		icon_state += "sling"
+
+/obj/item/weapon/gun/projectile/revolver/doublebarrel/improvised/sawoff(mob/user)
+	. = ..()
+	if(. && slung) //sawing off the gun removes the sling
+		new /obj/item/stack/cable_coil(get_turf(src), 10)
+		slung = 0
+		update_icon()
 
 /obj/item/weapon/gun/energy/revolver/cyborg
 	name = "cyborg revolver"
@@ -278,9 +378,7 @@
 	item_state = "mateba"
 	cell_type = "/obj/item/weapon/stock_parts/cell/secborg"
 	ammo_type = list(/obj/item/ammo_casing/energy/c3dbullet)
-	var/charge_tick = 0
 	var/recharge_time = 10
-	pin = /obj/item/device/firing_pin/generic
 
 /obj/item/weapon/gun/energy/revolver/cyborg/update_icon()
 	return
@@ -308,14 +406,3 @@
 				power_supply.give(shot.e_cost)	//...to recharge the shot
 
 	return 1
-
-/obj/item/weapon/gun/energy/revolver/plasmoidcombi
-	name = "Plasma-.357 Combi Revolver"
-	desc = "A highly advanced ballistic-energy weapon hybrid capable of firing both singular plasmoid bursts and printed .357 rounds, printing .357 rounds incurs a significant power draw"
-	cell_type = /obj/item/weapon/stock_parts/cell/combi
-	icon_state = "plasmoid_combi_revolver"
-	ammo_type = list(/obj/item/ammo_casing/energy/plasmoid, /obj/item/ammo_casing/energy/e357)
-	pin = /obj/item/device/firing_pin/generic
-
-/obj/item/weapon/gun/energy/revolver/plasmoidcombi/attack_self(mob/living/user)
-	select_fire(user)

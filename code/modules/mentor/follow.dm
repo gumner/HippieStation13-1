@@ -12,11 +12,10 @@
 	if(!holder)
 		var/datum/mentors/mentor = mentor_datums[usr.client.ckey]
 		mentor.following = M
-	else
-		holder.following = M
+/*	else
+		holder.following = M*/
 
-	usr.client.adminobs = 1
-	usr.reset_view(M)
+	usr.reset_perspective(M)
 	src.verbs += /client/proc/mentor_unfollow
 
 	admins << "<span class='mentor'><span class='prefix'>MENTOR:</span> <EM>[key_name(usr)]</EM> is now following <EM>[key_name(M)]</span>"
@@ -33,16 +32,15 @@
 	if(!check_mentor())
 		return
 
-	usr.client.adminobs = 0
-	usr.reset_view(null)
+	usr.reset_perspective(null)
 	src.verbs -= /client/proc/mentor_unfollow
 
 	var/following = null
 	if(!holder)
 		var/datum/mentors/mentor = mentor_datums[usr.client.ckey]
 		following = mentor.following
-	else
-		following = holder.following
+	/*else
+		following = holder.following*/
 
 
 	admins << "<span class='mentor'><span class='prefix'>MENTOR:</span> <EM>[key_name(usr)]</EM> is no longer following <EM>[key_name(following)]</span>"

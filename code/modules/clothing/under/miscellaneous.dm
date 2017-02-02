@@ -1,13 +1,3 @@
-
-/obj/item/clothing/under/banearmour
-    name = "banearmour"
-    desc = "You merely adopted the darkness, I was born in it."
-    icon_state = "banearmour"
-    item_state = "banearmour"
-    armor = list(melee = 20, bullet = 25, laser = 10)
-    can_adjust = 0
-
-
 /obj/item/clothing/under/pj/red
 	name = "red pj's"
 	desc = "Sleepwear."
@@ -32,72 +22,6 @@
 	item_color = "ek"
 	can_adjust = 0
 
-/obj/item/clothing/under/cosby
-	name = "sweater"
-	desc = "Zip zap zoobity bap"
-	icon_state = "cosby"
-	item_state = "r_suit" //bleh
-	item_color = "cosby"
-	can_adjust = 0
-	force = 0.001 	//TG doesn't have the forcehitsound that Hippie has at the moment, so this is just a hacky solution until or unless we figure something out -DerptheStewpidGoat
-	alternate_screams = list('sound/voice/cosby1.ogg','sound/voice/cosby2.ogg','sound/voice/cosby3.ogg','sound/voice/cosby4.ogg','sound/voice/cosby5.ogg')
-	burn_state = -1
-
-/obj/item/clothing/under/cosby/equipped(mob/living/carbon/user, slot)
-	if(slot == slot_w_uniform)
-		user.add_screams(src.alternate_screams) // using src to clarify which list we want
-	else
-		if(ishuman(user))
-			var/mob/living/carbon/human/H = user
-			H.reindex_screams() // Use the more robust version
-		else
-			user.reindex_screams()
-
-	return ..()
-
-/obj/item/clothing/under/robbie
-	name = "villain's suit"
-	desc = "We are number one!"
-	icon_state = "robbie"
-	item_state = "robbie"
-	item_color = "robbie"
-	can_adjust = 0
-	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0) //villains need some protection against super heroes
-	alternate_screams = list('sound/voice/robbie1.ogg','sound/voice/robbie2.ogg','sound/voice/robbie3.ogg','sound/voice/robbie4.ogg','sound/voice/robbie5.ogg','sound/voice/robbie6.ogg','sound/voice/robbie7.ogg','sound/voice/robbie8.ogg','sound/voice/robbie9.ogg','sound/voice/robbie10.ogg','sound/voice/robbie11.ogg','sound/voice/robbie12.ogg','sound/voice/robbie13.ogg','sound/voice/robbie14.ogg','sound/voice/robbie15.ogg')
-
-/obj/item/clothing/under/robbie/equipped(mob/living/carbon/user, slot)
-	if(slot == slot_w_uniform)
-		user.add_screams(src.alternate_screams)
-	else
-		if(ishuman(user))
-			var/mob/living/carbon/human/H = user
-			H.reindex_screams()
-		else
-			user.reindex_screams()
-
-	return ..()
-
-/obj/item/clothing/under/jotaro
-	name = "Delinquent's undershirt"
-	desc = "Good grief."
-	icon_state = "jotaro"
-	item_state = "jotaro"
-	item_color = "jotaro"
-	can_adjust = 0
-	alternate_screams = list('sound/voice/jotaro1.ogg','sound/voice/jotaro2.ogg')
-
-/obj/item/clothing/under/jotaro/equipped(mob/living/carbon/user, slot)
-	if(slot == slot_w_uniform)
-		user.add_screams(src.alternate_screams)
-	else
-		if(ishuman(user))
-			var/mob/living/carbon/human/H = user
-			H.reindex_screams()
-		else
-			user.reindex_screams()
-
-	return ..()
-
 /obj/item/clothing/under/sl_suit
 	desc = "It's a very amish looking suit."
 	name = "amish suit"
@@ -113,7 +37,7 @@
 	item_state = "armor"
 	can_adjust = 0
 	strip_delay = 100
-	burn_state = -1 //Won't burn in fires
+	burn_state = FIRE_PROOF
 
 /obj/item/clothing/under/waiter
 	name = "waiter's outfit"
@@ -147,13 +71,20 @@
 	item_state = "p_suit"
 	item_color = "psyche"
 
-/obj/item/clothing/under/sexyclown
+/obj/item/clothing/under/rank/clown/sexy
 	name = "sexy-clown suit"
 	desc = "It makes you look HONKable!"
 	icon_state = "sexyclown"
 	item_state = "sexyclown"
 	item_color = "sexyclown"
-	fitted = FEMALE_UNIFORM_TOP
+	can_adjust = 0
+
+/obj/item/clothing/under/jabroni
+	name = "Jabroni Outfit"
+	desc = "The leather club is two sectors down."
+	icon_state = "darkholme"
+	item_state = "darkholme"
+	item_color = "darkholme"
 	can_adjust = 0
 
 /obj/item/clothing/under/rank/vice
@@ -163,7 +94,6 @@
 	item_state = "gy_suit"
 	item_color = "vice"
 	can_adjust = 0
-	alt_covers_chest = 1
 
 /obj/item/clothing/under/rank/centcom_officer
 	desc = "It's a jumpsuit worn by Centcom Officers."
@@ -171,6 +101,7 @@
 	icon_state = "officer"
 	item_state = "g_suit"
 	item_color = "officer"
+	alt_covers_chest = 1
 
 /obj/item/clothing/under/rank/centcom_commander
 	desc = "It's a jumpsuit worn by Centcom's highest-tier Commanders."
@@ -194,24 +125,24 @@
 	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
 	can_adjust = 0
-	burn_state = -1 //Won't burn in fires
+	burn_state = FIRE_PROOF
 
 /obj/item/clothing/under/acj
-	name = "administrative jumpsuit"
-	icon_state = "black"
+	name = "administrative cybernetic jumpsuit"
+	icon_state = "syndicate"
 	item_state = "bl_suit"
-	item_color = "black"
-	desc = "An enhanced jumpsuit used for administrative duties."
+	item_color = "syndicate"
+	desc = "A cybernetically enhanced jumpsuit used for administrative duties."
 	gas_transfer_coefficient = 0.01
 	permeability_coefficient = 0.01
-	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS|HEAD
+	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	armor = list(melee = 100, bullet = 100, laser = 100,energy = 100, bomb = 100, bio = 100, rad = 100)
-	cold_protection = CHEST | GROIN | LEGS | FEET | ARMS | HANDS | HEAD
+	cold_protection = CHEST | GROIN | LEGS | FEET | ARMS | HANDS
 	min_cold_protection_temperature = SPACE_SUIT_MIN_TEMP_PROTECT
-	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS|HEAD
+	heat_protection = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	max_heat_protection_temperature = SPACE_SUIT_MAX_TEMP_PROTECT
 	can_adjust = 0
-	burn_state = -1 //Won't burn in fires
+	burn_state = FIRE_PROOF
 
 /obj/item/clothing/under/owl
 	name = "owl uniform"
@@ -233,12 +164,6 @@
 	icon_state = "cloud"
 	item_color = "cloud"
 	can_adjust = 0
-
-/obj/item/clothing/under/gimmick/ass
-	name = "ASS Jumpsuit"
-	desc = "Assault System Specialist Combat Heavy Enhanced Energetic Kenitic Suit."
-	icon_state = "black"
-	item_color = "black"
 
 /obj/item/clothing/under/gimmick/rank/captain/suit
 	name = "captain's suit"
@@ -327,6 +252,13 @@
 	item_state = "white_suit"
 	item_color = "white_suit"
 
+/obj/item/clothing/under/burial
+	name = "burial garments"
+	desc = "Traditional burial garments from the early 22nd century."
+	icon_state = "burial"
+	item_state = "burial"
+	item_color = "burial"
+
 /obj/item/clothing/under/blackskirt
 	name = "black skirt"
 	desc = "A black skirt, very fancy!"
@@ -335,6 +267,23 @@
 	body_parts_covered = CHEST|GROIN|ARMS
 	fitted = FEMALE_UNIFORM_TOP
 	can_adjust = 0
+
+/obj/item/clothing/under/blueskirt
+	name = "blue skirt"
+	desc = "A blue, casual skirt."
+	icon_state = "blueskirt"
+	item_color = "blueskirt"
+	item_state = "b_suit"
+	body_parts_covered = CHEST|GROIN|ARMS
+	fitted = FEMALE_UNIFORM_TOP
+	can_adjust = 0
+
+/obj/item/clothing/under/blueskirt/redskirt
+	name = "red skirt"
+	desc = "A red, casual skirt."
+	icon_state = "redskirt"
+	item_color = "redskirt"
+	item_state = "r_suit"
 
 /obj/item/clothing/under/schoolgirl
 	name = "blue schoolgirl uniform"
@@ -380,17 +329,6 @@
 	item_color = "pirate"
 	can_adjust = 0
 
-/obj/item/clothing/under/pmc
-	name = "urban-camouflage fatigues"
-	desc = "A set of fatigues in a dark urban camouflage. Manufactured by Ion Incorporated for its private military contractors in need of a robust uniform."
-	icon_state = "pmc"
-	item_state = "black"
-	item_color = "pmc"
-	has_sensor = 0
-	can_adjust = 0
-	armor = list(melee = 10, bullet = 5, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
-	unacidable = 1
-
 /obj/item/clothing/under/soviet
 	name = "soviet uniform"
 	desc = "For the Motherland!"
@@ -398,16 +336,6 @@
 	item_state = "soviet"
 	item_color = "soviet"
 	can_adjust = 0
-
-/obj/item/clothing/under/soviet/gorka
-	name = "Gorka SPOSN Uniform"
-	desc = "A Soviet-era combat uniform designed to be used in mountainous environments."
-	icon_state = "gorka"
-	item_state = "bl_suit"
-	item_color = "gorka"
-	can_adjust = 0
-	has_sensor = 0
-	armor = list(melee = 10, bullet = 5, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
 
 /obj/item/clothing/under/redcoat
 	name = "redcoat uniform"
@@ -446,7 +374,7 @@
 	body_parts_covered = CHEST|GROIN|ARMS
 	fitted = NO_FEMALE_UNIFORM
 	can_adjust = 0
-	burn_state = -1 //Won't burn in fires
+	burn_state = FIRE_PROOF
 
 /obj/item/clothing/under/sundress
 	name = "sundress"
@@ -577,6 +505,16 @@
 	can_adjust = 1
 	alt_covers_chest = 1
 
+/obj/item/clothing/under/plaid_skirt/green
+	name = "green plaid skirt"
+	desc = "A preppy green skirt with a white blouse."
+	icon_state = "plaid_green"
+	item_state = "plaid_green"
+	item_color = "plaid_green"
+	fitted = FEMALE_UNIFORM_TOP
+	can_adjust = 1
+	alt_covers_chest = 1
+
 /obj/item/clothing/under/jester
 	name = "jester suit"
 	desc = "A jolly dress, well suited to entertain your master, nuncle."
@@ -584,57 +522,86 @@
 	item_color = "jester"
 	can_adjust = 0
 
-/obj/item/clothing/under/odgreen
-	name = "olive drab suit"
-	desc = "Olive Drab. Commonly known as OD. A single-color battle uniform for general infantry use. Does not provide much camouflage."
-	icon_state = "odgreensuit"
-	item_state = "odgreensuit"
-	item_color = "odgreensuit"
+/obj/item/clothing/under/plasmaman
+	name = "Plasma-man Jumpsuit"
+	desc = "A specially designed suit that allows Plasma based life forms to exist in an oxygenated environment."
+	icon_state = "plasmaman"
+	item_state = "plasmaman"
+	item_color = "plasmaman"
+	armor = list(melee = 0, bullet = 0, laser = 0, energy = 0, bomb = 0, bio = 100, rad = 0)
+	body_parts_covered = CHEST|GROIN|LEGS|FEET|ARMS|HANDS
 	can_adjust = 0
-	armor = list(melee = 10, bullet = 0, laser = 0,energy = 0, bomb = 0, bio = 0, rad = 0)
+	strip_delay = 80
+	var/next_extinguish = 0
+	var/extinguish_cooldown = 100
+	var/extinguishes_left = 5
 
-/obj/item/clothing/under/tracksuit
-	name = "track suit"
-	desc = "A particularly slavish tracksuit."
-	icon_state = "tracksuit"
-	item_state = "tracksuit"
-	item_color = "tracksuit"
 
-/obj/item/clothing/under/zootsuit
-	name = "zoot suit"
-	desc = "A snazzy purple zoot suit. The name 'Big Papa' is stitched on the inside of the collar."
-	icon_state = "zootsuit"
-	item_state = "zootsuit"
-	item_color = "zootsuit"
+/obj/item/clothing/under/plasmaman/examine(mob/user)
+	..()
+	user << "<span class='notice'>There are [extinguishes_left] extinguisher canisters left in this suit.</span>"
+
+
+/obj/item/clothing/under/plasmaman/proc/Extinguish(mob/living/carbon/human/H)
+	if(!istype(H))
+		return
+
+	if(H.on_fire)
+		if(extinguishes_left)
+			if(next_extinguish > world.time)
+				return
+			next_extinguish = world.time + extinguish_cooldown
+			extinguishes_left--
+			H.visible_message("<span class='warning'>[H]'s suit automatically extinguishes them!</span>","<span class='warning'>Your suit automatically extinguishes you.</span>")
+			H.ExtinguishMob()
+			PoolOrNew(/obj/effect/particle_effect/water, get_turf(H))
+	return 0
+
+/obj/item/clothing/under/plasmaman/attackby(obj/item/E, mob/user, params)
+	if (istype(E, /obj/item/device/extinguisher_refill))
+		if (extinguishes_left == 5)
+			user << "<span class='notice'>The inbuilt extinguisher is full.</span>"
+			return
+		else
+			extinguishes_left = 5
+			user << "<span class='notice'>You refill the suits inbuilt extinguisher, using up the refill pack.</span>"
+			qdel(E)
+			return
+		return
+	return
+
+/obj/item/device/extinguisher_refill
+	name = "Plasma-man jumpsuit refill pack"
+	desc = "A compressed water pack used to refill plasma-man jumpsuit auto-extinguishers."
+	icon_state = "plasmarefill"
+	origin_tech = "materials=2;plasmatech=3;biotech=1"
+
+/obj/item/clothing/under/rank/security/navyblue/russian
+	name = "russian officer's uniform"
+	desc = "The latest in fashionable russian outfits."
+	icon_state = "hostanclothes"
+	item_state = "hostanclothes"
+	item_color = "hostanclothes"
+
+/obj/item/clothing/under/cosby
+	name = "sweater"
+	desc = "Zip zap zoobity bap"
+	icon_state = "cosby"
+	item_state = "r_suit" //bleh
+	item_color = "cosby"
 	can_adjust = 0
+	force = 0.001 	//TG doesn't have the forcehitsound that Hippie has at the moment, so this is just a hacky solution until or unless we figure something out -DerptheStewpidGoat
+	alternate_screams = list('sound/voice/cosby1.ogg','sound/voice/cosby2.ogg','sound/voice/cosby3.ogg','sound/voice/cosby4.ogg','sound/voice/cosby5.ogg')
+	burn_state = -1
 
-/obj/item/clothing/under/telvis
-	name = "snazzy jumpsuit"
-	desc = "A swingin' white jumpsuit studded with rhinestones. The name 'Telvis' is stitched on the inside of the collar."
-	icon_state = "telvis"
-	item_state = "telvis"
-	item_color = "telvis"
-	can_adjust = 0
+/obj/item/clothing/under/cosby/equipped(mob/living/carbon/user, slot)
+	if(slot == slot_w_uniform)
+		user.add_screams(src.alternate_screams) // using src to clarify which list we want
+	else
+		if(ishuman(user))
+			var/mob/living/carbon/human/H = user
+			H.reindex_screams() // Use the more robust version
+		else
+			user.reindex_screams()
 
-/obj/item/clothing/under/zootsuit
-	name = "zoot suit"
-	desc = "A snazzy purple zoot suit. The name 'Big Papa' is stitched on the inside of the collar."
-	icon_state = "zootsuit"
-	item_state = "zootsuit"
-	item_color = "zootsuit"
-	can_adjust = 0
-
-/obj/item/clothing/under/dio
-	name = "DIO's backless vest"
-	desc = "Walk into the room wearing this, everyone stops."
-	icon_state = "DIO"
-	item_state = "DIO"
-	item_color = "DIO"
-	can_adjust = 0
-
-/obj/item/clothing/under/suit_jacket/kira
-	name = "light blue suit"
-	desc = "A light blue suit."
-	icon_state = "kira"
-	item_state = "kira"
-	item_color = "kira"
+	return ..()

@@ -14,58 +14,74 @@
 
 
 /obj/item/device/assembly/health/activate()
-	if(!..())	return 0//Cooldown check
+	if(!..())
+		return 0//Cooldown check
 	toggle_scan()
 	return 0
 
 /obj/item/device/assembly/health/toggle_secure()
 	secured = !secured
 	if(secured && scanning)
-		SSobj.processing |= src
+		START_PROCESSING(SSobj, src)
 	else
 		scanning = 0
-		SSobj.processing.Remove(src)
+		STOP_PROCESSING(SSobj, src)
 	update_icon()
 	return secured
 
 /obj/item/device/assembly/health/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/device/multitool))
-		alarm_health = Clamp(input(user,"Input health variable to detect from -90 to 80 (0 is crit state, 80 is hurt, -90 is death)",src,0) as num, -90, 80)
+		if(alarm_health == 0)
+			alarm_health = -90
+			user.show_message("You toggle [src] to \"detect death\" mode.")
+		else
+			alarm_health = 0
+			user.show_message("You toggle [src] to \"detect critical state\" mode.")
 		return
-	..()
+	else
+		return ..()
 
-/obj/item/device/assembly/health/HasProximity(mob/living/M)
-	if(!secured || !scanning || cooldown > 0)
+/obj/item/device/assembly/health/process()
+	if(!scanning || !secured)
 		return
-	if(!istype(M))
+
+	var/atom/A = src
+	if(connected && connected.holder)
+		A = connected.holder
+
+	for(A, A && !ismob(A), A=A.loc);
+	// like get_turf(), but for mobs.
+	var/mob/living/M = A
+
+	if(M)
+		health_scan = M.health
+		if(health_scan <= alarm_health)
+			pulse()
+			audible_message("\icon[src] *beep* *beep*", "*beep* *beep*")
+			toggle_scan()
 		return
-	health_scan = M.health
-	if(health_scan <= alarm_health)
-		pulse()
-		audible_message("\icon[src] *beep* *beep*", "*beep* *beep*")
-		cooldown = 2
-		spawn(10)
-			process_cooldown()
+	return
 
 /obj/item/device/assembly/health/proc/toggle_scan()
-	if(!secured)	return 0
+	if(!secured)
+		return 0
 	scanning = !scanning
 	if(scanning)
-		SSobj.processing |= src
+		START_PROCESSING(SSobj, src)
 	else
-		SSobj.processing.Remove(src)
-		health_scan = null
+		STOP_PROCESSING(SSobj, src)
+	return
 
 /obj/item/device/assembly/health/interact(mob/user as mob)//TODO: Change this to the wires thingy
 	if(!secured)
 		user.show_message("<span class='warning'>The [name] is unsecured!</span>")
 		return 0
-	var/dat = text("<TT><B>Health Sensor</B> <A href='?src=\ref[src];scanning=1'>[scanning?"On":"Off"]</A>")
-	dat += "<BR><i>Detecting health <= [alarm_health]</i>"
+	var/dat = "<TT><B>Health Sensor</B> <A href='?src=\ref[src];scanning=1'>[scanning?"On":"Off"]</A>"
 	if(scanning && health_scan)
 		dat += "<BR>Health: [health_scan]"
 	user << browse(dat, "window=hscan")
 	onclose(user, "hscan")
+	return
 
 
 /obj/item/device/assembly/health/Topic(href, href_list)
@@ -75,7 +91,7 @@
 
 	var/mob/user = usr
 
-	if(!user.canUseTopic(user))
+	if(!user.canUseTopic(src))
 		usr << browse(null, "window=hscan")
 		onclose(usr, "hscan")
 		return
@@ -88,3 +104,4 @@
 		return
 
 	attack_self(user)
+	return

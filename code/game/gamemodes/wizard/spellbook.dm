@@ -11,20 +11,18 @@
 	var/obj/effect/proc_holder/spell/S = null //Since spellbooks can be used by only one person anyway we can track the actual spell
 	var/buy_word = "Learn"
 	var/limit //used to prevent a spellbook_entry from being bought more than X times with one wizard spellbook
-	var/no_apprentice = 0 // set to 1 to stop apprentinces from buying certain shit.
 
 /datum/spellbook_entry/proc/IsAvailible() // For config prefs / gamemode restrictions - these are round applied
 	return 1
+
 /datum/spellbook_entry/proc/CanBuy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book) // Specific circumstances
 	if(book.uses<cost || limit == 0)
 		return 0
-	else if(book.owner_is_apprentice == 1 && no_apprentice == 1 )
-		return 0
 	return 1
+
 /datum/spellbook_entry/proc/Buy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book) //return 1 on success
 	if(!S || qdeleted(S))
 		S = new spell_type()
-
 	//Check if we got the spell already
 	for(var/obj/effect/proc_holder/spell/aspell in user.mind.spell_list)
 		if(initial(S.name) == initial(aspell.name)) // Not using directly in case it was learned from one spellbook then upgraded in another
@@ -96,30 +94,9 @@
 	dat += "[S.clothes_req?"Needs wizard garb":"Can be cast without wizard garb"]<br>"
 	return dat
 
-/datum/spellbook_entry/eruption
-	name = "Eruption"
-	spell_type = /obj/effect/proc_holder/spell/aoe_turf/conjure/eruption
-	log_name = "Eruption"
-
-/datum/spellbook_entry/soulflare
-	name = "Soulflare"
-	spell_type = /obj/effect/proc_holder/spell/targeted/trigger/soulflare
-	log_name = "SoFl"
-
-/datum/spellbook_entry/corpseexplosion
-	name = "Corpse Explosion"
-	spell_type = /obj/effect/proc_holder/spell/targeted/explodecorpse
-	log_name = "CoEx"
-
-/datum/spellbook_entry/soulsplit
-	name = "Soulsplit"
-	spell_type = /obj/effect/proc_holder/spell/self/soulsplit
-	log_name = "SoSp"
-	category = "Mobility"
-
 /datum/spellbook_entry/fireball
 	name = "Fireball"
-	spell_type = /obj/effect/proc_holder/spell/dumbfire/fireball
+	spell_type = /obj/effect/proc_holder/spell/fireball
 	log_name = "FB"
 
 /datum/spellbook_entry/magicm
@@ -231,16 +208,16 @@
 	spell_type = /obj/effect/proc_holder/spell/targeted/lightning
 	log_name = "LB"
 
+/datum/spellbook_entry/infinite_guns
+	name = "Lesser Summon Guns"
+	spell_type = /obj/effect/proc_holder/spell/targeted/infinite_guns
+	log_name = "IG"
+	cost = 3
+
 /datum/spellbook_entry/barnyard
 	name = "Barnyard Curse"
 	spell_type = /obj/effect/proc_holder/spell/targeted/barnyardcurse
 	log_name = "BC"
-	cost = 1
-
-/datum/spellbook_entry/cluwnecurse
-	name = "Clown Curse"
-	spell_type = /obj/effect/proc_holder/spell/targeted/cluwnecurse
-	log_name = "CC"
 
 /datum/spellbook_entry/charge
 	name = "Charge"
@@ -248,20 +225,26 @@
 	log_name = "CH"
 	category = "Assistance"
 	cost = 1
-/*
+
 /datum/spellbook_entry/shapeshift
 	name = "Wild Shapeshift"
-	spell_type = /obj/effect/proc_holder/spell/targeted/shapeshift/wild
+	spell_type = /obj/effect/proc_holder/spell/targeted/shapeshift
 	log_name = "WS"
 	category = "Assistance"
 	cost = 1
-*/
+
+/datum/spellbook_entry/spacetime_dist
+	name = "Spacetime Distortion"
+	spell_type = /obj/effect/proc_holder/spell/spacetime_dist
+	log_name = "STD"
+	category = "Defensive"
+	cost = 1
+
 /datum/spellbook_entry/item
 	name = "Buy Item"
 	refundable = 0
 	buy_word = "Summon"
 	var/item_path= null
-	no_apprentice = 1 // apprentices can't buy artifacts 4now
 
 
 /datum/spellbook_entry/item/Buy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book)
@@ -277,22 +260,6 @@
 	if(surplus>=0)
 		dat += "[surplus] left.<br>"
 	return dat
-
-/datum/spellbook_entry/item/bookofdarkness
-	name = "Book of Darkness"
-	desc = "A forbidden tome, previously outlawed from the Wizard Federation for containing necromancy that is now being redistributed. Contains a powerful artifact that gets stronger with every soul it claims, a stunning spell that deals heavy damage to a single target, an incorporeal move spell and a spell that lets you explode corpses. Comes with a cool set of powerful robes as well that can carry the Staff of Revenant."
-	item_path = /obj/item/weapon/bookofdarkness
-	log_name = "BoD"
-	category = "Assistance"
-	cost = 5
-	limit = 1
-
-/datum/spellbook_entry/item/staffofrevenant
-	name = "Staff of Revenant"
-	desc = "A weak staff that can drain the souls of the dead to become far more powerful than anything you can lay your hands on. Activate in your hand to view your progress, stats and if possible, progress to the next stage."
-	item_path = /obj/item/weapon/gun/magic/staff/staffofrevenant
-	log_name = "SoR"
-	category = "Defensive"
 
 /datum/spellbook_entry/item/staffchange
 	name = "Staff of Change"
@@ -313,6 +280,12 @@
 	item_path = /obj/item/weapon/gun/magic/staff/chaos
 	log_name = "SC"
 
+/datum/spellbook_entry/item/spellblade
+	name = "Spellblade"
+	desc = "A sword capable of firing blasts of energy which rip targets limb from limb."
+	item_path = /obj/item/weapon/gun/magic/staff/spellblade
+	log_name = "SB"
+
 /datum/spellbook_entry/item/staffdoor
 	name = "Staff of Door Creation"
 	desc = "A particular staff that can mold solid metal into ornate doors. Useful for getting around in the absence of other transportation. Does not work on glass."
@@ -320,7 +293,6 @@
 	log_name = "SD"
 	cost = 1
 	category = "Mobility"
-	no_apprentice = 0
 
 /datum/spellbook_entry/item/staffhealing
 	name = "Staff of Healing"
@@ -329,7 +301,6 @@
 	log_name = "SH"
 	cost = 1
 	category = "Defensive"
-	no_apprentice = 0
 
 /datum/spellbook_entry/item/scryingorb
 	name = "Scrying Orb"
@@ -363,7 +334,6 @@
 	item_path = /obj/item/device/necromantic_stone
 	log_name = "NS"
 	category = "Assistance"
-	cost = 1
 
 /datum/spellbook_entry/item/wands
 	name = "Wand Assortment"
@@ -392,18 +362,26 @@
 	log_name = "CT"
 	category = "Assistance"
 
-/datum/spellbook_entry/item/plasma_fist
-	name = "Plasma Fist Scroll"
-	desc = "Consider this more of a \"Spell Bundle\". This artifact is NOT reccomended for weaklings. An ancient scroll that will teach you the art of Plasma Fist. With it's various combos you can knock people down in the area around you, light them on fire and finally perform the PLASMA FIST that will gib your target."
-	item_path = /obj/item/weapon/plasma_fist_scroll
-	log_name = "PF"
-	cost = 1
-
 /datum/spellbook_entry/item/bloodbottle
 	name = "Bottle of Blood"
 	desc = "A bottle of magically infused blood, the smell of which will attract extradimensional beings when broken. Be careful though, the kinds of creatures summoned by blood magic are indiscriminate in their killing, and you yourself may become a victim."
 	item_path = /obj/item/weapon/antag_spawner/slaughter_demon
 	log_name = "BB"
+	limit = 3
+	category = "Assistance"
+
+/datum/spellbook_entry/item/hugbottle
+	name = "Bottle of Tickles"
+	desc = "A bottle of magically infused fun, the smell of which will \
+		attract adorable extradimensional beings when broken. These beings \
+		are similar to slaughter demons, but they do not permamently kill \
+		their victims, instead putting them in an extradimensional hugspace, \
+		to be released on the demon's death. Chaotic, but not ultimately \
+		damaging. The crew's reaction to the other hand could be very \
+		destructive."
+	item_path = /obj/item/weapon/antag_spawner/slaughter_demon/laughter
+	cost = 1 //non-destructive; it's just a jape, sibling!
+	log_name = "HB"
 	limit = 3
 	category = "Assistance"
 
@@ -418,7 +396,17 @@
 	desc = "A hammer that creates an intensely powerful field of gravity where it strikes, pulling everthing nearby to the point of impact."
 	item_path = /obj/item/weapon/twohanded/singularityhammer
 	log_name = "SI"
+
+/datum/spellbook_entry/item/cursed_heart
+	name = "Cursed Heart"
+	desc = "A heart that has been revived by dark magicks, the user must \
+	concentrate to ensure the heart beats, but every beat heals them. It \
+	must beat every 6 seconds. The heart is fickle, and will not work for a \
+	lich."
+	item_path = /obj/item/organ/heart/cursed/wizard
+	log_name = "CH"
 	cost = 1
+	category = "Defensive"
 
 /datum/spellbook_entry/summon
 	name = "Summon Stuff"
@@ -426,7 +414,6 @@
 	refundable = 0
 	buy_word = "Cast"
 	var/active = 0
-	no_apprentice = 1 // lolno
 
 /datum/spellbook_entry/summon/CanBuy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book)
 	return ..() && !active
@@ -445,7 +432,6 @@
 
 /datum/spellbook_entry/summon/guns
 	name = "Summon Guns"
-	category = "Rituals"
 	desc = "Nothing could possibly go wrong with arming a crew of lunatics just itching for an excuse to kill you. Just be careful not to stand still too long!"
 	log_name = "SG"
 
@@ -457,15 +443,14 @@
 /datum/spellbook_entry/summon/guns/Buy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book)
 	feedback_add_details("wizard_spell_learned",log_name)
 	rightandwrong(0, user, 25)
+	active = 1
 	playsound(get_turf(user),"sound/magic/CastSummon.ogg",50,1)
 	user << "<span class='notice'>You have cast summon guns!</span>"
 	return 1
 
 /datum/spellbook_entry/summon/magic
 	name = "Summon Magic"
-	category = "Challenges"
 	desc = "Share the wonders of magic with the crew and show them why they aren't to be trusted with it at the same time."
-	cost = 0
 	log_name = "SU"
 
 /datum/spellbook_entry/summon/magic/IsAvailible()
@@ -475,17 +460,16 @@
 
 /datum/spellbook_entry/summon/magic/Buy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book)
 	feedback_add_details("wizard_spell_learned",log_name)
-	rightandwrong(1, user, 0)
-	book.uses += 1
+	rightandwrong(1, user, 25)
 	active = 1
 	playsound(get_turf(user),"sound/magic/CastSummon.ogg",50,1)
-	user << "<span class='notice'>You have cast summon magic and gained an extra charge for your spellbook.</span>"
+	user << "<span class='notice'>You have cast summon magic!</span>"
 	return 1
 
 /datum/spellbook_entry/summon/events
 	name = "Summon Events"
 	desc = "Give Murphy's law a little push and replace all events with special wizard ones that will confound and confuse everyone. Multiple castings increase the rate of these events."
-	cost = 1
+	cost = 2
 	log_name = "SE"
 	var/times = 0
 
@@ -507,26 +491,7 @@
 	if(times>0)
 		. += "You cast it [times] times.<br>"
 	return .
-/*
-/datum/spellbook_entry/summon/multisword
-	name = "Multiverse War"
-	category = "Rituals"
-	desc = "Triggers a multiverse war in which the crew (and you) must summon copies of yourself from alternate realities to do battle and hijack the emergency shuttle. Automatically triggers a shuttle call on purchase."
-	log_name = "MW"
-	cost = 8
-/datum/spellbook_entry/summon/multisword/IsAvailible()
-	if(!ticker.mode) // In case spellbook is placed on map
-		return 0
-	return (ticker.mode.name != "ragin' mages" && !config.no_summon_magic)
-/datum/spellbook_entry/summon/multisword/Buy(mob/living/carbon/human/user,obj/item/weapon/spellbook/book)
-	feedback_add_details("wizard_spell_learned",log_name)
-	only_me()
-	new /obj/item/weapon/multisword(get_turf(user)) //Because the proc skips special roles
-	SSshuttle.emergency.request()
-	playsound(get_turf(user),"sound/magic/CastSummon.ogg",50,1)
-	user << "<span class='notice'>You have triggerd a multiverse war!</span>"
-	return 1
-*/
+
 /obj/item/weapon/spellbook
 	name = "spell book"
 	desc = "An unearthly tome that glows with power."
@@ -535,14 +500,13 @@
 	throw_speed = 2
 	throw_range = 5
 	w_class = 1
+	persistence_replacement = /obj/item/weapon/spellbook/oneuse/random
 	var/uses = 10
 	var/temp = null
-	var/op = 1
 	var/tab = null
 	var/mob/living/carbon/human/owner
 	var/list/datum/spellbook_entry/entries = list()
 	var/list/categories = list()
-	var/owner_is_apprentice = 0 // to see if the book belongs to an apprentice
 
 /obj/item/weapon/spellbook/examine(mob/user)
 	..()
@@ -552,7 +516,7 @@
 		user << "It appears to have no author."
 
 /obj/item/weapon/spellbook/proc/Initialize()
-	var/entry_types = typesof(/datum/spellbook_entry) - /datum/spellbook_entry - /datum/spellbook_entry/item - /datum/spellbook_entry/summon
+	var/entry_types = subtypesof(/datum/spellbook_entry) - /datum/spellbook_entry/item - /datum/spellbook_entry/summon
 	for(var/T in entry_types)
 		var/datum/spellbook_entry/E = new T
 		if(E.IsAvailible())
@@ -574,14 +538,14 @@
 			user << "<span class='warning'>The contract has been used, you can't get your points back now!</span>"
 		else
 			user << "<span class='notice'>You feed the contract back into the spellbook, refunding your points.</span>"
-			uses += 2
+			uses++
 			for(var/datum/spellbook_entry/item/contract/CT in entries)
 				if(!isnull(CT.limit))
 					CT.limit++
 			qdel(O)
-	if(istype(O, /obj/item/weapon/antag_spawner/slaughter_demon))
+	else if(istype(O, /obj/item/weapon/antag_spawner/slaughter_demon))
 		user << "<span class='notice'>On second thought, maybe summoning a demon is a bad idea. You refund your points.</span>"
-		uses += 2
+		uses++
 		for(var/datum/spellbook_entry/item/bloodbottle/BB in entries)
 			if(!isnull(BB.limit))
 				BB.limit++
@@ -691,11 +655,8 @@
 	if(!istype(H, /mob/living/carbon/human))
 		return 1
 
-	if(H.mind.special_role == "apprentice" && owner_is_apprentice == 0)
+	if(H.mind.special_role == "apprentice")
 		temp = "If you got caught sneaking a peak from your teacher's spellbook, you'd likely be expelled from the Wizard Academy. Better not."
-		return
-	if(H.mind.special_role == "Wizard" && owner_is_apprentice == 1)
-		temp = "If word gets around you are stealing an apprentice's books, you'll be banished from the Wizard Academy. Better not."
 		return
 
 	var/datum/spellbook_entry/E = null
@@ -730,6 +691,7 @@
 	name = "spellbook of "
 	uses = 1
 	desc = "This template spellbook was never meant for the eyes of man..."
+	persistence_replacement = null
 
 /obj/item/weapon/spellbook/oneuse/New()
 	..()
@@ -737,14 +699,6 @@
 
 /obj/item/weapon/spellbook/oneuse/Initialize() //No need to init
 	return
-
-/obj/item/weapon/spellbook/oneuse/examine(mob/user)
-	..()
-	if(/obj/effect/proc_holder/spell/targeted/charge in user.mind.spell_list)
-		if(uses == 1)
-			user << "<font color=blue>The spellbook can still be used!</font>"
-		else
-			user << "<font color=red>The spellbook has been used up!</font>"
 
 /obj/item/weapon/spellbook/oneuse/attack_self(mob/user)
 	var/obj/effect/proc_holder/spell/S = new spell
@@ -775,7 +729,7 @@
 	return
 
 /obj/item/weapon/spellbook/oneuse/fireball
-	spell = /obj/effect/proc_holder/spell/dumbfire/fireball
+	spell = /obj/effect/proc_holder/spell/fireball
 	spellname = "fireball"
 	icon_state ="bookfireball"
 	desc = "This book feels warm to the touch."
@@ -808,7 +762,7 @@
 /obj/item/weapon/spellbook/oneuse/blind/recoil(mob/user)
 	..()
 	user <<"<span class='warning'>You go blind!</span>"
-	user.eye_blind = 10
+	user.blind_eyes(10)
 
 /obj/item/weapon/spellbook/oneuse/mindswap
 	spell = /obj/effect/proc_holder/spell/targeted/mind_transfer
@@ -835,28 +789,8 @@
 		user <<"<span class='notice'>You stare at the book some more, but there doesn't seem to be anything else to learn...</span>"
 		return
 
-	if(user.mind.special_verbs.len)
-		for(var/V in user.mind.special_verbs)
-			user.verbs -= V
-
-	if(stored_swap.mind.special_verbs.len)
-		for(var/V in stored_swap.mind.special_verbs)
-			stored_swap.verbs -= V
-
-	var/mob/dead/observer/ghost = stored_swap.ghostize(0)
-
-	user.mind.transfer_to(stored_swap)
-
-	if(stored_swap.mind.special_verbs.len)
-		for(var/V in user.mind.special_verbs)
-			user.verbs += V
-
-	ghost.mind.transfer_to(user)
-	user.key = ghost.key
-
-	if(user.mind.special_verbs.len)
-		for(var/V in user.mind.special_verbs)
-			user.verbs += V
+	var/obj/effect/proc_holder/spell/targeted/mind_transfer/swapper = new
+	swapper.cast(user, stored_swap, 1)
 
 	stored_swap <<"<span class='warning'>You're suddenly somewhere else... and someone else?!</span>"
 	user <<"<span class='warning'>Suddenly you're staring at [src] again... where are you, who are you?!</span>"
@@ -898,7 +832,7 @@
 		user <<"<font size='15' color='red'><b>HOR-SIE HAS RISEN</b></font>"
 		var/obj/item/clothing/mask/horsehead/magichead = new /obj/item/clothing/mask/horsehead
 		magichead.flags |= NODROP		//curses!
-		magichead.flags_inv = null	//so you can still see their face
+		magichead.flags_inv &= ~HIDEFACE //so you can still see their face
 		magichead.voicechange = 1	//NEEEEIIGHH
 		if(!user.unEquip(user.wear_mask))
 			qdel(user.wear_mask)
@@ -930,45 +864,12 @@
 	qdel(src)
 
 /obj/item/weapon/spellbook/oneuse/random/New()
-	var/real_type = pick(typesof(/obj/item/weapon/spellbook/oneuse))
+	var/real_type = pick(subtypesof(/obj/item/weapon/spellbook/oneuse))
 	new real_type(loc)
 	qdel(src)
 
-// Lord items because idfk where else to put them
-
-/obj/item/weapon/bookofdarkness
-	name = "book of darkness"
-	desc = "A dark, closed book containing foul magic used against the dead. Opening the book shall seal your fate forever, in exchange for powerful abilities."
-	icon = 'icons/obj/weapons.dmi'
-	icon_state = "bookofdarkness"
-	item_state = "bookofdarkness"
-	force = 0
-	throwforce = 0
-	w_class = 3
-
-	var/obj/effect/proc_holder/spell/targeted/trigger/soulflare/soulflare = null
-	var/obj/effect/proc_holder/spell/targeted/explodecorpse/explodecorpse = null
-	var/obj/effect/proc_holder/spell/self/soulsplit/soulsplit = null
-
-/obj/item/weapon/bookofdarkness/attack_self(mob/living/user)
-	user << "<font color=purple>You rapidly skim through the pages, but you can't see any letters. As you close the book however, you suddenly find equipment at your feet, and your brain hurts.</font>"
-	user << "<font color=purple><b>The Staff of Revenant</b></font> is a powerful artifact that lets you drain the souls of the fallen by hitting them with a melee strike from your staff. It starts off relatively weak, but can grow to become the largest threat one can ever face. Activate it in your hand to see your progress, the weapon's current stats and to progress to the next stage if possible."
-	user << "<font color=purple><b>Soulflare</b></font> deals 15 burn, brute and toxins damage to the target, putting them asleep for 5 seconds and if they are already in critical condition, they are instantly killed and the spell is refunded. This also applies to corpses."
-	user << "<font color=purple><b>Corpse Explosion</b></font> causes a corpse to violently explode in a very large radius, destroying the body alongside it. Make sure to maintain at least 4 tiles distance between you and the target."
-	user << "<font color=purple><b>Soulsplit</b></font> let's you become incorporeal for 3.5 seconds, allowing you to phase through objects and walk at very high speeds. However, it cannot be cast if you are below 100 health. In addition, you are still vulnerable to damage and other attacks in this state, nor will it remove any stuns."
-	user << "<font color=purple><b>Your robes</b></font> have increased resistance against all damage and will help convey your peaceful intent towards the still living."
-	soulflare = new /obj/effect/proc_holder/spell/targeted/trigger/soulflare
-	user.mind.AddSpell(soulflare)
-
-	explodecorpse = new /obj/effect/proc_holder/spell/targeted/explodecorpse
-	user.mind.AddSpell(explodecorpse)
-
-	soulsplit = new /obj/effect/proc_holder/spell/self/soulsplit
-	user.mind.AddSpell(soulsplit)
-
-	new /obj/item/weapon/gun/magic/staff/staffofrevenant(get_turf(user))
-	new /obj/item/clothing/suit/wizrobe/necrolord(get_turf(user))
-	new /obj/item/clothing/head/wizard/necrolord(get_turf(user))
-	new /obj/item/clothing/shoes/sandal/marisa(get_turf(user))
-
-	qdel(src)
+/obj/item/weapon/spellbook/oneuse/sacredflame
+	spell = /obj/effect/proc_holder/spell/targeted/sacred_flame
+	spellname = "sacred flame"
+	icon_state ="booksacredflame"
+	desc = "Become one with the flames that burn within... and invite others to do so as well."

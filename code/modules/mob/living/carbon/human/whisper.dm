@@ -36,16 +36,12 @@
 		return
 
 	// If whispering your last words, limit the whisper based on how close you are to death.
-	if(stat == UNCONSCIOUS && critical)
-		var/health_diff = round(-config.health_threshold_dead + health)
+	if(critical)
+		var/health_diff = round(-HEALTH_THRESHOLD_DEAD + health)
 		// If we cut our message short, abruptly end it with a-..
 		var/message_len = length(message)
 		message = copytext(message, 1, health_diff) + "[message_len > health_diff ? "-.." : "..."]"
-		message = Ellipsis(html_decode(message), 10, 1)
-		whispers = "whispers in their final breath"
-	else if(critical) //If whispering while in critical state but conscious
-		message = Ellipsis(html_decode(message), 40, 1)
-		whispers = "mutters"
+		message = Ellipsis(message, 10, 1)
 
 	message = treat_message(message)
 
@@ -63,27 +59,26 @@
 	watching  -= eavesdropping
 
 	var/rendered
-
-	rendered = "<span class='game say'><span class='name'>[src.name]</span> [whispers] something.</span>"
+	whispers = critical ? "whispers something in their final breath." : "whispers something."
+	rendered = "<span class='game say'><span class='name'>[src.name]</span> [whispers]</span>"
 	for(var/mob/M in watching)
 		M.show_message(rendered, 2)
 
 	var/spans = list(SPAN_ITALICS)
+	whispers = critical ? "whispers in their final breath" : "whispers"
 	rendered = "<span class='game say'><span class='name'>[GetVoice()]</span>[alt_name] [whispers], <span class='message'>\"[attach_spans(message, spans)]\"</span></span>"
-	var/displayuser = "<span class='game say'>You whisper in your final breath, <span class='message'>\"<i>[message]</i>\"</span></span>"
 
 	for(var/atom/movable/AM in listening)
 		if(istype(AM,/obj/item/device/radio))
 			continue
-		AM.Hear(rendered, src, languages, message, , spans)
+		AM.Hear(rendered, src, languages_spoken, message, , spans)
 
 	message = stars(message)
 	rendered = "<span class='game say'><span class='name'>[GetVoice()]</span>[alt_name] [whispers], <span class='message'>\"[attach_spans(message, spans)]\"</span></span>"
 	for(var/atom/movable/AM in eavesdropping)
 		if(istype(AM,/obj/item/device/radio))
 			continue
-		AM.Hear(rendered, src, languages, message, , spans)
+		AM.Hear(rendered, src, languages_spoken, message, , spans)
 
-	if(critical && stat == UNCONSCIOUS) //Dying words.
+	if(critical) //Dying words.
 		succumb(1)
-		usr.show_message(displayuser, 2)

@@ -17,17 +17,37 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 	config_tag = "changeling"
 	antag_flag = ROLE_CHANGELING
 	restricted_jobs = list("AI", "Cyborg")
-	protected_jobs = list("Security Officer", "Warden", "Detective", "Head of Security", "Captain", "Head of Personnel")
+	protected_jobs = list("Security Officer", "Warden", "Detective", "Head of Security", "Captain")
 	required_players = 15
 	required_enemies = 1
-	recommended_enemies = 2
+	recommended_enemies = 4
 	reroll_friendly = 1
+
+	announce_span = "green"
+	announce_text = "Alien changelings have infiltrated the crew!\n\
+	<span class='green'>Changelings</span>: Accomplish the objectives assigned to you.\n\
+	<span class='notice'>Crew</span>: Root out and eliminate the changeling menace."
+
+	var/const/prob_int_murder_target = 50 // intercept names the assassination target half the time
+	var/const/prob_right_murder_target_l = 25 // lower bound on probability of naming right assassination target
+	var/const/prob_right_murder_target_h = 50 // upper bound on probability of naimg the right assassination target
+
+	var/const/prob_int_item = 50 // intercept names the theft target half the time
+	var/const/prob_right_item_l = 25 // lower bound on probability of naming right theft target
+	var/const/prob_right_item_h = 50 // upper bound on probability of naming the right theft target
+
+	var/const/prob_int_sab_target = 50 // intercept names the sabotage target half the time
+	var/const/prob_right_sab_target_l = 25 // lower bound on probability of naming right sabotage target
+	var/const/prob_right_sab_target_h = 50 // upper bound on probability of naming right sabotage target
+
+	var/const/prob_right_killer_l = 25 //lower bound on probability of naming the right operative
+	var/const/prob_right_killer_h = 50 //upper bound on probability of naming the right operative
+	var/const/prob_right_objective_l = 25 //lower bound on probability of determining the objective correctly
+	var/const/prob_right_objective_h = 50 //upper bound on probability of determining the objective correctly
 
 	var/const/changeling_amount = 4 //hard limit on changelings if scaling is turned off
 
-/datum/game_mode/changeling/announce()
-	world << "<b>The current game mode is - Changeling!</b>"
-	world << "<b>There are alien changelings on the station. Do not let the changelings succeed!</b>"
+	var/changeling_team_objective_type = null //If this is not null, we hand our this objective to all lings
 
 /datum/game_mode/changeling/pre_setup()
 
@@ -50,21 +70,34 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 			var/datum/mind/changeling = pick(antag_candidates)
 			antag_candidates -= changeling
 			changelings += changeling
-			changeling.special_role = "Changeling"
 			changeling.restricted_roles = restricted_jobs
-			modePlayer += changelings
 		return 1
 	else
 		return 0
 
 /datum/game_mode/changeling/post_setup()
+	modePlayer += changelings
+	//Decide if it's ok for the lings to have a team objective
+	//And then set it up to be handed out in forge_changeling_objectives
+	var/list/team_objectives = subtypesof(/datum/objective/changeling_team_objective)
+	var/list/possible_team_objectives = list()
+	for(var/T in team_objectives)
+		var/datum/objective/changeling_team_objective/CTO = T
+
+		if(changelings.len >= initial(CTO.min_lings))
+			possible_team_objectives += T
+
+	if(possible_team_objectives.len && prob(20*changelings.len))
+		changeling_team_objective_type = pick(possible_team_objectives)
+
 	for(var/datum/mind/changeling in changelings)
 		log_game("[changeling.key] (ckey) has been selected as a changeling")
 		changeling.current.make_changeling()
+		changeling.special_role = "Changeling"
 		forge_changeling_objectives(changeling)
 		greet_changeling(changeling)
+		ticker.mode.update_changeling_icons_added(changeling)
 	..()
-	return
 
 /datum/game_mode/changeling/make_antag_chance(mob/living/carbon/human/character) //Assigns changeling to latejoiners
 	var/changelingcap = min( round(joined_player_list.len/(config.changeling_scaling_coeff*2))+2, round(joined_player_list.len/config.changeling_scaling_coeff) )
@@ -72,13 +105,12 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		return
 	if(ticker.mode.changelings.len <= (changelingcap - 2) || prob(100 - (config.changeling_scaling_coeff*2)))
 		if(ROLE_CHANGELING in character.client.prefs.be_special)
-			if(!jobban_isbanned(character.client, ROLE_CHANGELING) && !jobban_isbanned(character.client, "Syndicate"))
+			if(!jobban_isbanned(character, ROLE_CHANGELING) && !jobban_isbanned(character, "Syndicate"))
 				if(age_check(character.client))
 					if(!(character.job in restricted_jobs))
 						character.mind.make_Changling()
-						return 1
 
-/datum/game_mode/proc/forge_changeling_objectives(datum/mind/changeling)
+/datum/game_mode/proc/forge_changeling_objectives(datum/mind/changeling, var/team_mode = 0)
 	//OBJECTIVES - random traitor objectives. Unique objectives "steal brain" and "identity theft".
 	//No escape alone because changelings aren't suited for it and it'd probably just lead to rampant robusting
 	//If it seems like they'd be able to do it in play, add a 10% chance to have to escape alone
@@ -93,7 +125,7 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 
 	var/datum/objective/absorb/absorb_objective = new
 	absorb_objective.owner = changeling
-	absorb_objective.gen_amount_goal(2, 4)
+	absorb_objective.gen_amount_goal(6, 8)
 	changeling.objectives += absorb_objective
 
 	if(prob(60))
@@ -112,27 +144,55 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		if(prob(70))
 			var/datum/objective/assassinate/kill_objective = new
 			kill_objective.owner = changeling
-			kill_objective.find_target()
-			var/datum/mind/M = kill_objective.target
-			if(istype(M) && istype(M.changeling))
-				var/datum/changeling/C = M.changeling
-				kill_objective.explanation_text = "Discover the identity of and assassinate [C.changelingID], the changeling."
+			if(team_mode) //No backstabbing while in a team
+				kill_objective.find_target_by_role(role = "Changeling", role_type = 1, invert = 1)
+			else
+				kill_objective.find_target()
 			changeling.objectives += kill_objective
 		else
 			var/datum/objective/maroon/maroon_objective = new
 			maroon_objective.owner = changeling
-			maroon_objective.find_target()
-			var/datum/mind/M = maroon_objective.target
-			if(istype(M) && istype(M.changeling))
-				var/datum/changeling/C = M.changeling
-				maroon_objective.explanation_text = "Prevent [C.changelingID], the changeling, from escaping alive."
+			if(team_mode)
+				maroon_objective.find_target_by_role(role = "Changeling", role_type = 1, invert = 1)
+			else
+				maroon_objective.find_target()
 			changeling.objectives += maroon_objective
 
+			if (!(locate(/datum/objective/escape) in changeling.objectives) && escape_objective_possible)
+				var/datum/objective/escape/escape_with_identity/identity_theft = new
+				identity_theft.owner = changeling
+				identity_theft.target = maroon_objective.target
+				identity_theft.update_explanation_text()
+				changeling.objectives += identity_theft
+				escape_objective_possible = FALSE
+
 	if (!(locate(/datum/objective/escape) in changeling.objectives) && escape_objective_possible)
-		var/datum/objective/escape/escape_objective = new
-		escape_objective.owner = changeling
-		changeling.objectives += escape_objective
+		if(prob(50))
+			var/datum/objective/escape/escape_objective = new
+			escape_objective.owner = changeling
+			changeling.objectives += escape_objective
+		else
+			var/datum/objective/escape/escape_with_identity/identity_theft = new
+			identity_theft.owner = changeling
+			if(team_mode)
+				identity_theft.find_target_by_role(role = "Changeling", role_type = 1, invert = 1)
+			else
+				identity_theft.find_target()
+			changeling.objectives += identity_theft
 		escape_objective_possible = FALSE
+
+
+
+/datum/game_mode/changeling/forge_changeling_objectives(datum/mind/changeling)
+	if(changeling_team_objective_type)
+		var/datum/objective/changeling_team_objective/team_objective = new changeling_team_objective_type
+		team_objective.owner = changeling
+		changeling.objectives += team_objective
+
+		..(changeling,1)
+	else
+		..(changeling,0)
+
 
 /datum/game_mode/proc/greet_changeling(datum/mind/changeling, you_are=1)
 	if (you_are)
@@ -150,8 +210,6 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 	for(var/datum/objective/objective in changeling.objectives)
 		changeling.current << "<b>Objective #[obj_count]</b>: [objective.explanation_text]"
 		obj_count++
-
-	changeling.current << "<a href=[config.wikiurl]/index.php?title=Changeling>New to changeling? Click here to be linked to the wiki guide on changelings.</a>"
 	return
 
 /*/datum/game_mode/changeling/check_finished()
@@ -220,29 +278,34 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 	var/datum/changelingprofile/first_prof = null
 	//var/list/absorbed_dna = list()
 	//var/list/protected_dna = list() //dna that is not lost when capacity is otherwise full
-	var/dna_max = INFINITY //How many extra DNA strands the changeling can store for transformation.
+	var/dna_max = 6 //How many extra DNA strands the changeling can store for transformation.
 	var/absorbedcount = 0
 	var/chem_charges = 20
 	var/chem_storage = 75
 	var/chem_recharge_rate = 1
 	var/chem_recharge_slowdown = 0
-	var/sting_range = 1 //FOR THE LOVE OF GOD KEEP THIS AT 1, we don't want changeling stings to be long-range fuck-you's
+	var/sting_range = 2
 	var/changelingID = "Changeling"
 	var/geneticdamage = 0
 	var/isabsorbing = 0
-	var/geneticpoints = 5
-	var/total_genetic_points = 5 //How many genetic points the changeling has absorbed overall
+	var/islinking = 0
+	var/geneticpoints = 10
 	var/purchasedpowers = list()
 	var/mimicing = ""
 	var/canrespec = 0
+	var/changeling_speak = 0
 	var/datum/dna/chosen_dna
 	var/obj/effect/proc_holder/changeling/sting/chosen_sting
+	var/datum/cellular_emporium/cellular_emporium
+	var/datum/action/innate/cellular_emporium/emporium_action
 
 /datum/changeling/New(var/gender=FEMALE)
 	..()
 	var/honorific
-	if(gender == FEMALE)	honorific = "Ms."
-	else					honorific = "Mr."
+	if(gender == FEMALE)
+		honorific = "Ms."
+	else
+		honorific = "Mr."
 	if(possible_changeling_IDs.len)
 		changelingID = pick(possible_changeling_IDs)
 		possible_changeling_IDs -= changelingID
@@ -250,9 +313,17 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 	else
 		changelingID = "[honorific] [rand(1,999)]"
 
+	cellular_emporium = new(src)
+	emporium_action = new(cellular_emporium)
+
+/datum/changeling/Destroy()
+	qdel(cellular_emporium)
+	cellular_emporium = null
+	. = ..()
 
 /datum/changeling/proc/regenerate(var/mob/living/carbon/the_ling)
 	if(istype(the_ling))
+		emporium_action.Grant(the_ling)
 		if(the_ling.stat == DEAD)
 			chem_charges = min(max(0, chem_charges + chem_recharge_rate - chem_recharge_slowdown), (chem_storage*0.5))
 			geneticdamage = max(LING_DEAD_GENETICDAMAGE_HEAL_CAP,geneticdamage-1)
@@ -299,19 +370,14 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		return
 	return 1
 
-/datum/changeling/proc/add_profile(var/mob/living/carbon/human/H, var/mob/living/carbon/user, protect = 0)
-	if(stored_profiles.len > dna_max)
-		if(!push_out_profile())
-			return
+/datum/changeling/proc/create_profile(mob/living/carbon/human/H, mob/living/carbon/human/user, protect = 0)
+	var/datum/changelingprofile/prof = new
 
-	var/datum/changelingprofile/prof = new()
-
-	H.name = H.dna.real_name //Set this again, just to be sure that it's properly set.
+	H.dna.real_name = H.real_name //Set this again, just to be sure that it's properly set.
 	var/datum/dna/new_dna = new H.dna.type
 	H.dna.copy_dna(new_dna)
 	prof.dna = new_dna
-	prof.dna.real_name = H.name
-	prof.name = H.name
+	prof.name = H.real_name
 	prof.protected = protect
 
 	prof.underwear = H.underwear
@@ -333,12 +399,22 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		else
 			continue
 
+	return prof
+
+/datum/changeling/proc/add_profile(datum/changelingprofile/prof)
+	if(stored_profiles.len > dna_max)
+		if(!push_out_profile())
+			return
+
 	stored_profiles += prof
 	absorbedcount++
 
+/datum/changeling/proc/add_new_profile(mob/living/carbon/human/H, mob/living/carbon/human/user, protect = 0)
+	var/datum/changelingprofile/prof = create_profile(H, protect)
+	add_profile(prof)
 	return prof
 
-/datum/changeling/proc/remove_profile(var/mob/living/carbon/human/H, force = 0)
+/datum/changeling/proc/remove_profile(mob/living/carbon/human/H, force = 0)
 	for(var/datum/changelingprofile/prof in stored_profiles)
 		if(H.real_name == prof.name)
 			if(prof.protected && !force)
@@ -358,7 +434,7 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		return 1
 	return 0
 
-/proc/changeling_transform(var/mob/living/carbon/human/user, var/datum/changelingprofile/chosen_prof)
+/proc/changeling_transform(mob/living/carbon/human/user, datum/changelingprofile/chosen_prof)
 	var/datum/dna/chosen_dna = chosen_prof.dna
 	user.real_name = chosen_prof.name
 	user.underwear = chosen_prof.underwear
@@ -371,8 +447,7 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 	user.domutcheck()
 
 	//vars hackery. not pretty, but better than the alternative.
-	//This creates new "flesh" duplicate items based on what the victim was wearing during absorbtions. There are many, many reasons why this is retarded.
-/*	for(var/slot in slots)
+	for(var/slot in slots)
 		if(istype(user.vars[slot], slot2type[slot]) && !(chosen_prof.exists_list[slot])) //remove unnecessary flesh items
 			qdel(user.vars[slot])
 			continue
@@ -396,7 +471,7 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 		C.item_color = chosen_prof.item_color_list[slot]
 		C.item_state = chosen_prof.item_state_list[slot]
 		if(equip)
-			user.equip_to_slot_or_del(C, slot2slot[slot])*/
+			user.equip_to_slot_or_del(C, slot2slot[slot])
 
 	user.regenerate_icons()
 
@@ -419,4 +494,29 @@ var/list/slot2type = list("head" = /obj/item/clothing/head/changeling, "wear_mas
 
 /datum/changelingprofile/Destroy()
 	qdel(dna)
-	return ..()
+	. = ..()
+
+/datum/changelingprofile/proc/copy_profile(datum/changelingprofile/newprofile)
+	newprofile.name = name
+	newprofile.protected = protected
+	newprofile.dna = new dna.type
+	dna.copy_dna(newprofile.dna)
+	newprofile.name_list = name_list.Copy()
+	newprofile.appearance_list = appearance_list.Copy()
+	newprofile.flags_cover_list = flags_cover_list.Copy()
+	newprofile.exists_list = exists_list.Copy()
+	newprofile.item_color_list = item_color_list.Copy()
+	newprofile.item_state_list = item_state_list.Copy()
+	newprofile.underwear = underwear
+	newprofile.undershirt = undershirt
+	newprofile.socks = socks
+
+/datum/game_mode/proc/update_changeling_icons_added(datum/mind/changling_mind)
+	var/datum/atom_hud/antag/hud = huds[ANTAG_HUD_CHANGELING]
+	hud.join_hud(changling_mind.current)
+	set_antag_hud(changling_mind.current, "changling")
+
+/datum/game_mode/proc/update_changeling_icons_removed(datum/mind/changling_mind)
+	var/datum/atom_hud/antag/hud = huds[ANTAG_HUD_CHANGELING]
+	hud.leave_hud(changling_mind.current)
+	set_antag_hud(changling_mind.current, null)

@@ -17,9 +17,6 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 //When sending mutiple assets, how many before we give the client a quaint little sending resources message
 #define ASSET_CACHE_TELL_CLIENT_AMOUNT 8
 
-//List of ALL assets for the above, format is list(filename = asset).
-/var/global/list/asset_cache = list()
-
 /client
 	var/list/cache = list() // List of all assets sent to this client by the asset cache.
 	var/list/completed_asset_jobs = list() // List of all completed jobs, awaiting acknowledgement.
@@ -44,7 +41,7 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	if(client.cache.Find(asset_name) || client.sending.Find(asset_name))
 		return 0
 
-	client << browse_rsc(asset_cache[asset_name], asset_name)
+	client << browse_rsc(SSasset.cache[asset_name], asset_name)
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
 			client.cache += asset_name
@@ -94,8 +91,8 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 	if (unreceived.len >= ASSET_CACHE_TELL_CLIENT_AMOUNT)
 		client << "Sending Resources..."
 	for(var/asset in unreceived)
-		if (asset in asset_cache)
-			client << browse_rsc(asset_cache[asset], asset)
+		if (asset in SSasset.cache)
+			client << browse_rsc(SSasset.cache[asset], asset)
 
 	if(!verify || !winexists(client, "asset_cache_browser")) // Can't access the asset cache browser, rip.
 		if (client)
@@ -127,30 +124,19 @@ You can set verify to TRUE if you want send() to sleep until the client has the 
 
 //This proc will download the files without clogging up the browse() queue, used for passively sending files on connection start.
 //The proc calls procs that sleep for long times.
-proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
+/proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
 	for(var/file in files)
 		if (!client)
 			break
 		if (register_asset)
 			register_asset(file,files[file])
 		send_asset(client,file)
-		sleep(-1) //queuing calls like this too quickly can cause issues in some client versions
+		sleep(0) //queuing calls like this too quickly can cause issues in some client versions
 
 //This proc "registers" an asset, it adds it to the cache for further use, you cannot touch it from this point on or you'll fuck things up.
 //if it's an icon or something be careful, you'll have to copy it before further use.
 /proc/register_asset(var/asset_name, var/asset)
-	asset_cache[asset_name] = asset
-
-//From here on out it's populating the asset cache.
-/proc/populate_asset_cache()
-	for(var/type in typesof(/datum/asset) - list(/datum/asset, /datum/asset/simple))
-		var/datum/asset/A = new type()
-		A.register()
-
-	for(var/client/C in clients)
-		//doing this to a client too soon after they've connected can cause issues, also the proc we call sleeps
-		spawn(10)
-			getFilesSlow(C, asset_cache, FALSE)
+	SSasset.cache[asset_name] = asset
 
 //These datums are used to populate the asset cache, the proc "register()" does this.
 
@@ -187,6 +173,42 @@ proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
 //DEFINITIONS FOR ASSET DATUMS START HERE.
 
 
+/datum/asset/simple/tgui
+	assets = list(
+		"tgui.css"	= 'tgui/assets/tgui.css',
+		"tgui.js"	= 'tgui/assets/tgui.js'
+	)
+
+/datum/asset/simple/headers
+	assets = list(
+		"alarm_green.gif" 			= 'icons/program_icons/alarm_green.gif',
+		"alarm_red.gif" 			= 'icons/program_icons/alarm_red.gif',
+		"batt_5.gif" 				= 'icons/program_icons/batt_5.gif',
+		"batt_20.gif" 				= 'icons/program_icons/batt_20.gif',
+		"batt_40.gif" 				= 'icons/program_icons/batt_40.gif',
+		"batt_60.gif" 				= 'icons/program_icons/batt_60.gif',
+		"batt_80.gif" 				= 'icons/program_icons/batt_80.gif',
+		"batt_100.gif" 				= 'icons/program_icons/batt_100.gif',
+		"charging.gif" 				= 'icons/program_icons/charging.gif',
+		"downloader_finished.gif" 	= 'icons/program_icons/downloader_finished.gif',
+		"downloader_running.gif" 	= 'icons/program_icons/downloader_running.gif',
+		"ntnrc_idle.gif"			= 'icons/program_icons/ntnrc_idle.gif',
+		"ntnrc_new.gif"				= 'icons/program_icons/ntnrc_new.gif',
+		"power_norm.gif"			= 'icons/program_icons/power_norm.gif',
+		"power_warn.gif"			= 'icons/program_icons/power_warn.gif',
+		"sig_high.gif" 				= 'icons/program_icons/sig_high.gif',
+		"sig_low.gif" 				= 'icons/program_icons/sig_low.gif',
+		"sig_lan.gif" 				= 'icons/program_icons/sig_lan.gif',
+		"sig_none.gif" 				= 'icons/program_icons/sig_none.gif',
+	)
+
+
+
+
+
+
+
+
 /datum/asset/simple/pda
 	assets = list(
 		"pda_atmos.png"			= 'icons/pda_icons/pda_atmos.png',
@@ -201,7 +223,6 @@ proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
 		"pda_crate.png"			= 'icons/pda_icons/pda_crate.png',
 		"pda_cuffs.png"			= 'icons/pda_icons/pda_cuffs.png',
 		"pda_eject.png"			= 'icons/pda_icons/pda_eject.png',
-		"pda_exit.png"			= 'icons/pda_icons/pda_exit.png',
 		"pda_flashlight.png"	= 'icons/pda_icons/pda_flashlight.png',
 		"pda_honk.png"			= 'icons/pda_icons/pda_honk.png',
 		"pda_mail.png"			= 'icons/pda_icons/pda_mail.png',
@@ -215,7 +236,8 @@ proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
 		"pda_refresh.png"		= 'icons/pda_icons/pda_refresh.png',
 		"pda_scanner.png"		= 'icons/pda_icons/pda_scanner.png',
 		"pda_signaler.png"		= 'icons/pda_icons/pda_signaler.png',
-		"pda_status.png"		= 'icons/pda_icons/pda_status.png'
+		"pda_status.png"		= 'icons/pda_icons/pda_status.png',
+		"pda_dronephone.png"	= 'icons/pda_icons/pda_dronephone.png'
 	)
 
 /datum/asset/simple/paper
@@ -233,44 +255,14 @@ proc/getFilesSlow(var/client/client, var/list/files, var/register_asset = TRUE)
 		"large_stamp-law.png" = 'icons/stamp_icons/large_stamp-law.png'
 	)
 
+/datum/asset/simple/IRV
+	assets = list(
+		"jquery-ui.custom-core-widgit-mouse-sortable-min.js" = 'html/IRV/jquery-ui.custom-core-widgit-mouse-sortable-min.js',
+		"jquery-1.10.2.min.js" = 'html/IRV/jquery-1.10.2.min.js'
+	)
+
 //Registers HTML Interface assets.
 /datum/asset/HTML_interface/register()
 	for(var/path in typesof(/datum/html_interface))
 		var/datum/html_interface/hi = new path()
 		hi.registerResources()
-
-/datum/asset/nanoui
-	var/list/common = list()
-
-	var/list/common_dirs = list(
-		"nano/styles/",
-		"nano/scripts/",
-		"nano/images/",
-		"nano/layouts/"
-	)
-	var/list/uncommon_dirs = list(
-		"nano/interfaces/"
-	)
-
-/datum/asset/nanoui/register()
-	// Crawl the directories to find files.
-	for (var/path in common_dirs)
-		var/list/filenames = flist(path)
-		for(var/filename in filenames)
-			if(copytext(filename, length(filename)) != "/") // Ignore directories.
-				if(fexists(path + filename))
-					common[filename] = fcopy_rsc(path + filename)
-					register_asset(filename, common[filename])
-	for (var/path in uncommon_dirs)
-		var/list/filenames = flist(path)
-		for(var/filename in filenames)
-			if(copytext(filename, length(filename)) != "/") // Ignore directories.
-				if(fexists(path + filename))
-					register_asset(filename, fcopy_rsc(path + filename))
-
-/datum/asset/nanoui/send(client, uncommon)
-	if(!islist(uncommon))
-		uncommon = list(uncommon)
-
-	send_asset_list(client, uncommon)
-	send_asset_list(client, common)

@@ -1,9 +1,9 @@
 var/datum/subsystem/job/SSjob
-var/list/datum/objective/crew/trackedcrewobjs = list()
 
 /datum/subsystem/job
 	name = "Jobs"
-	priority = 5
+	init_order = 5
+	flags = SS_NO_FIRE
 
 	var/list/occupations = list()		//List of all jobs
 	var/list/unassigned = list()		//Players who need jobs
@@ -14,51 +14,60 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	NEW_SS_GLOBAL(SSjob)
 
 
-/datum/subsystem/job/Initialize(timeofday, zlevel)
-	if (zlevel)
-		return ..()
+/datum/subsystem/job/Initialize(timeofday)
 	SetupOccupations()
 	if(config.load_jobs_from_txt)
 		LoadJobs()
 	..()
 
+
 /datum/subsystem/job/proc/SetupOccupations(faction = "Station")
 	occupations = list()
-	var/list/all_jobs = typesof(/datum/job)
+	var/list/all_jobs = subtypesof(/datum/job)
 	if(!all_jobs.len)
 		world << "<span class='boldannounce'>Error setting up jobs, no job datums found</span>"
 		return 0
 
 	for(var/J in all_jobs)
 		var/datum/job/job = new J()
-		if(!job)	continue
-		if(job.faction != faction)	continue
-		if(!job.config_check()) continue
+		if(!job)
+			continue
+		if(job.faction != faction)
+			continue
+		if(!job.config_check())
+			continue
 		occupations += job
 
 	return 1
 
 
 /datum/subsystem/job/proc/Debug(text)
-	if(!Debug2)	return 0
+	if(!Debug2)
+		return 0
 	job_debug.Add(text)
 	return 1
 
 
 /datum/subsystem/job/proc/GetJob(rank)
-	if(!rank)	return null
+	if(!rank)
+		return null
 	for(var/datum/job/J in occupations)
-		if(!J)	continue
-		if(J.title == rank)	return J
+		if(!J)
+			continue
+		if(J.title == rank)
+			return J
 	return null
 
 /datum/subsystem/job/proc/AssignRole(mob/new_player/player, rank, latejoin=0)
 	Debug("Running AR, Player: [player], Rank: [rank], LJ: [latejoin]")
 	if(player && player.mind && rank)
 		var/datum/job/job = GetJob(rank)
-		if(!job)	return 0
-		if(jobban_isbanned(player, rank))	return 0
-		if(!job.player_old_enough(player.client)) return 0
+		if(!job)
+			return 0
+		if(jobban_isbanned(player, rank))
+			return 0
+		if(!job.player_old_enough(player.client))
+			return 0
 		var/position_limit = job.total_positions
 		if(!latejoin)
 			position_limit = job.spawn_positions
@@ -81,7 +90,7 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 		if(!job.player_old_enough(player.client))
 			Debug("FOC player not old enough, Player: [player]")
 			continue
-		if(flag && (!flag in player.client.prefs.be_special))
+		if(flag && (!(flag in player.client.prefs.be_special)))
 			Debug("FOC flag failed, Player: [player], Flag: [flag], ")
 			continue
 		if(player.mind && job.title in player.mind.restricted_roles)
@@ -104,7 +113,7 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 		if(istype(job, GetJob("Assistant"))) // We don't want to give him assistant, that's boring!
 			continue
 
-		if(job in command_positions) //If you want a command position, select it!
+		if(job.title in command_positions) //If you want a command position, select it!
 			continue
 
 		if(jobban_isbanned(player, job.title))
@@ -147,10 +156,13 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	for(var/level = 1 to 3)
 		for(var/command_position in command_positions)
 			var/datum/job/job = GetJob(command_position)
-			if(!job)	continue
-			if((job.current_positions >= job.total_positions) && job.total_positions != -1)	continue
+			if(!job)
+				continue
+			if((job.current_positions >= job.total_positions) && job.total_positions != -1)
+				continue
 			var/list/candidates = FindOccupationCandidates(job, level)
-			if(!candidates.len)	continue
+			if(!candidates.len)
+				continue
 			var/mob/new_player/candidate = pick(candidates)
 			if(AssignRole(candidate, command_position))
 				return 1
@@ -162,10 +174,13 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 /datum/subsystem/job/proc/CheckHeadPositions(level)
 	for(var/command_position in command_positions)
 		var/datum/job/job = GetJob(command_position)
-		if(!job)	continue
-		if((job.current_positions >= job.total_positions) && job.total_positions != -1)	continue
+		if(!job)
+			continue
+		if((job.current_positions >= job.total_positions) && job.total_positions != -1)
+			continue
 		var/list/candidates = FindOccupationCandidates(job, level)
-		if(!candidates.len)	continue
+		if(!candidates.len)
+			continue
 		var/mob/new_player/candidate = pick(candidates)
 		AssignRole(candidate, command_position)
 	return
@@ -174,14 +189,8 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 /datum/subsystem/job/proc/FillAIPosition()
 	var/ai_selected = 0
 	var/datum/job/job = GetJob("AI")
-	if(!job)	return 0
-	if(ticker.mode.name == "AI malfunction")	// malf. AIs are pre-selected before jobs
-		for (var/datum/mind/mAI in ticker.mode.malf_ai)
-			AssignRole(mAI.current, "AI")
-			ai_selected++
-		if(ai_selected)	return 1
+	if(!job)
 		return 0
-
 	for(var/i = job.total_positions, i > 0, i--)
 		for(var/level = 1 to 3)
 			var/list/candidates = list()
@@ -191,7 +200,8 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 				if(AssignRole(candidate, "AI"))
 					ai_selected++
 					break
-	if(ai_selected)	return 1
+	if(ai_selected)
+		return 1
 	return 0
 
 
@@ -202,7 +212,6 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 /datum/subsystem/job/proc/DivideOccupations()
 	//Setup new player list and get the jobs list
 	Debug("Running DO")
-	SetupOccupations()
 
 	//Holder for Triumvirate is stored in the ticker, this just processes it
 	if(ticker)
@@ -218,7 +227,8 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	initial_players_to_assign = unassigned.len
 
 	Debug("DO, Len: [unassigned.len]")
-	if(unassigned.len == 0)	return 0
+	if(unassigned.len == 0)
+		return 0
 
 	//Scale number of open security officer slots to population
 	setup_officer_positions()
@@ -234,10 +244,6 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	unassigned = shuffle(unassigned)
 
 	HandleFeedbackGathering()
-
-	for(var/mob/new_player/player in unassigned)
-		if(jobban_isbanned(player, "catban" || jobban_isbanned(player, "cluwneban")))
-			AssignRole(player, "Assistant")
 
 	//People who wants to be assistants, sure, go on.
 	Debug("DO, Running Assistant Check 1")
@@ -262,6 +268,7 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 
 	//Other jobs are now checked
 	Debug("DO, Running Standard Check")
+
 
 	// New job giving system by Donkie
 	// This will cause lots of more loops, but since it's only done once it shouldn't really matter much at all.
@@ -321,7 +328,7 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	for(var/mob/new_player/player in unassigned)
 		if(PopcapReached())
 			RejectPlayer(player)
-		else if(player.client.prefs.userandomjob)
+		else if(player.client.prefs.joblessrole == BERANDOMJOB)
 			GiveRandomJob(player)
 
 	Debug("DO, Standard Check end")
@@ -332,8 +339,15 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	for(var/mob/new_player/player in unassigned)
 		if(PopcapReached())
 			RejectPlayer(player)
-		Debug("AC2 Assistant located, Player: [player]")
-		AssignRole(player, "Assistant")
+		if(player.client.prefs.joblessrole == BEASSISTANT)
+			Debug("AC2 Assistant located, Player: [player]")
+			AssignRole(player, "Assistant")
+		else // For those who don't want to play if their preference were filled, back you go.
+			RejectPlayer(player)
+
+	for(var/mob/new_player/player in unassigned) //Players that wanted to back out but couldn't because they're antags (can you feel the edge case?)
+		GiveRandomJob(player)
+
 	return 1
 
 //Gives the player the stuff he should have with his rank
@@ -346,15 +360,33 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 	if(!joined_late)
 		var/obj/S = null
 		for(var/obj/effect/landmark/start/sloc in start_landmarks_list)
-			if(sloc.name != rank)	continue
-			if(locate(/mob/living) in sloc.loc)	continue
+			if(sloc.name != rank)
+				S = sloc //so we can revert to spawning them on top of eachother if something goes wrong
+				continue
+			if(locate(/mob/living) in sloc.loc)
+				continue
 			S = sloc
 			break
 		if(!S) //if there isn't a spawnpoint send them to latejoin, if there's no latejoin go yell at your mapper
+			world.log << "Couldn't find a round start spawn point for [rank]"
 			S = pick(latejoin)
+		if(!S) //final attempt, lets find some area in the arrivals shuttle to spawn them in to.
+			world.log << "Couldn't find a round start latejoin spawn point."
+			for(var/turf/T in get_area_turfs(/area/shuttle/arrival))
+				if(!T.density)
+					var/clear = 1
+					for(var/obj/O in T)
+						if(O.density)
+							clear = 0
+							break
+					if(clear)
+						S = T
+						continue
 		if(istype(S, /obj/effect/landmark) && istype(S.loc, /turf))
 			H.loc = S.loc
 
+	if(H.mind)
+		H.mind.assigned_role = rank
 
 	if(job)
 		var/new_mob = job.equip(H)
@@ -369,30 +401,29 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 		H << "<b>You are playing a job that is important for Game Progression. If you have to disconnect, please notify the admins via adminhelp.</b>"
 	if(config.minimal_access_threshold)
 		H << "<FONT color='blue'><B>As this station was initially staffed with a [config.jobs_have_minimal_access ? "full crew, only your job's necessities" : "skeleton crew, additional access may"] have been added to your ID card.</B></font>"
-
-	if(H.mind && !joined_late)
-		H.mind.assigned_role = rank
-		forge_job_objectives(H.mind, rank)
-
-
-	H.update_hud() 	// Tmp fix for Github issue 1006. TODO: make all procs in update_icons.dm do client.screen |= equipment no matter what.
 	return 1
 
 
 /datum/subsystem/job/proc/setup_officer_positions()
-	var/officer_positions = 5 //Number of open security officer positions at round start
+	var/datum/job/J = SSjob.GetJob("Security Officer")
+	if(!J)
+		throw EXCEPTION("setup_officer_positions(): Security officer job is missing")
 
 	if(config.security_scaling_coeff > 0)
-		officer_positions = min(12, max(5, round(unassigned.len/config.security_scaling_coeff))) //Scale between 5 and 12 officers
-		var/datum/job/J = SSjob.GetJob("Security Officer")
-		if(J  || J.spawn_positions > 0)
+		if(J.spawn_positions > 0)
+			var/officer_positions = min(12, max(J.spawn_positions, round(unassigned.len/config.security_scaling_coeff))) //Scale between configured minimum and 12 officers
 			Debug("Setting open security officer positions to [officer_positions]")
 			J.total_positions = officer_positions
 			J.spawn_positions = officer_positions
-	for(var/i=officer_positions-5, i>0, i--) //Spawn some extra eqipment lockers if we have more than 5 officers
+
+	//Spawn some extra eqipment lockers if we have more than 5 officers
+	var/equip_needed = J.total_positions
+	if(equip_needed < 0) // -1: infinite available slots
+		equip_needed = 12
+	for(var/i=equip_needed-5, i>0, i--)
 		if(secequipment.len)
 			var/spawnloc = secequipment[1]
-			new /obj/structure/closet/secure_closet/security(spawnloc)
+			new /obj/structure/closet/secure_closet/security/sec(spawnloc)
 			secequipment -= spawnloc
 		else //We ran out of spare locker spawns!
 			break
@@ -446,75 +477,21 @@ var/list/datum/objective/crew/trackedcrewobjs = list()
 /datum/subsystem/job/proc/RejectPlayer(mob/new_player/player)
 	if(player.mind && player.mind.special_role)
 		return
-	Debug("Popcap overflow Check observer located, Player: [player]")
+	if(PopcapReached())
+		Debug("Popcap overflow Check observer located, Player: [player]")
 	player << "<b>You have failed to qualify for any job you desired.</b>"
 	unassigned -= player
 	player.ready = 0
 
-/datum/subsystem/job/proc/job2dept(rank)
-	if(rank in engineering_positions)
-		return "Engineering"
-	else if(rank in medical_positions)
-		return "Medical"
-	else if(rank in science_positions)
-		return "R&D"
-	else if(rank in supply_positions)
-		return "Supply"
-	else if(rank in service_positions)
-		return "Service"
-	else if(rank in civilian_positions)
-		return "Civilian"
-	else if(rank in security_positions)
-		return "Security"
-	else
-		return
 
-/datum/subsystem/job/proc/job2obj(rank, blacklist)
-	var/list/objs = list()
-	var/list/acceptableobjs = list()
-	var/dept = job2dept(rank)
-	for(var/A in departments)
-		if(departments[A] == dept)
-			objs = typesof(A) - A
-			break
-	objs -= blacklist
-	for(var/B in objs)
-		var/datum/objective/crew/C = B
-		var/list/okjobs = splittext(initial(C.jobs),"#")
-		if(rank in okjobs)
-			acceptableobjs += B
-	return acceptableobjs
-
-/datum/subsystem/job/proc/forge_job_objectives(datum/mind/M, rank)
-	if(M.special_role)//no crew objs to antags
-		return
-	if(M.current && !ishuman(M.current))//nor for silicons
-		return
-	. = 1
-	//for(var/i in 1 to rand(1,3))    //for now just 1 objective since there are like 3 objectives per rank
-	var/noobjyet = TRUE
-	var/list/blacklist = list()
-	do
-		var/list/objs = job2obj(rank, blacklist)
-		var/obj = pick_n_take(objs)
-		if(obj)
-			var/datum/objective/crew/C = new obj(themind = M)
-			if(!C.requirements())
-				M.objectives -= C
-				C.owner = null
-				blacklist += C.type
-				qdel(C)
-				continue
-			C.update_explanation_text()
-			noobjyet = FALSE
-		else
-			noobjyet = FALSE
-			. = 0
-	while(noobjyet)
-	if(!.)
-		return
-	M.current << "<b>Nanotrasen has given you the following tasks, they will be checked when the shift ends:</b>"
-	var/obj_count = 1
-	for(var/datum/objective/objective in M.objectives)
-		M.current << "<B>Objective #[obj_count]</B>: [objective.explanation_text]"
-		obj_count++
+/datum/subsystem/job/Recover()
+	var/oldjobs = SSjob.occupations
+	spawn(20)
+		for (var/datum/job/J in oldjobs)
+			spawn(-1)
+				var/datum/job/newjob = GetJob(J.title)
+				if (!istype(newjob))
+					return
+				newjob.total_positions = J.total_positions
+				newjob.spawn_positions = J.spawn_positions
+				newjob.current_positions = J.current_positions

@@ -1,17 +1,13 @@
-//Provide an actual disease datum if you don't want advance diseases to be differentiated or something.
-/mob/proc/HasDisease(D)
+
+/mob/proc/HasDisease(datum/disease/D)
 	for(var/datum/disease/DD in viruses)
-		if(istype(D, /datum/disease)) //Were we provided a disease?
-			var/datum/disease/I = D
-			if(I.IsSame(DD))
-				return 1
-		else if(DD.type == D) //Were we provided a type?
+		if(D.IsSame(DD))
 			return 1
 	return 0
 
 
 /mob/proc/CanContractDisease(datum/disease/D)
-	if(stat == DEAD && !D.undead)
+	if(stat == DEAD)
 		return 0
 
 	if(D.GetDiseaseID() in resistances)
@@ -33,7 +29,7 @@
 	if(!CanContractDisease(D))
 		return 0
 	AddDisease(D)
-	return 1
+
 
 /mob/proc/AddDisease(datum/disease/D)
 	var/datum/disease/DD = new D.type(1, D, 0)
@@ -79,10 +75,10 @@
 		feet_ch = 100
 
 	if(prob(15/D.permeability_mod))
-		return 0
+		return
 
 	if(satiety>0 && prob(satiety/10)) // positive satiety makes it harder to contract the disease.
-		return 0
+		return
 
 	var/target_zone = pick(head_ch;1,body_ch;2,hands_ch;3,feet_ch;4)
 
@@ -129,13 +125,12 @@
 					Cl = M.wear_mask
 					passed = prob((Cl.permeability_coefficient*100) - 1)
 
-	if(!passed && (D.spread_flags & AIRBORNE) && !internals)
+	if(!passed && (D.spread_flags & AIRBORNE) && !internal)
 		passed = (prob((50*D.permeability_mod) - 1))
 
 	if(passed)
 		AddDisease(D)
-		return 1
-	return 0
+
 
 //Same as ContractDisease, except never overidden clothes checks
 /mob/proc/ForceContractDisease(datum/disease/D)
@@ -143,7 +138,8 @@
 		return 0
 	AddDisease(D)
 
+
 /mob/living/carbon/human/CanContractDisease(datum/disease/D)
-	if(dna && VIRUSIMMUNE in dna.species.specflags)
+	if(dna && (VIRUSIMMUNE in dna.species.specflags))
 		return 0
 	return ..()

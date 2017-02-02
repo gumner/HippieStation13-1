@@ -49,7 +49,7 @@
 
 	var/obj/machinery/hologram/holopad/T = current
 	if(istype(T) && T.masters[src])//If there is a hologram and its master is the user.
-		send_speech(message, 7, T, "R", get_spans())
+		send_speech(message, 7, T, "robot", get_spans())
 		src << "<i><span class='game say'>Holopad transmitted, <span class='name'>[real_name]</span> <span class='message robot'>\"[message]\"</span></span></i>"//The AI can "hear" its own message.
 	else
 		src << "No holopad connected."
@@ -133,14 +133,14 @@ var/const/VOX_DELAY = 600
 
 	for(var/word in words)
 		play_vox_word(word, src.z, null)
-
+/*
 	for(var/mob/M in player_list)
-		if(M.client && M.client.prefs.toggles & SOUND_VOX)
+		if(M.client)
 			var/turf/T = get_turf(M)
 			var/turf/our_turf = get_turf(src)
 			if(T.z == our_turf.z)
 				M << "<b><font size = 3><font color = red>AI announcement:</font color> [message]</font size></b>"
-
+*/
 
 
 /proc/play_vox_word(word, z_level, mob/only_listener)
@@ -157,7 +157,7 @@ var/const/VOX_DELAY = 600
 		if(!only_listener)
 			// Play voice for all mobs in the z level
 			for(var/mob/M in player_list)
-				if(M.client && !M.ear_deaf  && !(M.client.prefs.toggles & SOUND_VOX))
+				if(M.client && !M.ear_deaf && (M.client.prefs.toggles & SOUND_ANNOUNCEMENTS))
 					var/turf/T = get_turf(M)
 					if(T.z == z_level)
 						M << voice

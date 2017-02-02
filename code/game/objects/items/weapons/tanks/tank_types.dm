@@ -14,24 +14,27 @@
 	name = "oxygen tank"
 	desc = "A tank of oxygen."
 	icon_state = "oxygen"
-	distribute_pressure = ONE_ATMOSPHERE*O2STANDARD
+	distribute_pressure = TANK_DEFAULT_RELEASE_PRESSURE
 	force = 10
-	stamina_percentage = 0.4
-	materials = list(MAT_METAL = 5000)
+	dog_fashion = /datum/dog_fashion/back
+
 
 /obj/item/weapon/tank/internals/oxygen/New()
 	..()
-	src.air_contents.oxygen = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("o2")
+	air_contents.gases["o2"][MOLES] = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
 /obj/item/weapon/tank/internals/oxygen/yellow
 	desc = "A tank of oxygen, this one is yellow."
 	icon_state = "oxygen_f"
+	dog_fashion = null
 
 /obj/item/weapon/tank/internals/oxygen/red
 	desc = "A tank of oxygen, this one is red."
 	icon_state = "oxygen_fr"
+	dog_fashion = null
 
 
 /*
@@ -43,18 +46,12 @@
 	icon_state = "anesthetic"
 	item_state = "an_tank"
 	force = 10
-	stamina_percentage = 0.4
-	materials = list(MAT_METAL = 5000)
 
 /obj/item/weapon/tank/internals/anesthetic/New()
 	..()
-
-	src.air_contents.oxygen = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
-
-	var/datum/gas/sleeping_agent/trace_gas = new()
-	trace_gas.moles = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
-
-	src.air_contents.trace_gases += trace_gas
+	air_contents.assert_gases("o2", "n2o")
+	air_contents.gases["o2"][MOLES] = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
+	air_contents.gases["n2o"][MOLES] = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
 	return
 
 /*
@@ -65,13 +62,13 @@
 	desc = "Mixed anyone?"
 	icon_state = "oxygen"
 	force = 10
-	stamina_percentage = 0.4
+	dog_fashion = /datum/dog_fashion/back
 
 /obj/item/weapon/tank/internals/air/New()
 	..()
-
-	src.air_contents.oxygen = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
-	src.air_contents.nitrogen = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
+	air_contents.assert_gases("o2","n2")
+	air_contents.gases["o2"][MOLES] = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * O2STANDARD
+	air_contents.gases["n2"][MOLES] = (6*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C) * N2STANDARD
 	return
 
 
@@ -85,31 +82,31 @@
 	flags = CONDUCT
 	slot_flags = null	//they have no straps!
 	force = 8
-	stamina_percentage = 0.4
-	materials = list(MAT_METAL = 5000)
+
 
 /obj/item/weapon/tank/internals/plasma/New()
 	..()
-
-	src.air_contents.toxins = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("plasma")
+	air_contents.gases["plasma"][MOLES] = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 /obj/item/weapon/tank/internals/plasma/attackby(obj/item/weapon/W, mob/user, params)
-	..()
-
-	if (istype(W, /obj/item/weapon/flamethrower))
+	if(istype(W, /obj/item/weapon/flamethrower))
 		var/obj/item/weapon/flamethrower/F = W
-		if ((!F.status)||(F.ptank))	return
+		if ((!F.status)||(F.ptank))
+			return
 		src.master = F
 		F.ptank = src
 		user.unEquip(src)
 		src.loc = F
 		F.update_icon()
-	return
+	else
+		return ..()
 
 /obj/item/weapon/tank/internals/plasma/full/New()
 	..()
-	src.air_contents.toxins = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("plasma")
+	air_contents.gases["plasma"][MOLES] = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
@@ -118,21 +115,23 @@
  */
 
 /obj/item/weapon/tank/internals/plasmaman
+	name = "plasmaman plasma tank"
+	desc = "A tank of plasma gas."
 	icon_state = "plasmaman_tank"
 	item_state = "plasmaman_tank"
 	force = 10
-	stamina_percentage = 0.4
+	distribute_pressure = TANK_DEFAULT_RELEASE_PRESSURE
 
 /obj/item/weapon/tank/internals/plasmaman/New()
 	..()
-
-	src.air_contents.toxins = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("plasma")
+	air_contents.gases["plasma"][MOLES] = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 /obj/item/weapon/tank/internals/plasmaman/full/New()
 	..()
-
-	src.air_contents.toxins = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("plasma")
+	air_contents.gases["plasma"][MOLES] = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
@@ -141,12 +140,11 @@
 	item_state = "plasmaman_tank_belt"
 	slot_flags = SLOT_BELT
 	force = 5
-	stamina_percentage = 0.5
 
 /obj/item/weapon/tank/internals/plasmaman/belt/full/New()
 	..()
-
-	src.air_contents.toxins = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("plasma")
+	air_contents.gases["plasma"][MOLES] = (10*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 
@@ -162,48 +160,22 @@
 	slot_flags = SLOT_BELT
 	w_class = 2
 	force = 4
-	distribute_pressure = ONE_ATMOSPHERE*O2STANDARD
+	distribute_pressure = TANK_DEFAULT_RELEASE_PRESSURE
 	volume = 3 //Tiny. Real life equivalents only have 21 breaths of oxygen in them. They're EMERGENCY tanks anyway -errorage (dangercon 2011)
-	materials = list(MAT_METAL=1000)
 
 
 /obj/item/weapon/tank/internals/emergency_oxygen/New()
 	..()
-	src.air_contents.oxygen = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
+	air_contents.assert_gas("o2")
+	air_contents.gases["o2"][MOLES] = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
 	return
 
 /obj/item/weapon/tank/internals/emergency_oxygen/engi
 	name = "extended-capacity emergency oxygen tank"
 	icon_state = "emergency_engi"
 	volume = 6
-	materials = list(MAT_METAL=2000)
 
 /obj/item/weapon/tank/internals/emergency_oxygen/double
 	name = "double emergency oxygen tank"
-	icon_state = "emergency_double"
+	icon_state = "emergency_engi"
 	volume = 10
-	materials = list(MAT_METAL=4000)
-
-
-/*
- * Fart
- */
-/obj/item/weapon/tank/internals/fart
-	name = "fart tank"
-	desc = "A tank of farts."
-	icon_state = "fart"
-	flags = CONDUCT
-	slot_flags = SLOT_BELT
-	w_class = 2
-	force = 4
-	distribute_pressure = ONE_ATMOSPHERE*O2STANDARD
-	volume = 3 //Tiny, but still nasty
-	materials = list(MAT_METAL=1000)
-
-/obj/item/weapon/tank/internals/fart/New()
-	..()
-	var/datum/gas/fart/trace_gas = new()
-	trace_gas.moles = (3*ONE_ATMOSPHERE)*volume/(R_IDEAL_GAS_EQUATION*T20C)
-
-	src.air_contents.trace_gases += trace_gas
-	return

@@ -17,7 +17,7 @@
 	icon_state = "film"
 	item_state = "electropack"
 	w_class = 1
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 
 /*
  * Photo
@@ -28,7 +28,7 @@
 	icon_state = "photo"
 	item_state = "paper"
 	w_class = 1
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 	burntime = 5
 	var/icon/img		//Big photo image
 	var/scribble		//Scribble on the back.
@@ -94,7 +94,7 @@
 	icon_state = "album"
 	item_state = "briefcase"
 	can_hold = list(/obj/item/weapon/photo)
-	burn_state = 0 //Burnable
+	burn_state = FLAMMABLE
 
 /*
  * Camera
@@ -112,13 +112,32 @@
 	var/pictures_max = 10
 	var/pictures_left = 10
 	var/on = 1
-	var/remote = 0 //For taking pictures with the spirit camera
 	var/blueprints = 0	//are blueprints visible in the current photo being created?
 	var/list/aipictures = list() //Allows for storage of pictures taken by AI, in a similar manner the datacore stores info. Keeping this here allows us to share some procs w/ regualar camera
+	var/see_ghosts = 0 //for the spoop of it
 
-/obj/item/device/camera/spiritcam
-	pictures_max = 4
-	pictures_left = 4
+
+/obj/item/device/camera/CheckParts(list/parts_list)
+	..()
+	var/obj/item/device/camera/C = locate(/obj/item/device/camera) in contents
+	if(C)
+		pictures_max = C.pictures_max
+		pictures_left = C.pictures_left
+		visible_message("[C] has been imbued with godlike power!")
+		qdel(C)
+
+
+/obj/item/device/camera/spooky
+	name = "camera obscura"
+	desc = "A polaroid camera, some say it can see ghosts!"
+	see_ghosts = 1
+
+/obj/item/device/camera/detective
+	name = "Detective's camera"
+	desc = "A polaroid camera with extra capacity for crime investigations."
+	pictures_max = 30
+	pictures_left = 30
+
 
 /obj/item/device/camera/siliconcam //camera AI can take pictures with
 	name = "silicon photo camera"
@@ -167,7 +186,14 @@
 	for(var/turf/T in turfs)
 		atoms.Add(T)
 		for(var/atom/movable/A in T)
-			if(A.invisibility) continue
+			if(A.invisibility)
+				if(see_ghosts)
+					if(istype(A, /mob/dead/observer))
+						var/mob/dead/observer/O = A
+						if(O.orbiting) //so you dont see ghosts following people like antags, etc.
+							continue
+				else
+					continue
 			atoms.Add(A)
 
 	var/list/sorted = list()
@@ -206,21 +232,37 @@
 
 /obj/item/device/camera/proc/camera_get_mobs(turf/the_turf)
 	var/mob_detail
-	for(var/mob/living/A in the_turf)
-		if(A.invisibility) continue
-		var/holding = null
-		if(A.l_hand || A.r_hand)
-			if(A.l_hand) holding = "They are holding \a [A.l_hand]"
-			if(A.r_hand)
-				if(holding)
-					holding += " and \a [A.r_hand]"
+	for(var/mob/M in the_turf)
+		if(M.invisibility)
+			if(see_ghosts && istype(M,/mob/dead/observer))
+				var/mob/dead/observer/O = M
+				if(O.orbiting)
+					continue
+				if(!mob_detail)
+					mob_detail = "You can see a g-g-g-g-ghooooost! "
 				else
-					holding = "They are holding \a [A.r_hand]"
+					mob_detail += "You can also see a g-g-g-g-ghooooost!"
+			else
+				continue
 
-		if(!mob_detail)
-			mob_detail = "You can see [A] on the photo[A:health < 75 ? " - [A] looks hurt":""].[holding ? " [holding]":"."]. "
-		else
-			mob_detail += "You can also see [A] on the photo[A:health < 75 ? " - [A] looks hurt":""].[holding ? " [holding]":"."]."
+		var/holding = null
+
+		if(istype(M, /mob/living))
+			var/mob/living/L = M
+			if(L.l_hand || L.r_hand)
+				if(L.l_hand) holding = "They are holding \a [L.l_hand]"
+				if(L.r_hand)
+					if(holding)
+						holding += " and \a [L.r_hand]"
+					else
+						holding = "They are holding \a [L.r_hand]"
+
+			if(!mob_detail)
+				mob_detail = "You can see [L] on the photo[L.health < (L.maxHealth * 0.75) ? " - [L] looks hurt":""].[holding ? " [holding]":"."]. "
+			else
+				mob_detail += "You can also see [L] on the photo[L.health < (L.maxHealth * 0.75) ? " - [L] looks hurt":""].[holding ? " [holding]":"."]."
+
+
 	return mob_detail
 
 
@@ -238,7 +280,7 @@
 
 	var/list/turfs = list()
 	for(var/turf/T in range(1, target))
-		if((T in seen) || remote)
+		if(T in seen)
 			if(isAi && !cameranet.checkTurfVis(T))
 				continue
 			else
@@ -381,7 +423,9 @@
 		viewpichelper(Ainfo)
 
 /obj/item/device/camera/afterattack(atom/target, mob/user, flag)
-	if(!on || !pictures_left || ismob(target.loc)) return
+	if(!on || !pictures_left || !isturf(target.loc))
+		return
+
 	captureimage(target, user, flag)
 
 	playsound(loc, pick('sound/items/polaroid1.ogg', 'sound/items/polaroid2.ogg'), 75, 1, -3)
@@ -390,8 +434,7 @@
 	user << "<span class='notice'>[pictures_left] photos left.</span>"
 	icon_state = "camera_off"
 	on = 0
-	var/time = remote ? 600:64
-	spawn(time)
+	spawn(64)
 		icon_state = "camera"
 		on = 1
 
@@ -437,37 +480,5 @@
 	p.pixel_x = rand(-10, 10)
 	p.pixel_y = rand(-10, 10)
 	C.toner -= 20	 //Cyborgs are very ineffeicient at printing an image
-	visible_message("[C.name] spits out a photograph from a narrow slot on it's chassis.")
+	visible_message("[C.name] spits out a photograph from a narrow slot on its chassis.")
 	usr << "<span class='notice'>You print a photograph.</span>"
-
-/obj/item/device/camera/spiritcam/attack_self(mob/user)
-	if(istype(user, /mob/living) && user.mind)
-		if(user.mind.special_role && on)
-			if(remote)
-				user << "<span class='notice'>You set the camera back to normal.</span>"
-				remote = 0
-			else
-				user << "<span class='notice'>You push a hidden button and activate spirit photography.</span>"
-				remote = 1
-
-/obj/item/device/camera/spiritcam/afterattack(atom/target, mob/user, flag)
-	if(remote && on && pictures_left)
-		var/list/real_living_players = list()
-		var/list/wanted_players = list()
-		var/wanted = copytext(sanitize(input(user, "Who would you like to take a photograph of?", "Target name")as text | null),1,26)
-		for(var/mob/M in living_mob_list)
-			real_living_players += M.real_name
-			real_living_players[M.real_name] = M
-			if(M.real_name == wanted)
-				wanted_players += M
-		if(wanted in real_living_players)
-			target = input(user, "Who would you like to take a photograph of?", "Target name") as null|anything in wanted_players
-			if(target.onCentcom())
-				target = user
-				user << "<span class='warning'>The spirit camera cannot reach out into that sector of the cosmos.</span>"
-				return
-		else
-			target = user
-		if(isobj(target.loc))
-			target = get_turf(target)
-	..()

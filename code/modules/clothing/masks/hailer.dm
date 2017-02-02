@@ -4,34 +4,28 @@
 /obj/item/clothing/mask/gas/sechailer
 	name = "security gas mask"
 	desc = "A standard issue Security gas mask with integrated 'Compli-o-nator 3000' device. Plays over a dozen pre-recorded compliance phrases designed to get scumbags to stand still whilst you taze them. Do not tamper with the device."
-	action_button_name = "HALT!"
+	actions_types = list(/datum/action/item_action/halt, /datum/action/item_action/adjust)
 	icon_state = "sechailer"
-	ignore_maskadjust = 0
 	flags = BLOCK_GAS_SMOKE_EFFECT | MASKINTERNALS
-	flags_inv = HIDEFACE
+	flags_inv = HIDEFACIALHAIR|HIDEFACE
 	w_class = 2
 	visor_flags = BLOCK_GAS_SMOKE_EFFECT | MASKINTERNALS
 	visor_flags_inv = HIDEFACE
 	flags_cover = MASKCOVERSMOUTH
+	visor_flags_cover = MASKCOVERSMOUTH
 	var/aggressiveness = 2
 	var/cooldown_special
 	var/recent_uses = 0
 	var/broken_hailer = 0
-	burn_state = -1
-	/obj/item/clothing/mask/gas/sechailer/emag_act(mob/user)
-		if(!emagged)
-			emagged=1
-			flags+= NODROP | BLOCKHAIR | HEADBANGPROTECT | EARBANGPROTECT
-			user << "<span class='warning'>You overload \the [src]'s Big Guy synthesizer.</span>"
-			aggressiveness = 5
 
 /obj/item/clothing/mask/gas/sechailer/swat
 	name = "\improper SWAT mask"
 	desc = "A close-fitting tactical mask with an especially aggressive Compli-o-nator 3000."
-	action_button_name = "HALT!"
+	actions_types = list(/datum/action/item_action/halt)
 	icon_state = "swat"
 	aggressiveness = 3
-	ignore_maskadjust = 1
+	flags_inv = HIDEFACIALHAIR|HIDEFACE|HIDEEYES|HIDEEARS|HIDEHAIR
+	visor_flags_inv = 0
 
 /obj/item/clothing/mask/gas/sechailer/cyborg
 	name = "security hailer"
@@ -39,11 +33,7 @@
 	icon = 'icons/obj/device.dmi'
 	icon_state = "taperecorder_idle"
 	aggressiveness = 1 //Borgs are nicecurity!
-	ignore_maskadjust = 1
-
-/obj/item/clothing/mask/gas/sechailer/cyborg/New()
-	..()
-	verbs -= /obj/item/clothing/mask/gas/sechailer/verb/adjust
+	actions_types = list(/datum/action/item_action/halt)
 
 /obj/item/clothing/mask/gas/sechailer/attackby(obj/item/weapon/W, mob/user, params)
 	if(istype(W, /obj/item/weapon/screwdriver))
@@ -58,18 +48,19 @@
 				user << "<span class='notice'>You set the restrictor to the first position.</span>"
 				aggressiveness = 1
 			if(4)
-				user << "<span class='danger'>You adjust the restrictor but nothing happens, probably because its broken.</span>"
+				user << "<span class='danger'>You adjust the restrictor but nothing happens, probably because it's broken.</span>"
 	else if(istype(W, /obj/item/weapon/wirecutters))
-		if(aggressiveness != 4 || 5)
+		if(aggressiveness != 4)
 			user << "<span class='danger'>You broke the restrictor!</span>"
 			aggressiveness = 4
 	else
 		..()
 
-/obj/item/clothing/mask/gas/sechailer/verb/adjust()
-	set category = "Object"
-	set name = "Adjust Mask"
-	adjustmask(usr)
+/obj/item/clothing/mask/gas/sechailer/ui_action_click(mob/user, actiontype)
+	if(actiontype == /datum/action/item_action/halt)
+		halt()
+	else
+		adjustmask(user)
 
 /obj/item/clothing/mask/gas/sechailer/attack_self()
 	halt()
@@ -82,7 +73,7 @@
 		return
 	if(!can_use(usr))
 		return
-	if(broken_hailer && !emagged)
+	if(broken_hailer)
 		usr << "<span class='warning'>\The [src]'s hailing system is broken.</span>"
 		return
 
@@ -102,10 +93,9 @@
 			if(4)
 				usr << "<span class='userdanger'>\The [src] is heating up dangerously from overuse!</span>"
 			if(5) //overload
-				if(!emagged)
-					broken_hailer = 1
-					usr << "<span class='userdanger'>\The [src]'s power modulator overloads and breaks.</span>"
-					return
+				broken_hailer = 1
+				usr << "<span class='userdanger'>\The [src]'s power modulator overloads and breaks.</span>"
+				return
 
 		switch(aggressiveness)		// checks if the user has unlocked the restricted phrases
 			if(1)
@@ -115,9 +105,7 @@
 			if(3)
 				phrase = rand(1,18)	// user has unlocked all phrases, set upper limit to last phrase. The mask will play all phrases
 			if(4)
-				phrase = rand(12,26)	// user has broke the restrictor, it will now only play shitcurity phrases
-			if(5)
-				phrase = rand(19,26)	// user has emagged the mask, it will now only banepost
+				phrase = rand(12,18)	// user has broke the restrictor, it will now only play shitcurity phrases
 
 		switch(phrase)	//sets the properties of the chosen phrase
 			if(1)				// good cop
@@ -174,32 +162,8 @@
 			if(18)
 				phrase_text = "I am, the LAW!"
 				phrase_sound = "dredd"
-			if(19)
-				phrase_text = "Well congratulations, you got yourself caught!"
-				phrase_sound = "bane1"
-			if(20)
-				phrase_text = "Now, what's the next step of your master plan?"
-				phrase_sound = "bane2"
-			if(21)
-				phrase_text = "No, this can't be happening! I'm in charge here!"
-				phrase_sound = "bane3"
-			if(22)
-				phrase_text = "They work for the mercenary... the masked man."
-				phrase_sound = "bane4"
-			if(23)
-				phrase_text = "He didn't fly so good! Who wants to try next?"
-				phrase_sound = "bane5"
-			if(24)
-				phrase_text = "First one to talk gets to stay on my station!"
-				phrase_sound = "bane6"
-			if(25)
-				phrase_text = "Dr. Pavel, I'm security."
-				phrase_sound = "bane7"
-			if(26)
-				phrase_text = "You're a big guy!"
-				phrase_sound = "bane8"
 
-		usr.visible_message("[usr]'s Compli-o-Nator: <font color='red' size='4'><b>[phrase_text]</b></font>")
+		usr.audible_message("[usr]'s Compli-o-Nator: <font color='red' size='4'><b>[phrase_text]</b></font>")
 		playsound(src.loc, "sound/voice/complionator/[phrase_sound].ogg", 100, 0, 4)
 		cooldown = world.time
 		cooldown_special = world.time

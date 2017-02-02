@@ -11,19 +11,17 @@
 	crit_fail = 0     //Is the flash burnt out?
 	var/times_used = 0 //Number of times it's been used.
 	var/last_used = 0 //last world.time it was used.
-	var/battery_panel = 0 //If it can be modified or not!
-	var/overcharged = 0 //If overcharged you set people on fire.. but the bulb burns out on use!
 
 
 /obj/item/device/assembly/flash/update_icon(var/flash = 0)
-	overlays.Cut()
+	cut_overlays()
 	attached_overlays = list()
 	if(crit_fail)
-		overlays += "flashburnt"
+		add_overlay("flashburnt")
 		attached_overlays += "flashburnt"
 
 	if(flash)
-		overlays += "flash-f"
+		add_overlay("flash-f")
 		attached_overlays += "flash-f"
 		spawn(5)
 			update_icon()
@@ -36,36 +34,21 @@
 		return 0
 	return 1
 
-/obj/item/device/assembly/flash/attackby(obj/item/W, mob/user, params)
-	..()
-	if(istype(W, /obj/item/weapon/wirecutters))
-		if(battery_panel)
-			user << "<span class='notice'>You push in the pin holding the battery compartment in \the [src].</span>"
-			battery_panel = 0
-		else
-			user << "<span class='notice'>You pull out the pin holding the battery compartment out of \the [src].</span>"
-			battery_panel = 1
-	if(battery_panel && !overcharged)
-		if(istype(W, /obj/item/weapon/stock_parts/cell))
-			user << "<span class='notice'>You jam the cell into battery compartment on the [src].</span>"
-			qdel(W)
-			overcharged = 1
-			overlays += "overcharge"
-
 /obj/item/device/assembly/flash/activate()
 	if(!try_use_flash())
 		return 0
 	var/turf/T = get_turf(src)
 	T.visible_message("<span class='disarm'>[src] emits a blinding light!</span>")
-	for(var/mob/living/carbon/M in viewers(3, null))
+	for(var/mob/living/carbon/M in viewers(3, T))
 		flash_carbon(M, null, 5, 0)
 
 
 /obj/item/device/assembly/flash/proc/burn_out() //Made so you can override it if you want to have an invincible flash from R&D or something.
-	crit_fail = 1
-	update_icon()
-	var/turf/T = get_turf(src)
-	T.visible_message("The [src.name] burns out!")
+	if(!crit_fail)
+		crit_fail = 1
+		update_icon()
+		var/turf/T = get_turf(src)
+		T.visible_message("The [src.name] burns out!")
 
 
 /obj/item/device/assembly/flash/proc/flash_recharge(interval=10)
@@ -106,13 +89,12 @@
 			M.confused += power
 			terrible_conversion_proc(M, user)
 			M.Stun(1)
-			M.Weaken(5)
 			visible_message("<span class='disarm'>[user] blinds [M] with the flash!</span>")
 			user << "<span class='danger'>You blind [M] with the flash!</span>"
 			M << "<span class='userdanger'>[user] blinds you with the flash!</span>"
 			if(M.weakeyes)
 				M.Stun(2)
-				M.visible_message("<span class='disarm'>[M] gasps and shields their eyes!</span>", "<span class='userdanger'>You gasp and shields your eyes!</span>")
+				M.visible_message("<span class='disarm'>[M] gasps and shields their eyes!</span>", "<span class='userdanger'>You gasp and shield your eyes!</span>")
 		else
 			visible_message("<span class='disarm'>[user] fails to blind [M] with the flash!</span>")
 			user << "<span class='warning'>You fail to blind [M] with the flash!</span>"
@@ -127,23 +109,16 @@
 
 	if(iscarbon(M))
 		flash_carbon(M, user, 5, 1)
-		if(overcharged)
-			M.adjust_fire_stacks(6)
-			M.IgniteMob()
-			var/datum/effect_system/spark_spread/s = new
-			s.set_up(2, 1, src)
-			s.start()
-			var/turf/location = get_turf(src)
-			if(isturf(location))
-				location.hotspot_expose(1000,500,1)
-			burn_out()
 		return 1
 
 	else if(issilicon(M))
-		add_logs(user, M, "flashed", src)
+		var/mob/living/silicon/robot/R = M
+		add_logs(user, R, "flashed", src)
 		update_icon(1)
-		M.Weaken(rand(5,10))
-		user.visible_message("<span class='disarm'>[user] overloads [M]'s sensors with the flash!</span>", "<span class='danger'>You overload [M]'s sensors with the flash!</span>")
+		M.Weaken(6)
+		R.confused += 5
+		R.flash_eyes(affect_silicon = 1)
+		user.visible_message("<span class='disarm'>[user] overloads [R]'s sensors with the flash!</span>", "<span class='danger'>You overload [R]'s sensors with the flash!</span>")
 		return 1
 
 	user.visible_message("<span class='disarm'>[user] fails to blind [M] with the flash!</span>", "<span class='warning'>You fail to blind [M] with the flash!</span>")
@@ -157,19 +132,12 @@
 	user.visible_message("<span class='disarm'>[user]'s flash emits a blinding light!</span>", "<span class='danger'>Your flash emits a blinding light!</span>")
 	for(var/mob/living/carbon/M in oviewers(3, null))
 		flash_carbon(M, user, 1, 0)
-	if(overcharged)
-		var/datum/effect_system/spark_spread/s = new
-		s.set_up(2, 1, src)
-		s.start()
-		var/turf/location = get_turf(src)
-		if(isturf(location))
-			location.hotspot_expose(1000,500,1)
-		burn_out()
+
 
 /obj/item/device/assembly/flash/emp_act(severity)
-	if(!try_use_flash())
+	if(!try_use_flash() || !loc)
 		return 0
-	for(var/mob/living/carbon/M in viewers(3, null))
+	for(var/mob/living/carbon/M in viewers(3, loc))
 		flash_carbon(M, null, 10, 0)
 	burn_out()
 	..()
@@ -183,16 +151,12 @@
 					M.mind_initialize() //give them a mind datum if they don't have one.
 					var/resisted
 					if(!isloyal(M))
-						if(jobban_isbanned(M, "catban"))
-							resisted = 1
-						if(jobban_isbanned(M, "cluwneban"))
-							resisted = 1
-						else
-							if(user.mind in ticker.mode.head_revolutionaries)
-								if(ticker.mode.add_revolutionary(M.mind))
-									times_used -- //Flashes less likely to burn out for headrevs when used for conversion
-								else
-									resisted = 1
+						if(user.mind in ticker.mode.head_revolutionaries)
+							if(ticker.mode.add_revolutionary(M.mind))
+								M.Stun(3)
+								times_used -- //Flashes less likely to burn out for headrevs when used for conversion
+							else
+								resisted = 1
 					else
 						resisted = 1
 
@@ -235,3 +199,5 @@
 	icon = 'icons/obj/device.dmi'
 	icon_state = "memorizer"
 	item_state = "nullrod"
+
+/obj/item/device/assembly/flash/handheld //this is now the regular pocket flashes
