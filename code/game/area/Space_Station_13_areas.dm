@@ -67,12 +67,14 @@ NOTE: there are two lists of areas in the end of this file: centcom and station 
 var/list/teleportlocs = list()
 
 /proc/process_teleport_locs()
-	for(var/area/AR in world)
-		if(istype(AR, /area/shuttle) || istype(AR, /area/wizard_station) || AR.noteleport) continue
-		if(teleportlocs.Find(AR.name)) continue
+	for(var/V in sortedAreas)
+		var/area/AR = V
+		if(istype(AR, /area/shuttle) || istype(AR, /area/wizard_station) || AR.noteleport)
+			continue
+		if(teleportlocs[AR.name])
+			continue
 		var/turf/picked = safepick(get_area_turfs(AR.type))
 		if (picked && (picked.z == ZLEVEL_STATION))
-			teleportlocs += AR.name
 			teleportlocs[AR.name] = AR
 
 	sortTim(teleportlocs, /proc/cmp_text_dsc)
@@ -167,6 +169,13 @@ var/list/teleportlocs = list()
 /area/shuttle/abandoned
 	name = "Abandoned Ship"
 	blob_allowed = FALSE
+	ambientsounds = list('sound/ambience/ambiatm1.ogg', 'sound/ambience/ambmaint.ogg',\
+						'sound/ambience/ambicreek1.ogg', 'sound/ambience/ambicreek2.ogg',\
+						'sound/ambience/ambicha2.ogg', 'sound/ambience/ambicha3.ogg')
+	ambloop = 'sound/ambience/loop/softhum.ogg'
+
+/area/shuttle/outpost
+	name = "Outpost Shuttle"
 
 /area/start
 	name = "start area"
@@ -175,6 +184,7 @@ var/list/teleportlocs = list()
 	luminosity = 1
 	lighting_use_dynamic = DYNAMIC_LIGHTING_DISABLED
 	has_gravity = 1
+
 
 // CENTCOM
 
@@ -475,6 +485,22 @@ var/list/teleportlocs = list()
 	name = "Electrical Maintenance"
 	icon_state = "yellow"
 
+/area/maintenance/secelectrical
+	name = "Security Electrical Maintenance"
+	icon_state = "yellow"
+
+/area/maintenance/brigwest
+	name = "Brig West Wing Maintenance"
+	icon_state = "yellow"
+
+/area/maintenance/strangeroom
+	name = "Strange Room"
+	icon_state = "yellow"
+
+/area/maintenance/commiespy
+	name = "Russian Room"
+	icon_state = "yellow"
+
 //Hallway
 
 /area/hallway/primary/fore
@@ -629,6 +655,68 @@ var/list/teleportlocs = list()
 	name = "Law Office"
 	icon_state = "law"
 
+/area/clown
+	name = "Clown Office"
+	icon_state = "clown"
+
+/area/mime
+	name = "Mime Office"
+	icon_state = "mime"
+
+/area/rec_room
+	name = "Recreation Room"
+	icon_state = "yellow"
+
+/area/crew_quarters/pool
+	name = "Pool"
+	icon_state = "pool"
+
+// Holodeck
+/area/holodeck
+	name = "Holodeck"
+	icon_state = "Holodeck"
+	luminosity = 1
+	lighting_use_dynamic = DYNAMIC_LIGHTING_DISABLED
+
+/area/holodeck/alphadeck
+	name = "Holodeck Alpha"
+
+
+/area/holodeck/source_plating
+	name = "Holodeck - Off"
+	icon_state = "Holodeck"
+
+/area/holodeck/source_emptycourt
+	name = "Holodeck - Empty Court"
+
+/area/holodeck/source_boxingcourt
+	name = "Holodeck - Boxing Court"
+
+/area/holodeck/source_basketball
+	name = "Holodeck - Basketball Court"
+
+/area/holodeck/source_thunderdomecourt
+	name = "Holodeck - Thunderdome Court"
+
+/area/holodeck/source_beach
+	name = "Holodeck - Beach"
+	icon_state = "Holodeck" // Lazy.
+
+/area/holodeck/source_burntest
+	name = "Holodeck - Atmospheric Burn Test"
+
+/area/holodeck/source_wildlife
+	name = "Holodeck - Wildlife Simulation"
+
+/area/holodeck/source_wrestling
+	name = "Holodeck - Wrestling Arena"
+
+/area/holodeck/source_cqc
+	name = "Holodeck - CQC VR Training"
+
+/area/holodeck/source_krav_maga
+	name = "Holodeck - Krav Maga Training"
+
 //Engineering
 
 /area/engine
@@ -657,6 +745,18 @@ var/list/teleportlocs = list()
 /area/engine/gravity_generator
 	name = "Gravity Generator Room"
 	icon_state = "blue"
+
+/area/engine/supermatter
+	name = "Supermatter"
+	icon_state = "red"
+
+/area/engine/heat_exchange
+	name = "Filtering Room"
+	icon_state = "yellow"
+
+/area/engine/port_engineering
+	name = "Port Engineering"
+	icon_state = "green"
 
 //Solars
 
@@ -859,6 +959,14 @@ var/list/teleportlocs = list()
 	name = "Transfer Centre"
 	icon_state = "armory"
 
+/area/security/lockers
+	name = "Security Lockers"
+	icon_state = "firingrange"
+
+/area/security/isolation
+	name = "Isolation"
+	icon_state = "sec_prison"
+
 /*
 /area/security/transfer/New()
 	..()
@@ -998,6 +1106,14 @@ var/list/teleportlocs = list()
 /area/toxins/explab
 	name = "Experimentation Lab"
 	icon_state = "toxmisc"
+
+/area/toxins/shuttledock
+	name = "Research Shuttle Dock"
+	icon_state = "toxmisc"
+
+/area/toxins/shuttle
+	name = "Research Shuttle"
+	icon_state = "shuttle"
 
 //Storage
 
@@ -1589,6 +1705,100 @@ var/list/teleportlocs = list()
 /area/awaycontent/a30
 	icon_state = "awaycontent30"
 
+// Template Code
+/area/template/labshuttle
+ 	name = "LabShuttle"
+ 	icon_state = "hydro"
+
+/area/template/clown
+	name = "Clownship"
+	icon_state = "clown"
+	has_gravity = 1
+	ambloop = 'sound/ambience/loop/space.ogg'
+	ambientsounds = list('sound/ambience/clown.ogg','sound/misc/slip.ogg','sound/items/bikehorn.ogg')
+
+/area/template/originalclown
+	name = "Clownship"
+	icon_state = "clown"
+	has_gravity = 1
+	ambloop = 'sound/ambience/loop/space.ogg'
+	ambientsounds = list('sound/ambience/clown.ogg','sound/misc/slip.ogg','sound/items/bikehorn.ogg')
+
+/area/template/mimeship
+	name = "Broken Mimeship"
+	icon_state = "mime"
+	has_gravity = 1
+
+/area/template/templegeometer
+	name = "Temple of Unholy Geometer"
+	icon_state = "yellow"
+	requires_power = 0
+	has_gravity = 1
+	ambloop = 'sound/ambience/loop/terriblehum.ogg'
+	ambientsounds = list('sound/spookoween/ghost_whisper.ogg','sound/spookoween/girlscream.ogg','sound/hallucinations/behind_you1.ogg','sound/hallucinations/behind_you2.ogg','sound/hallucinations/i_see_you1.ogg','sound/hallucinations/i_see_you2.ogg','sound/hallucinations/wail.ogg','sound/misc/scream_m1.ogg','sound/misc/scream_m2.ogg','sound/misc/scream_f1.ogg')
+
+/area/template/syndicate_scout_ship
+	name = "Syndicate scout ship"
+	icon_state = "syndie-ship"
+	requires_power = 0
+	has_gravity = 1
+
+/area/template/abandoned_abductor_ship
+	name = "Abandoned Abductor Ship"
+	icon_state = "yellow"
+	requires_power = 0
+	has_gravity = 1
+	ambloop = 'sound/ambience/loop/opressivehum.ogg'
+
+//Gamma Vessel
+
+/area/gammaderelict/bridge
+	name = "Gamma Derelict Bridge"
+	icon_state = "bridge"
+
+/area/gammaderelict/captains
+	name = "Gamma Derelict Captains Office"
+	icon_state = "captain"
+
+/area/gammaderelict/comms
+	name = "Gamma Derelict Comms Relay"
+	icon_state = "tcomsatcham"
+
+/area/gammaderelict/command
+	name = "Gamma Derelict Command Deck"
+	icon_state = "meeting"
+
+/area/gammaderelict/central
+	name = "Gamma Derelict Central Hallway"
+	icon_state = "hallC"
+
+/area/gammaderelict/medical
+	name = "Gamma Derelict Medbay"
+	icon_state = "medresearch"
+
+/area/gammaderelict/research
+	name = "Gamma Derelict Research Center"
+	icon_state = "medresearch"
+
+/area/gammaderelict/aft
+	name = "Gamma Derelict Aft Hallway"
+	icon_state = "hallA"
+
+/area/gammaderelict/engine
+	name = "Gamma Derelict Engine Room"
+	icon_state = "engine_smes"
+
+/area/gammaderelict/engistorage
+	name = "Gamma Derelict Engineering Storage"
+	icon_state = "engine"
+
+/area/gammaderelict/miscsci
+	name = "Gamma Derelict Misc Science"
+	icon_state = "medresearch"
+
+/area/gammaderelict/grav
+	name = "Gamma Derelict Gravity Generator"
+	icon_state = "red"
 
 /////////////////////////////////////////////////////////////////////
 /*
@@ -1620,6 +1830,7 @@ var/list/the_station_areas = list (
 	/area/toxins,
 	/area/storage,
 	/area/construction,
+	/area/ai_monitored/security,
 	/area/ai_monitored/storage/eva, //do not try to simplify to "/area/ai_monitored" --rastaf0
 //	/area/ai_monitored/storage/secure,	//not present on map
 //	/area/ai_monitored/storage/emergency,	//not present on map

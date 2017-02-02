@@ -78,8 +78,7 @@
 							continue
 						else
 							playsound(src, pick('sound/misc/crack.ogg','sound/misc/crunch.ogg'), 50, 1)
-							var/obj/item/organ/limb/O = whirlm.get_organ(pick("l_leg", "r_leg")) //drain should only target the legs
-							whirlm.apply_damage(4, BRUTE, O)
+							whirlm.apply_damage(4, BRUTE, pick("l_leg", "r_leg")) //drain should only target the legs
 							whirlm << "<span class='danger'>Your legs are caught in the drain!</span>"
 							continue
 

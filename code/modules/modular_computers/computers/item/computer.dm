@@ -67,7 +67,10 @@
 	kill_program(forced = TRUE)
 	STOP_PROCESSING(SSobj, src)
 	for(var/H in all_components)
-		qdel(H)
+		var/obj/item/weapon/computer_hardware/CH = H
+		if(CH.holder == src)
+			CH.holder = null
+			qdel(CH)
 	return ..()
 
 // Eject ID card from computer, if it has ID slot with card inside.
@@ -144,6 +147,9 @@
 	if((!istype(over_object, /obj/screen)) && usr.canUseTopic(src))
 		return attack_self(M)
 	return
+
+/obj/item/device/modular_computer/attack_ai(mob/user)
+	return attack_self(user)
 
 /obj/item/device/modular_computer/attack_ghost(mob/dead/observer/user)
 	if(enabled)

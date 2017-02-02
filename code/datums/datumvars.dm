@@ -283,6 +283,7 @@ var/global/list/internal_byond_list_vars = list("contents" = TRUE, "verbs" = TRU
 			body += "<option value='?_src_=vars;makealien=\ref[D]'>Make alien</option>"
 			body += "<option value='?_src_=vars;makeslime=\ref[D]'>Make slime</option>"
 			body += "<option value='?_src_=vars;purrbation=\ref[D]'>Toggle Purrbation</option>"
+			body += "<option value='?_src_=vars;cluwneing=\ref[D]'>Make Cluwne</option>"
 		body += "<option value>---</option>"
 		body += "<option value='?_src_=vars;gib=\ref[D]'>Gib</option>"
 	if(isobj(D))
@@ -397,6 +398,7 @@ body
 		html += "[html_encode(name)] = /list ([L.len])"
 
 		if (L.len > 0 && !(name == "underlays" || name == "overlays" || name == "vars" || L.len > 500))
+			name = "[name]"	//Needs to be a string or it will go out of bounds in the internal_byond_list_vars array
 			html += "<ul>"
 			var/index = 1
 			for(var/entry in L)
@@ -939,6 +941,22 @@ body
 				usr << "Removed [H] from purrbation."
 				log_admin("[key_name(usr)] has removed [key_name(H)] from purrbation.")
 				message_admins("<span class='notice'>[key_name(usr)] has removed [key_name(H)] from purrbation.</span>")
+
+		else if(href_list["cluwneing"])
+			if(!check_rights(R_SPAWN))	return
+
+			var/mob/living/carbon/human/H = locate(href_list["cluwneing"])
+
+			if(!H)
+				usr << "Mob doesn't exist anymore"
+				return
+
+			if(H)
+				H.dna.add_mutation(CLUWNEMUT)
+				H << "You suddenly feel miserable and valid."
+				message_admins("<span class='notice'>[key_name(usr)] has made [key_name(H)] into a Cluwne.</span>")
+			H.regenerate_icons()
+			return
 
 		else if(href_list["adjustDamage"] && href_list["mobToDamage"])
 			if(!check_rights(0))

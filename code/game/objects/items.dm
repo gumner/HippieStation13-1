@@ -68,6 +68,16 @@ var/global/image/fire_overlay = image("icon" = 'icons/effects/fire.dmi', "icon_s
 
 	var/mob/thrownby = null
 
+//Vars for things like baseball bats that do unique things with thrown items below
+	var/special_throw = 0
+	var/specthrowsound = null //Special throw sound for above functionality
+	var/specthrowmsg = null
+	var/throwrange_mult = 1 //Multiply the range of thrown item?
+	var/throwforce_mult = 1 //Multiply the force of thrown item?
+	var/specthrow_maxwclass = 2 //Max weight class of the thrown item
+	var/deflectItem = 0 //For deflecting items thrown at you when you have throw intent on
+	var/mult = 0 //For code to reset throwforce back to normal after it hits something
+
 	/obj/item/mouse_drag_pointer = MOUSE_ACTIVE_POINTER //the icon to indicate this object is being dragged
 
 	//So items can have custom embedd values
@@ -80,6 +90,7 @@ var/global/image/fire_overlay = image("icon" = 'icons/effects/fire.dmi', "icon_s
 	var/embedded_impact_pain_multiplier = EMBEDDED_IMPACT_PAIN_MULTIPLIER //The coefficient of multiplication for the damage this item does when first embedded (this*w_class)
 	var/embedded_unsafe_removal_pain_multiplier = EMBEDDED_UNSAFE_REMOVAL_PAIN_MULTIPLIER //The coefficient of multiplication for the damage removing this without surgery causes (this*w_class)
 	var/embedded_unsafe_removal_time = EMBEDDED_UNSAFE_REMOVAL_TIME //A time in ticks, multiplied by the w_class.
+	var/embedded_ignore_throwspeed_threshold = FALSE
 
 	var/alternate_screams = list() // This is used to add alternate scream sounds to mobs when equipped
 
@@ -97,6 +108,7 @@ var/global/image/fire_overlay = image("icon" = 'icons/effects/fire.dmi', "icon_s
 	// Needs to be in /obj/item because corgis can wear a lot of
 	// non-clothing items
 	var/datum/dog_fashion/dog_fashion = null
+	var/no_direct_insertion = 0 //items that require MouseDrop() to be inserted in a storage item. e.g. packageWrap
 
 
 /obj/item/proc/check_allowed_items(atom/target, not_inside, target_self)
@@ -539,6 +551,13 @@ obj/item/proc/item_action_slot_check(slot, mob/user)
 	var/itempush = 1
 	if(w_class < 4)
 		itempush = 0 //too light to push anything
+	if(assthrown)
+		embed_chance = 100//you must embed!
+		embedded_ignore_throwspeed_threshold = 1
+		throw_range = initial(throw_range)
+	if(mult)
+		throwforce = initial(throwforce)
+		mult = 0
 	return A.hitby(src, 0, itempush)
 
 /obj/item/throw_at(atom/target, range, speed, mob/thrower, spin=1)

@@ -705,6 +705,16 @@ IF YOU MODIFY THE PRODUCTS LIST OF A MACHINE, MAKE SURE TO UPDATE ITS RESUPPLY C
 	refill_canister = /obj/item/weapon/vending_refill/snack
 	var/chef_compartment_access = "28"
 
+/obj/machinery/vending/snack/kitchen
+	name = "\improper Kitchen Takeaway Dinner"
+	desc = "A vendo-freezer guaranteed to preserve anything the chef has made edible for up to 72 hours. Unless it was unedible to begin with. "
+	product_slogans = "Best food on the station. You either eat it or don't eat at all!;Fresh and Delicious! (Any attempts to claim otherwise is a Class-D violation. Nanotrasen retains the right to call any food products fresh that has not been Cryo-Frozen for over 100 years.  This includes any and all food products that have not Cyro-Frozen at all."
+	product_ads = "Eat today, die tomorrow.;Contains at least 1% kitchen inspector protein!;One pie a day, keeps the traitor-clown away.;Deepfried and bloated;Healthy choice one time a year!;Is that REAL Meat?;Nutriment & Vitamins, Integrated in edible autoinjector system!"
+	icon_state = "smartfridge"
+	products = list(/obj/item/weapon/storage/bag/tray = 2,/obj/item/weapon/kitchen/fork = 4,/obj/item/weapon/reagent_containers/food/drinks/drinkingglass = 4,/obj/item/weapon/reagent_containers/food/condiment/pack/ketchup = 4,/obj/item/weapon/reagent_containers/food/condiment/pack/hotsauce = 4,/obj/item/weapon/reagent_containers/food/condiment/saltshaker = 4,/obj/item/weapon/reagent_containers/food/condiment/peppermill = 4)
+	contraband = list(/obj/item/weapon/sharpener = 1,/obj/item/weapon/kitchen/knife = 1)
+
+
 /obj/machinery/vending/sustenance
 	name = "\improper Sustenance Vendor"
 	desc = "A vending machine which vends food, as required by section 47-C of the NT's Prisoner Ethical Treatment Agreement."
@@ -842,7 +852,7 @@ IF YOU MODIFY THE PRODUCTS LIST OF A MACHINE, MAKE SURE TO UPDATE ITS RESUPPLY C
 	product_slogans = "THIS'S WHERE TH' SEEDS LIVE! GIT YOU SOME!;Hands down the best seed selection on the station!;Also certain mushroom varieties available, more for experts! Get certified today!"
 	product_ads = "We like plants!;Grow some crops!;Grow, baby, growww!;Aw h'yeah son!"
 	icon_state = "seeds"
-	products = list(/obj/item/seeds/ambrosia = 3,/obj/item/seeds/apple = 3,/obj/item/seeds/banana = 3,/*/obj/item/seeds/buttseed = 3,*//obj/item/seeds/berry = 3,
+	products = list(/obj/item/seeds/ambrosia = 3,/obj/item/seeds/apple = 3,/obj/item/seeds/banana = 3,/obj/item/seeds/buttseed = 3,/obj/item/seeds/limbseed = 3,/obj/item/seeds/berry = 3,
 						/obj/item/seeds/cabbage = 3,/obj/item/seeds/carrot = 3,/obj/item/seeds/cherry = 3,/obj/item/seeds/chanter = 3,
 						/obj/item/seeds/chili = 3,/obj/item/seeds/cocoapod = 3,/obj/item/seeds/coffee = 3,/obj/item/seeds/corn = 3,
 						/obj/item/seeds/eggplant = 3,/obj/item/seeds/grape = 3,/obj/item/seeds/grass = 3,/obj/item/seeds/lemon = 3,

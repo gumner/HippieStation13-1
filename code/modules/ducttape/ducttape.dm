@@ -55,36 +55,11 @@
 	user.visible_message("<span class='suicide'>[user] is taping \his entire face with the [src.name]! It looks like \he's trying to commit suicide.</span>")
 	return(OXYLOSS)
 
-/*
- * Crafting recipes below
- */
+//I took out crafting recipies
 
 /obj/item/stack/ducttape/afterattack(atom/W, mob/user as mob, proximity_flag)
 	if(!proximity_flag) return //It should only work on adjacent target.
-
-	if(istype(W, /obj/item/weapon/shard))
-		var/obj/item/weapon/shank/new_item = new(user.loc)
-		user << "<span class='notice'>You use [src] to turn [W] into [new_item].</span>"
-		var/replace = (user.get_inactive_hand()==W)
-		qdel(W)
-		src.use(1)
-		if(replace)
-			user.put_in_hands(new_item)
-		playsound(user, 'sound/items/ducttape1.ogg', 50, 1)
-
-	if(istype(W, /obj/item/weapon/storage/bag/tray))
-		var/obj/item/weapon/shield/trayshield/new_item = new(user.loc)
-		user << "<span class='notice'>You strap [src] to the [W].</span>"
-		var/replace = (user.get_inactive_hand()==W)
-		qdel(W)
-		if(src.use(3) == 0)
-			user.drop_item()
-			qdel(src)
-		if(replace)
-			user.put_in_hands(new_item)
-		playsound(user, 'sound/items/ducttape1.ogg', 50, 1)
-
-	if(ishuman(W) && (user.zone_sel.selecting == "mouth" || user.zone_sel.selecting == "head"))
+	if(ishuman(W) && (user.zone_selected == "mouth"))
 		var/mob/living/carbon/human/H = W
 		if( \
 				(H.head && H.head.flags & HEADCOVERSMOUTH) || \

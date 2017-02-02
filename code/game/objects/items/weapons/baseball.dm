@@ -15,7 +15,6 @@
 	item_state = "bbat"
 	slot_flags = SLOT_BELT //Including the belt sprite to look cool
 	force = 10
-	stamina_percentage = 0.5
 	throwforce = 10
 	throw_speed = 3
 	throw_range = 4
@@ -29,9 +28,6 @@
 	w_class = 3
 	burn_state = 0
 
-// /mob/living/carbon/throw_item(atom/target)
-// 	..()
-
 /obj/item/weapon/baseballbat/wood
 
 /obj/item/weapon/baseballbat/metal
@@ -41,7 +37,6 @@
 	item_state = "bbat_metal"
 	force = 15 //Buffed again. It's kind of expensive to mass produce it since every 50 metal you can only get 3 bats.
 	throwforce = 13
-	stamina_percentage = 0.4
 	specthrow_maxwclass = 3 //You can bat normal sized items with metal bat
 	burn_state = -1
 
@@ -51,7 +46,6 @@
 	icon_state = "bbat_spike"
 	item_state = "bbat_spike"
 	force = 13
-	stamina_percentage = 0.2
 	throwforce = 15 // Its got spikes sticking out of it
 	burn_state = 0
 	armour_penetration = 20
@@ -77,7 +71,7 @@
 		return
 	if(zone == "")
 		zone = ran_zone("chest", 65)
-	var/armor = getarmor(get_organ(check_zone(zone), "melee"))
+	var/armor = getarmor(check_zone(zone), "melee")
 	if(armor >= 100) return
 	if(zone == "head" && I.throwforce >= 6) //This is kind of a terrible way to check if the baseball was batted but whatever
 		if(stat == CONSCIOUS && prob(50)) //decent chance to make up for the already-RNG zone picking

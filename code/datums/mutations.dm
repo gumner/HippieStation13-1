@@ -48,9 +48,9 @@
 	if(hex2num(getblock(se_string, dna_block)) >= lowest_value)
 		return 1
 
-/datum/mutation/human/proc/check_block(mob/living/carbon/human/owner)
+/datum/mutation/human/proc/check_block(mob/living/carbon/human/owner, force_powers=0)
 	if(check_block_string(owner.dna.struc_enzymes))
-		if(prob(get_chance))
+		if(prob(get_chance) || force_powers)
 			. = on_acquiring(owner)
 	else
 		. = on_losing(owner)
@@ -256,7 +256,7 @@
 		else
 			new_mob = randmuti(owner)
 	else
-		new_mob = randmutg(owner)
+		new_mob = randmutvg(owner)
 	if(new_mob && ismob(new_mob))
 		owner = new_mob
 	. = owner
@@ -282,6 +282,7 @@
 	if(..())
 		return
 	owner.resize = 0.8
+	owner.ventcrawler = 1
 	owner.update_transform()
 	owner.pass_flags |= PASSTABLE
 	owner.visible_message("<span class='danger'>[owner] suddenly shrinks!</span>", "<span class='notice'>Everything around you seems to grow..</span>")
@@ -290,6 +291,7 @@
 	if(..())
 		return
 	owner.resize = 1.25
+	owner.ventcrawler = 0
 	owner.update_transform()
 	owner.pass_flags &= ~PASSTABLE
 	owner.visible_message("<span class='danger'>[owner] suddenly grows!</span>", "<span class='notice'>Everything around you seems to shrink..</span>")
@@ -309,6 +311,56 @@
 	if(..())
 		return
 	owner.disabilities &= ~CLUMSY
+
+/datum/mutation/human/cluwne
+
+	name = "Cluwne"
+	quality = NEGATIVE
+	dna_block = NON_SCANNABLE
+	text_gain_indication = "<span class='danger'>You feel like your brain is tearing itself apart.</span>"
+
+/datum/mutation/human/cluwne/on_acquiring(mob/living/carbon/human/owner)
+	if(..())
+		return
+	owner.dna.add_mutation(CLOWNMUT)
+	owner.dna.add_mutation(EPILEPSY)
+	owner.setBrainLoss(200)
+
+	var/mob/living/carbon/human/H = owner
+
+	if(!istype(H.wear_mask, /obj/item/clothing/mask/gas/clown_hat/cluwne))
+		if(!H.unEquip(H.wear_mask))
+			qdel(H.wear_mask)
+		H.equip_to_slot_or_del(new /obj/item/clothing/mask/gas/clown_hat/cluwne(H), slot_wear_mask)
+	if(!istype(H.wear_mask, /obj/item/clothing/under/rank/clown/cluwne))
+		if(!H.unEquip(H.w_uniform))
+			qdel(H.w_uniform)
+		H.equip_to_slot_or_del(new /obj/item/clothing/under/rank/clown/cluwne(H), slot_w_uniform)
+	if(!istype(H.shoes, /obj/item/clothing/shoes/clown_shoes/cluwne))
+		if(!H.unEquip(H.shoes))
+			qdel(H.shoes)
+		H.equip_to_slot_or_del(new /obj/item/clothing/shoes/clown_shoes/cluwne(H), slot_shoes)
+
+	owner.equip_to_slot_or_del(new /obj/item/clothing/gloves/color/white(owner), slot_gloves) // this is purely for cosmetic purposes incase they aren't wearing anything in that slot
+	owner.equip_to_slot_or_del(new /obj/item/weapon/storage/backpack/clown(owner), slot_back) // ditto
+
+/datum/mutation/human/cluwne/on_life(mob/living/carbon/human/owner)
+	if((prob(15) && owner.paralysis <= 1))
+		owner.setBrainLoss(200) // there I changed it to setBrainLoss
+		switch(rand(1, 6))
+			if(1)
+				owner.say("HONK")
+			if(2 to 5)
+				owner.emote("scream")
+			if(6)
+				owner.Stun(1)
+				owner.Weaken(1)
+				owner.Jitter(500)
+
+/datum/mutation/human/cluwne/on_losing(mob/living/carbon/human/owner)
+	owner.adjust_fire_stacks(1)
+	owner.IgniteMob()
+	owner.dna.add_mutation(CLUWNEMUT)
 
 /datum/mutation/human/tourettes
 	name = "Tourettes Syndrome"

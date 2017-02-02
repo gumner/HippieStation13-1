@@ -129,7 +129,7 @@ var/const/tk_maxrange = 15
 		return // todo: something like attack_self not laden with assumptions inherent to attack_self
 
 
-	if(!istype(target, /turf) && istype(focus,/obj/item) && target.Adjacent(focus))
+	if(!isturf(target) && istype(focus,/obj/item) && target.Adjacent(focus))
 		var/obj/item/I = focus
 		var/resolved = target.attackby(I, user, params)
 		if(!resolved && target && I)
@@ -138,7 +138,6 @@ var/const/tk_maxrange = 15
 		apply_focus_overlay()
 		focus.throw_at(target, 10, 1,user)
 		last_throw = world.time
-		user.changeNext_move(CLICK_CD_MELEE)
 	return
 
 /proc/tkMaxRangeCheck(mob/user, atom/target, atom/focus)
@@ -155,7 +154,7 @@ var/const/tk_maxrange = 15
 
 
 /obj/item/tk_grab/proc/focus_object(obj/target, mob/living/user)
-	if(!istype(target,/obj))
+	if(!isobj(target))
 		return//Cant throw non objects atm might let it do mobs later
 	if(target.anchored || !isturf(target.loc))
 		qdel(src)

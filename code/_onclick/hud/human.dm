@@ -14,6 +14,11 @@
 			var/mob/M = usr.client.eye
 			targetmob = M
 
+	if(ishuman(targetmob))
+		var/mob/living/carbon/human/H = targetmob
+		if(H.fast_equip(1))
+			return
+
 	if(usr.hud_used.inventory_shown && targetmob.hud_used)
 		usr.hud_used.inventory_shown = 0
 		usr.client.screen -= targetmob.hud_used.toggleable_inventory
@@ -31,7 +36,7 @@
 	if(istype(usr.loc,/obj/mecha)) // stops inventory actions in a mech
 		return 1
 	var/mob/living/carbon/human/H = usr
-	H.quick_equip()
+	H.fast_equip()
 
 /obj/screen/devil
 	invisibility = INVISIBILITY_ABSTRACT
@@ -103,6 +108,11 @@
 	using.icon_state = mymob.a_intent
 	static_inventory += using
 	action_intent = using
+
+	grab_icon = new /obj/screen/grab_ind()
+	grab_icon.icon_state = "grab[mymob.grab_state]"
+	grab_icon.screen_loc = ui_grab
+	static_inventory += grab_icon
 
 	using = new /obj/screen/mov_intent()
 	using.icon = ui_style

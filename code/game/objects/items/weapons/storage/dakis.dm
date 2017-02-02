@@ -33,7 +33,7 @@
 		"Hotwheels",
 		"Ian",
 		"Jolyne",
-		"Kurisu",
+		"Kurisu", //"Kurisu is the ideal girl" - Me, Sarca.
 		"Marie",
 		"Mugi",
 		"Nar'Sie",

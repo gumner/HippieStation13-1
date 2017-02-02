@@ -15,7 +15,7 @@ var/global/list/datum/stack_recipe/metal_recipes = list ( \
 	new/datum/stack_recipe("stool", /obj/structure/chair/stool, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("bar stool", /obj/structure/chair/stool/bar, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("chair", /obj/structure/chair, one_per_turf = 1, on_floor = 1), \
-	new/datum/stack_recipe("swivel chair", /obj/structure/chair/office/dark, 5, one_per_turf = 1, on_floor = 1), \
+	new/datum/stack_recipe("swivel chair", /obj/structure/chair/withwheels/office/dark, 5, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("comfy chair", /obj/structure/chair/comfy/beige, 2, one_per_turf = 1, on_floor = 1), \
 	new/datum/stack_recipe("bed", /obj/structure/bed, 2, one_per_turf = 1, on_floor = 1), \
 	null, \
@@ -131,6 +131,7 @@ var/global/list/datum/stack_recipe/wood_recipes = list ( \
 	new/datum/stack_recipe("honey frame", /obj/item/honey_frame, 5, time = 10),\
 	new/datum/stack_recipe("ore box", /obj/structure/ore_box, 4, time = 50, one_per_turf = 1, on_floor = 1),\
 	new/datum/stack_recipe("baseball bat", /obj/item/weapon/melee/baseball_bat, 5, time = 15),\
+	new/datum/stack_recipe("wooden teeth", /obj/item/stack/teeth/human/wood, 1, 5, 20),\
 	)
 
 /obj/item/stack/sheet/mineral/wood

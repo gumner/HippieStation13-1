@@ -173,6 +173,7 @@ BLIND     // can't see anything
 	slot_flags = SLOT_GLOVES
 	attack_verb = list("challenged")
 	var/transfer_prints = FALSE
+	var/pickpocket = 0 //Non-zero makes all stripping silent and divides the stripping time by this number
 	strip_delay = 20
 	put_on_delay = 40
 
@@ -264,6 +265,7 @@ BLIND     // can't see anything
 	desc = "Comfortable-looking shoes."
 	gender = PLURAL //Carn: for grammarically correct text-parsing
 	var/chained = 0
+	var/stomp = 0 //0 for regular shoes, 1 for stomp-capable shoes, 2 for magboot special stomps.
 
 	body_parts_covered = FEET
 	slot_flags = SLOT_FEET
@@ -404,6 +406,15 @@ BLIND     // can't see anything
 /obj/item/clothing/under/attackby(obj/item/I, mob/user, params)
 	if(!attachTie(I, user))
 		..()
+
+/obj/item/clothing/under/equipped(mob/user, slot)
+	..()
+	if(slot_flags & slotdefine2slotbit(slot))
+		var/obj/item/organ/internal/butt/B = user.getorgan(/obj/item/organ/internal/butt)
+		if(B)
+			var/obj/item/weapon/storage/internal/pocket/butt/pocket = B.inv
+			if(pocket)
+				pocket.close_all()
 
 /obj/item/clothing/under/proc/attachTie(obj/item/I, mob/user, notifyAttach = 1)
 	if(istype(I, /obj/item/clothing/tie))

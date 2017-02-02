@@ -31,6 +31,7 @@
 	var/obj/screen/zone_select
 	var/obj/screen/pull_icon
 	var/obj/screen/throw_icon
+	var/obj/screen/grab_icon
 	var/obj/screen/module_store_icon
 
 	var/list/static_inventory = list() //the screen objects which are static
@@ -183,6 +184,7 @@
 	mymob.update_action_buttons(1)
 	reorganize_alerts()
 	mymob.reload_fullscreen()
+	update_parallax_existence()
 
 
 /datum/hud/human/show_hud(version = 0,mob/viewmob)

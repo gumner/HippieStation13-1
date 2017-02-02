@@ -27,7 +27,7 @@
 	var/computer_id = null
 	var/lastattacker = null
 	var/lastattacked = null
-	var/attack_log = list( )
+	var/list/attack_log = list()
 	var/obj/machinery/machine = null
 	var/other_mobs = null
 	var/memory = ""
@@ -46,6 +46,7 @@
 	var/stuttering = 0		//Carbon
 	var/slurring = 0		//Carbon
 	var/cultslurring = 0	//Carbon
+	var/lisp = 0
 	var/real_name = null
 	var/druggy = 0			//Carbon
 	var/confused = 0		//Carbon

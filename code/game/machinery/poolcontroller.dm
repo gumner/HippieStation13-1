@@ -17,7 +17,7 @@
 	var/misted = 0 //Used to check for mist.
 	var/obj/item/weapon/reagent_containers/beaker = null
 	var/cur_reagent = "water"
-	var/datum/wires/poolcontroller/wires = null
+	//var/datum/wires/poolcontroller/wires = null
 	var/drainable = 0
 	var/drained = 0
 	var/bloody = 0
@@ -28,7 +28,7 @@
 	var/seconds_electrified = 0//Shocks morons, like an airlock.
 
 /obj/machinery/poolcontroller/New() //This proc automatically happens on world start
-	wires = new(src)
+	wires = new /datum/wires/poolcontroller(src)
 	for(var/turf/simulated/pool/water/W in range(srange,src)) //Search for /turf/simulated/beach/water in the range of var/srange
 		src.linkedturfs += W
 	for(var/obj/machinery/drain/pooldrain in range(srange,src))
@@ -102,7 +102,7 @@
 		return 0
 
 /obj/machinery/poolcontroller/proc/wires()
-	return wires.GetInteractWindow()
+	return wires.ui_interact()
 
 /obj/machinery/poolcontroller/proc/poolreagent()
 	for(var/turf/simulated/pool/water/W in linkedturfs)
