@@ -230,7 +230,7 @@ var/list/admin_verbs_hideable = list(
 	/proc/release,
 	/client/proc/reload_admins,
 	/client/proc/panicbunker,
-	/client/proc/toggle_hub
+	/client/proc/toggle_hub,
 	/client/proc/admin_change_sec_level,
 	/client/proc/toggle_nuke,
 	/client/proc/cmd_display_del_log,
