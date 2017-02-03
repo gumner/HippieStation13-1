@@ -1300,7 +1300,7 @@
 /area/security/processing)
 "aco" = (
 /obj/structure/table,
-/obj/item/device/assembly/flash,
+/obj/item/device/assembly/flash/handheld,
 /obj/structure/cable{
 	d1 = 4;
 	d2 = 8;
@@ -4289,7 +4289,7 @@
 	},
 /obj/structure/table,
 /obj/item/weapon/restraints/handcuffs,
-/obj/item/device/assembly/flash,
+/obj/item/device/assembly/flash/handheld,
 /turf/open/floor/plasteel/shuttle{
 	icon_state = "shuttlefloor4"
 	},
@@ -9906,7 +9906,6 @@
 /area/engine/port_engineering)
 "arV" = (
 /obj/structure/table,
-/obj/item/device/assembly/flash,
 /obj/item/weapon/crowbar,
 /obj/structure/cable{
 	d1 = 1;
@@ -9927,6 +9926,7 @@
 	pixel_x = 26;
 	pixel_y = 6
 	},
+/obj/item/device/assembly/flash/handheld,
 /turf/open/floor/plasteel,
 /area/security/checkpoint2)
 "arW" = (
@@ -10225,11 +10225,9 @@
 	pixel_y = 0
 	},
 /obj/structure/table,
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
+/obj/item/device/assembly/flash/handheld,
+/obj/item/device/assembly/flash/handheld,
+/obj/item/device/assembly/flash/handheld,
 /turf/open/floor/plasteel{
 	icon_state = "white"
 	},
@@ -10240,11 +10238,11 @@
 	amount = 18
 	},
 /obj/item/stack/cable_coil,
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
 /obj/machinery/atmospherics/pipe/simple/supply/hidden{
 	dir = 4
 	},
+/obj/item/device/assembly/flash/handheld,
+/obj/item/device/assembly/flash/handheld,
 /turf/open/floor/plasteel,
 /area/assembly/robotics)
 "asB" = (
@@ -10257,12 +10255,12 @@
 	pixel_x = 1;
 	pixel_y = 5
 	},
-/obj/item/device/assembly/flash,
-/obj/item/device/assembly/flash,
 /obj/machinery/ai_status_display{
 	pixel_x = -32;
 	pixel_y = 0
 	},
+/obj/item/device/assembly/flash/handheld,
+/obj/item/device/assembly/flash/handheld,
 /turf/open/floor/plating,
 /area/storage/tech)
 "asC" = (
@@ -14581,6 +14579,10 @@
 	dir = 4
 	},
 /area/hallway/primary/fore)
+"aDg" = (
+/obj/structure/sign/poster/legit,
+/turf/closed/wall,
+/area/hallway/secondary/entry)
 "aDh" = (
 /obj/machinery/atmospherics/pipe/manifold/supply/hidden,
 /turf/closed/wall,
@@ -84505,7 +84507,7 @@ auw
 azw
 auw
 aaa
-axi
+aDg
 aLN
 aNf
 aOm
@@ -85533,7 +85535,7 @@ azz
 avo
 aIr
 aJu
-axi
+aDg
 aLP
 aNf
 azt
@@ -86561,7 +86563,7 @@ auw
 azw
 auw
 aaa
-axi
+aDg
 aLS
 aNf
 aOr
