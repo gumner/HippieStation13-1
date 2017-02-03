@@ -217,6 +217,8 @@
 			m_type = 2
 
 		if ("scream","screams")
+			if(src.stat != CONSCIOUS)
+				return
 			var/sound = pick('sound/misc/scream_m1.ogg', 'sound/misc/scream_m2.ogg')
 			if(gender == FEMALE)
 				sound = pick('sound/misc/scream_f1.ogg', 'sound/misc/scream_f2.ogg')

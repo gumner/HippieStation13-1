@@ -151,6 +151,8 @@
 					src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
 
 		if ("fart")
+			if(src.stat != CONSCIOUS)
+				return
 			exception = 1
 			var/obj/item/organ/internal/butt/B = getorgan(/obj/item/organ/internal/butt)
 			if(!B)
@@ -354,6 +356,8 @@
 			m_type = 1
 
 		if ("scream","screams")
+			if(src.stat != CONSCIOUS)
+				return
 			if (miming)
 				message = "<B>[src]</B> acts out a scream!"
 			else
@@ -426,6 +430,8 @@
 				..(act)
 
 		if ("superfart") //how to remove ass
+			if(src.stat != CONSCIOUS)
+				return
 			exception = 1
 			var/obj/item/organ/internal/butt/B = locate() in internal_organs
 			if(!B)

@@ -124,6 +124,8 @@
 			m_type = 1
 
 		if ("scream","screams")
+			if(src.stat != CONSCIOUS)
+				return
 			if (!muzzled)
 				var/sound = pick('sound/misc/scream_m1.ogg', 'sound/misc/scream_m2.ogg')
 
