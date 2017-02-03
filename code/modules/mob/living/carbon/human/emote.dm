@@ -1,7 +1,6 @@
 /mob/living/carbon/human/emote(act,m_type=1,message = null)
-	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH) || stat != CONSCIOUS)
 		return
-
 	var/param = null
 	var/delay = 5
 	var/exception = null
@@ -354,6 +353,8 @@
 			m_type = 1
 
 		if ("scream","screams")
+			if(src.stat != CONSCIOUS)
+				return
 			if (miming)
 				message = "<B>[src]</B> acts out a scream!"
 			else

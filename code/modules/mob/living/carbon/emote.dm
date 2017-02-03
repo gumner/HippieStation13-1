@@ -7,6 +7,8 @@
 	var/delay = 5
 	if(spam_flag == 1)
 		return
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH) || stat != CONSCIOUS)
+		return
 
 	if (findtext(act, "-", 1, null))
 		var/t1 = findtext(act, "-", 1, null)

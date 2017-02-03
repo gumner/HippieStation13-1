@@ -62,8 +62,11 @@ var/list/crit_allowed_modes = list(MODE_WHISPER,MODE_CHANGELING,MODE_ALIEN)
 	message = trim(copytext(sanitize(message), 1, MAX_MESSAGE_LEN))
 
 	if(stat == DEAD)
-		say_dead(message)
-		return
+		if(message == "*scream" || message == "*fart")
+			return
+		else
+			say_dead(message)
+			return
 
 	if(check_emote(message))
 		return
