@@ -1,5 +1,7 @@
 ### HEALTH ###
 
+#Damage multiplier, effects both weapons and healing on all mobs. For example, 1.25 would result in 25% higher damage.
+DAMAGE_MULTIPLIER 1
 # level of health at which a mob becomes unconscious (crit)
 HEALTH_THRESHOLD_CRIT 0
 
@@ -21,7 +23,7 @@ REVIVAL_BRAIN_LIFE -1
 ### RENAMING ###
 
 #Uncomment to allow cyborgs to rename themselves at roundstart.  Has no effect on roboticists renaming cyborgs the normal way.
-#RENAME_CYBORG
+RENAME_CYBORG
 
 ### OOC DURING ROUND ###
 #Comment this out if you want OOC to be automatically disabled during the round, it will be enabled during the lobby and after the round end results.
@@ -73,6 +75,9 @@ ALERT_DELTA Destruction of the station is imminent. All crew are instructed to o
 
 ### GAME MODES ###
 
+## Uncomment to not send a roundstart intercept report. Gamemodes may override this.
+#NO_INTERCEPT_REPORT
+
 ## Probablities for game modes chosen in 'secret' and 'random' modes.
 ## Default probablity is 1, increase to make that mode more likely to be picked.
 ## Set to 0 to disable that mode.
@@ -95,6 +100,8 @@ PROBABILITY RAGINMAGES 0
 PROBABILITY MONKEY 0
 PROBABILITY METEOR 0
 PROBABILITY EXTENDED 0
+PROBABILITY DEVIL 0
+PROBABILITY DEVIL_AGENTS 0
 
 ## You probably want to keep sandbox off by default for secret and random.
 PROBABILITY SANDBOX 0
@@ -106,7 +113,6 @@ PROBABILITY SANDBOX 0
 CONTINUOUS TRAITOR
 CONTINUOUS TRAITORCHAN
 CONTINUOUS DOUBLE_AGENTS
-CONTINUOUS KING_DISK
 #CONTINUOUS NUCLEAR
 #CONTINUOUS REVOLUTION
 #CONTINUOUS SHADOWLING
@@ -114,9 +120,10 @@ CONTINUOUS GANG
 CONTINUOUS CULT
 CONTINUOUS CHANGELING
 CONTINUOUS WIZARD
+CONTINUOUS KING_DISK
 CONTINUOUS MALFUNCTION
-CONTINUOUS ABDUCTION
 CONTINUOUS BLOB
+CONTINUOUS ABDUCTION
 #CONTINUOUS RAGINMAGES
 #CONTINUOUS MONKEY
 
@@ -132,15 +139,16 @@ CONTINUOUS EXTENDED
 MIDROUND_ANTAG TRAITOR
 MIDROUND_ANTAG TRAITORCHAN
 MIDROUND_ANTAG DOUBLE_AGENTS
+MIDROUND_ANTAG KING_DISK
 #MIDROUND_ANTAG  NUCLEAR
 #MIDROUND_ANTAG  REVOLUTION
 #MIDROUND_ANTAG  SHADOWLING
 #MIDROUND_ANTAG  GANG
 MIDROUND_ANTAG CULT
-MIDROUND_ANTAG CHANGELING
-MIDROUND_ANTAG WIZARD
-MIDROUND_ANTAG MALFUNCTION
 MIDROUND_ANTAG ABDUCTION
+MIDROUND_ANTAG CHANGELING
+#MIDROUND_ANTAG WIZARD
+MIDROUND_ANTAG MALFUNCTION
 MIDROUND_ANTAG BLOB
 #MIDROUND_ANTAG  RAGINMAGES
 #MIDROUND_ANTAG  MONKEY
@@ -185,13 +193,27 @@ ALLOW_LATEJOIN_ANTAGONISTS
 ## Comment this to disable random events during the round.
 ALLOW_RANDOM_EVENTS
 
+## Multiplier for earliest start time of dangerous events.
+## Set to 0 to make dangerous events avaliable from round start.
+EVENTS_MIN_TIME_MUL 1
+
+## Multiplier for minimal player count (players = alive non-AFK humans) for dangerous events to start.
+## Set to 0 to make dangerous events avaliable for all populations.
+EVENTS_MIN_PLAYERS_MUL 1
+
 
 ### AI ###
 
 ## Allow the AI job to be picked.
 ALLOW_AI
 
+### Secborg ###
+## Uncomment to prevent the security cyborg module from being chosen
+#DISABLE_SECBORG
 
+### Peacekeeper Borg ###
+## Uncomment to prevent the peacekeeper cyborg module from being chosen
+#DISABLE_PEACEBORG
 
 ### AWAY MISSIONS ###
 
@@ -257,6 +279,46 @@ SILICON_MAX_LAW_AMOUNT 20
 ## Uncomment to give players the choice of their species before they join the game
 JOIN_WITH_MUTANT_RACE
 
+## Roundstart Races
+##-------------------------------------------------------------------------------------------
+## Uncommenting races will allow them to be choosen at roundstart while join_with_muntant_race is on. You'll need at least one.
+
+## You probably want humans on your space station, but technically speaking you can turn them off without any ill effect
+ROUNDSTART_RACES human
+
+## Races that are strictly worse than humans that could probably be turned on without balance concerns
+ROUNDSTART_RACES lizard
+ROUNDSTART_RACES moth
+ROUNDSTART_RACES ipc
+ROUNDSTART_RACES avian
+ROUNDSTART_RACES tarajan
+#ROUNDSTART_RACES fly
+#ROUNDSTART_RACES plasmaman
+#ROUNDSTART_RACES shadow
+#ROUNDSTART_RACES shadowling
+
+## Races that are better than humans in some ways, but worse in others
+#ROUNDSTART_RACES jelly
+#ROUNDSTART_RACES golem
+#ROUNDSTART_RACES adamantine
+#ROUNDSTART_RACES plasma
+#ROUNDSTART_RACES diamond
+#ROUNDSTART_RACES gold
+#ROUNDSTART_RACES silver
+#ROUNDSTART_RACES uranium
+#ROUNDSTART_RACES abductor
+#ROUNDSTART_RACES synth
+
+## Races that are straight upgrades. If these are on expect powergamers to always pick them
+#ROUNDSTART_RACES skeleton
+#ROUNDSTART_RACES zombie
+#ROUNDSTART_RACES slime
+#ROUNDSTART_RACES pod
+#ROUNDSTART_RACES military_synth
+#ROUNDSTART_RACES agent
+
+##-------------------------------------------------------------------------------------------
+
 ## Uncomment to give players the choice of joining as a human with mutant bodyparts before they join the game
 #JOIN_WITH_MUTANT_HUMANS
 
@@ -264,7 +326,8 @@ JOIN_WITH_MUTANT_RACE
 ASSISTANT_CAP -1
 
 ## Starlight for exterior walls and breaches. Uncomment for starlight!
-STARLIGHT
+## This is disabled by default to make testing quicker, should be enabled on production servers or testing servers messing with lighting
+#STARLIGHT
 
 ## Uncomment to bring back old grey suit assistants instead of the now default rainbow colored assistants.
 GREY_ASSISTANTS
@@ -284,8 +347,8 @@ MIDROUND_ANTAG_LIFE_CHECK 0.7
 #NO_SUMMON_MAGIC
 #NO_SUMMON_EVENTS
 
-//Comment for "normal" explosions, which ignore obstacles
-//Uncomment for explosions that react to doors and walls
+##Comment for "normal" explosions, which ignore obstacles
+##Uncomment for explosions that react to doors and walls
 REACTIONARY_EXPLOSIONS
 
 ### Configure the bomb cap
@@ -335,3 +398,9 @@ tries 10
 directory _maps\templates
 
 
+## Lavaland "Budget"
+# Lavaland ruin spawning has an imaginary budget to spend on ruins, where
+# a less lootfilled or smaller or less round effecting ruin costs less to
+# spawn, while the converse is true. Alter this number to affect the amount
+# of ruins.
+LAVALAND_BUDGET 60
