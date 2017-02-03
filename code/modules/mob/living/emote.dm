@@ -7,6 +7,8 @@
 /mob/living/emote(act, m_type=1, message = null)
 	if(stat)
 		return
+	if(stat != CONSCIOUS && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+		return
 
 	var/param = null
 	var/delay = 5
@@ -217,8 +219,6 @@
 			m_type = 2
 
 		if ("scream","screams")
-			if(src.stat != CONSCIOUS)
-				return
 			var/sound = pick('sound/misc/scream_m1.ogg', 'sound/misc/scream_m2.ogg')
 			if(gender == FEMALE)
 				sound = pick('sound/misc/scream_f1.ogg', 'sound/misc/scream_f2.ogg')

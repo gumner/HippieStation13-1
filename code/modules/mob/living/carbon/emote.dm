@@ -7,6 +7,8 @@
 	var/delay = 5
 	if(spam_flag == 1)
 		return
+	if(stat != CONSCIOUS && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+		return
 
 	if (findtext(act, "-", 1, null))
 		var/t1 = findtext(act, "-", 1, null)
@@ -124,8 +126,6 @@
 			m_type = 1
 
 		if ("scream","screams")
-			if(src.stat != CONSCIOUS)
-				return
 			if (!muzzled)
 				var/sound = pick('sound/misc/scream_m1.ogg', 'sound/misc/scream_m2.ogg')
 
