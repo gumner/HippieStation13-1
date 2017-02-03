@@ -86,9 +86,10 @@
 		else if(occupant.stat == DEAD) // We don't bother with dead people.
 			return
 
-		if(occupant.bodytemperature < T0C) // Sleepytime. Why? More cryo magic.
-			occupant.Sleeping((occupant.bodytemperature / sleep_factor) * 100)
-			occupant.Paralyse((occupant.bodytemperature / paralyze_factor) * 100)
+		// Hippie Tweak: We don't make people sleep inside of Cryo
+		//if(occupant.bodytemperature < T0C) // Sleepytime. Why? More cryo magic.
+		//	occupant.Sleeping((occupant.bodytemperature / sleep_factor) * 100)
+		//	occupant.Paralyse((occupant.bodytemperature / paralyze_factor) * 100)
 
 		if(beaker)
 			if(reagent_transfer == 0) // Magically transfer reagents. Because cryo magic.
