@@ -1,7 +1,6 @@
 /mob/living/carbon/human/emote(act,m_type=1,message = null)
-	if(stat != CONSCIOUS && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH) || stat != CONSCIOUS)
 		return
-
 	var/param = null
 	var/delay = 5
 	var/exception = null
@@ -151,8 +150,6 @@
 					src << "<span class='notice'>Unusable emote '[act]'. Say *help for a list.</span>"
 
 		if ("fart")
-			if(src.stat != CONSCIOUS)
-				return
 			exception = 1
 			var/obj/item/organ/internal/butt/B = getorgan(/obj/item/organ/internal/butt)
 			if(!B)
@@ -430,8 +427,6 @@
 				..(act)
 
 		if ("superfart") //how to remove ass
-			if(src.stat != CONSCIOUS)
-				return
 			exception = 1
 			var/obj/item/organ/internal/butt/B = locate() in internal_organs
 			if(!B)

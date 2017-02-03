@@ -7,7 +7,7 @@
 /mob/living/emote(act, m_type=1, message = null)
 	if(stat)
 		return
-	if(stat != CONSCIOUS && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH) || stat != CONSCIOUS)
 		return
 
 	var/param = null

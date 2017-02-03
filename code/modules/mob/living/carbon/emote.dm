@@ -7,7 +7,7 @@
 	var/delay = 5
 	if(spam_flag == 1)
 		return
-	if(stat != CONSCIOUS && (act != "deathgasp") || (status_flags & FAKEDEATH)) //if we're faking, don't emote at all
+	if(stat == DEAD && (act != "deathgasp") || (status_flags & FAKEDEATH) || stat != CONSCIOUS)
 		return
 
 	if (findtext(act, "-", 1, null))
