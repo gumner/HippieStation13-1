@@ -124,8 +124,8 @@ var/list/admin_verbs_server = list(
 	/client/proc/forcerandomrotate,
 	/client/proc/adminchangemap,
 #endif
-	/client/proc/panicbunker
-
+	/client/proc/panicbunker,
+	/client/proc/toggle_hub
 	)
 var/list/admin_verbs_debug = list(
 	/client/proc/restart_controller,
@@ -231,6 +231,7 @@ var/list/admin_verbs_hideable = list(
 	/proc/release,
 	/client/proc/reload_admins,
 	/client/proc/panicbunker,
+	/client/proc/toggle_hub,
 	/client/proc/admin_change_sec_level,
 	/client/proc/toggle_nuke,
 	/client/proc/cmd_display_del_log,
