@@ -2,6 +2,12 @@
 
 #Damage multiplier, effects both weapons and healing on all mobs. For example, 1.25 would result in 25% higher damage.
 DAMAGE_MULTIPLIER 1
+# level of health at which a mob becomes unconscious (crit)
+HEALTH_THRESHOLD_CRIT 0
+
+# level of health at which a mob becomes dead
+HEALTH_THRESHOLD_DEAD -100
+
 
 ### REVIVAL ###
 
@@ -17,7 +23,7 @@ REVIVAL_BRAIN_LIFE -1
 ### RENAMING ###
 
 #Uncomment to allow cyborgs to rename themselves at roundstart.  Has no effect on roboticists renaming cyborgs the normal way.
-#RENAME_CYBORG
+RENAME_CYBORG
 
 ### OOC DURING ROUND ###
 #Comment this out if you want OOC to be automatically disabled during the round, it will be enabled during the lobby and after the round end results.
@@ -36,7 +42,7 @@ EMOJIS
 ## These values get directly added to values and totals ingame.
 ## To speed things up make the number negative, to slow things down, make the number positive.
 
-## These modify the run/walk speed of all mobs before the mob-specific modifiers are applied.
+## These modify the run/walk speed of all mobs before the mob-specific modifiers are applied. 
 RUN_DELAY 1
 WALK_DELAY 4
 
@@ -77,19 +83,20 @@ ALERT_DELTA Destruction of the station is imminent. All crew are instructed to o
 ## Set to 0 to disable that mode.
 
 PROBABILITY TRAITOR 5
-PROBABILITY TRAITORCHAN 4
-PROBABILITY DOUBLE_AGENTS 3
-PROBABILITY KING_DISK 4
-PROBABILITY NUCLEAR 2
+PROBABILITY TRAITORCHAN 2
+PROBABILITY DOUBLE_AGENTS 2
+PROBABILITY KING_DISK 2
+PROBABILITY NUCLEAR 3
 PROBABILITY REVOLUTION 2
 PROBABILITY SHADOWLING 2
-PROBABILITY GANG 2
+PROBABILITY GANG 3
 PROBABILITY CULT 2
 PROBABILITY CHANGELING 2
 PROBABILITY WIZARD 4
-PROBABILITY MALFUNCTION 1
-PROBABILITY BLOB 2
-PROBABILITY RAGINMAGES 2
+PROBABILITY MALFUNCTION 2
+PROBABILITY ABDUCTION 3
+PROBABILITY BLOB 0
+PROBABILITY RAGINMAGES 0
 PROBABILITY MONKEY 0
 PROBABILITY METEOR 0
 PROBABILITY EXTENDED 0
@@ -106,7 +113,6 @@ PROBABILITY SANDBOX 0
 CONTINUOUS TRAITOR
 CONTINUOUS TRAITORCHAN
 CONTINUOUS DOUBLE_AGENTS
-CONTINUOUS KING_DISK
 #CONTINUOUS NUCLEAR
 #CONTINUOUS REVOLUTION
 #CONTINUOUS SHADOWLING
@@ -114,8 +120,10 @@ CONTINUOUS GANG
 CONTINUOUS CULT
 CONTINUOUS CHANGELING
 CONTINUOUS WIZARD
+CONTINUOUS KING_DISK
 CONTINUOUS MALFUNCTION
 CONTINUOUS BLOB
+CONTINUOUS ABDUCTION
 #CONTINUOUS RAGINMAGES
 #CONTINUOUS MONKEY
 
@@ -137,8 +145,9 @@ MIDROUND_ANTAG KING_DISK
 #MIDROUND_ANTAG  SHADOWLING
 #MIDROUND_ANTAG  GANG
 MIDROUND_ANTAG CULT
+MIDROUND_ANTAG ABDUCTION
 MIDROUND_ANTAG CHANGELING
-MIDROUND_ANTAG WIZARD
+#MIDROUND_ANTAG WIZARD
 MIDROUND_ANTAG MALFUNCTION
 MIDROUND_ANTAG BLOB
 #MIDROUND_ANTAG  RAGINMAGES
@@ -161,11 +170,11 @@ SECURITY_SCALING_COEFF 8
 
 # The number of objectives traitors get.
 # Not including escaping/hijacking.
-TRAITOR_OBJECTIVES_AMOUNT 2
+TRAITOR_OBJECTIVES_AMOUNT 3
 
 ## Uncomment to prohibit jobs that start with loyalty
 ## implants from being most antagonists.
-#PROTECT_ROLES_FROM_ANTAGONIST
+PROTECT_ROLES_FROM_ANTAGONIST
 
 ## Uncomment to prohibit assistants from becoming most antagonists.
 #PROTECT_ASSISTANT_FROM_ANTAGONIST
@@ -180,6 +189,7 @@ ALLOW_LATEJOIN_ANTAGONISTS
 #SHOW_GAME_TYPE_ODDS
 
 ### RANDOM EVENTS ###
+
 ## Comment this to disable random events during the round.
 ALLOW_RANDOM_EVENTS
 
@@ -217,7 +227,7 @@ GATEWAY_DELAY 18000
 ## If the number of players ready at round starts exceeds this threshold, JOBS_HAVE_MINIMAL_ACCESS will automatically be enabled. Otherwise, it will be disabled.
 ## This is useful for accomodating both low and high population rounds on the same server.
 ## Comment out or set to 0 to disable this automatic toggle.
-MINIMAL_ACCESS_THRESHOLD 20
+MINIMAL_ACCESS_THRESHOLD 15
 
 ## Comment this out if you wish to use the setup where jobs have more access.
 ## This is intended for servers with low populations - where there are not enough
@@ -226,7 +236,7 @@ MINIMAL_ACCESS_THRESHOLD 20
 #JOBS_HAVE_MINIMAL_ACCESS
 
 ## Uncomment to give assistants maint access.
-#ASSISTANTS_HAVE_MAINT_ACCESS
+ASSISTANTS_HAVE_MAINT_ACCESS
 
 ## Uncoment to give security maint access. Note that if you comment JOBS_HAVE_MINIMAL_ACCESS security already gets maint from that.
 #SECURITY_HAS_MAINT_ACCESS
@@ -240,7 +250,7 @@ SEC_START_BRIG
 
 ### GHOST INTERACTION ###
 ## Uncomment to let ghosts spin chairs. You may be wondering why this is a config option. Don't ask.
-#GHOST_INTERACTION
+GHOST_INTERACTION
 
 ### NON-VOCAL SILICONS ###
 ## Uncomment to stop the AI, or cyborgs, from having vocal communication.
@@ -259,16 +269,15 @@ SEC_START_BRIG
 ## Set to 0/commented for "off", silicons will just start with Asimov.
 ## Set to 1 for "custom", silicons will start with the custom laws defined in silicon_laws.txt. (If silicon_laws.txt is empty, the AI will spawn with asimov and Custom boards will auto-delete.)
 ## Set to 2 for "random", silicons will start with a random lawset picked from (at the time of writing): P.A.L.A.D.I.N., Corporate, Asimov. More can be added by changing the law datum paths in ai_laws.dm.
-DEFAULT_LAWS 1
+DEFAULT_LAWS 2
 
 ### SILICON LAW MAX AMOUNT ###
 ## The maximum number of laws a silicon can have
 ## Attempting to upload laws past this point will fail unless the AI is reset
-SILICON_MAX_LAW_AMOUNT 12
+SILICON_MAX_LAW_AMOUNT 20
 
 ## Uncomment to give players the choice of their species before they join the game
 JOIN_WITH_MUTANT_RACE
-
 
 ## Roundstart Races
 ##-------------------------------------------------------------------------------------------
@@ -321,7 +330,7 @@ ASSISTANT_CAP -1
 #STARLIGHT
 
 ## Uncomment to bring back old grey suit assistants instead of the now default rainbow colored assistants.
-#GREY_ASSISTANTS
+GREY_ASSISTANTS
 
 ### Midround Antag (aka Mulligan antag) config options ###
 
@@ -346,14 +355,47 @@ REACTIONARY_EXPLOSIONS
 ## This caps all explosions to the specified range. Used for both balance reasons and to prevent overloading the server and lagging the game out.
 ## This is given as the 3rd number(light damage) in the standard (1,2,3) explosion notation. The other numbers are derived by dividing by 2 and 4.
 ## eg: If you give the number 20. The bomb cap will be 5,10,20.
-## Can be any number above 4, some examples are provided below.
+## Can be any number between 4 and 128, some examples are provided below.
 
-## Small (3, 7, 14)
+## Default (3,7,14)
 #BOMBCAP 14
-## Default (5, 10, 20) (recommended if you enable REACTIONARY_EXPLOSIONS above)
-BOMBCAP 20
-## LagHell (7, 14, 28)
+## One 'step' up (4,8,16) (recommended if you enable REACTIONARY_EXPLOSIONS above)
+BOMBCAP 16
+## LagHell (7,14,28)
 #BOMBCAP 28
+
+### Template Configuration
+
+##The min and max amount of potential space objects
+
+place_amount_min 1
+
+place_amount_max 3
+
+## The Z-levels used for Z-level generation
+
+zs 6
+
+zs 7
+
+## These objects will be placed last
+
+place_last /obj/machinery/power/apc
+place_last /obj/structure/cable
+place_last /obj/machinery/light_switch
+place_last /obj/machinery/disposal
+place_last /obj/machinery/atmospherics/unary/vent_pump
+place_last /obj/machinery/atmospherics/unary/vent_scrubber
+place_last /obj/machinery/disposalpipe/segment
+place_last /obj/structure/lattice
+
+## number of attempts when placing a structure
+
+tries 10
+
+## Directory for template files
+
+directory _maps\templates
 
 
 ## Lavaland "Budget"
