@@ -2247,7 +2247,7 @@
 /turf/open/floor/plasteel,
 /area/mine/laborcamp/security)
 "gn" = (
-/obj/structure/chair/office/dark,
+/obj/item/clothing/head/helmet/space/syndicate/green/dark,
 /obj/structure/cable{
 	d1 = 1;
 	d2 = 2;
