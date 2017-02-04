@@ -15,7 +15,7 @@
 		#include "map_files\generic\z9.dmm"
 		#include "map_files\generic\z10.dmm"
 		#include "map_files\generic\z11.dmm"
-		#include "map_files\generic\z12 old mining.dmm"
+		//#include "map_files\generic\z12 old mining.dmm" -- This breaks so much shit.
 
 		#define MAP_PATH "map_files/TgStation2"
         #define MAP_FILE "tgstation.2.1.3.dmm"
