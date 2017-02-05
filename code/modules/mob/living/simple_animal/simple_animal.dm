@@ -52,6 +52,7 @@
 	var/attack_sound = null
 	var/friendly = "nuzzles" //If the mob does no damage with it's attack
 	var/environment_smash = 0 //Set to 1 to allow breaking of crates,lockers,racks,tables; 2 for walls; 3 for Rwalls
+	var/mob_reflect_chance = 0
 
 	var/speed = 1 //LETS SEE IF I CAN SET SPEEDS FOR SIMPLE MOBS WITHOUT DESTROYING EVERYTHING. Higher speed is slower, negative speed is faster
 
@@ -277,11 +278,29 @@
 		attack_threshold_check(damage,M.melee_damage_type)
 		return 1
 
-/mob/living/simple_animal/bullet_act(obj/item/projectile/Proj)
-	if(!Proj)
+/mob/living/simple_animal/bullet_act(obj/item/projectile/P)
+	if(!P)
 		return
-	apply_damage(Proj.damage, Proj.damage_type)
-	Proj.on_hit(src)
+	if(prob(mob_reflect_chance))
+		visible_message("<span class='danger'>The [P.name] gets reflected by [name]!</span>")
+		if(P.starting)
+			var/new_x = P.starting.x + pick(0, 0, 0, 0, 0, -1, 1, -2, 2)
+			var/new_y = P.starting.y + pick(0, 0, 0, 0, 0, -1, 1, -2, 2)
+			var/turf/curloc = get_turf(src)
+
+			P.original = locate(new_x, new_y, P.z)
+			P.starting = curloc
+			P.current = curloc
+			P.firer = src
+			P.yo = new_y - curloc.y
+			P.xo = new_x - curloc.x
+			P.Angle = ""
+
+		return -1
+
+
+	apply_damage(P.damage, P.damage_type)
+	P.on_hit(src)
 	return 0
 
 /mob/living/simple_animal/proc/adjustHealth(amount)
